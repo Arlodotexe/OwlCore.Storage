@@ -1,10 +1,25 @@
 # OwlCore.Storage
 
+[![Version](https://img.shields.io/nuget/v/OwlCore.Storage.svg)](https://www.nuget.org/packages/OwlCore.Storage)
+
 ### This package enables early adoption of CommunityToolkit.Storage, a package in the [proposal](https://github.com/CommunityToolkit/Labs-Windows/discussions/229) stage in [Toolkit Labs](https://github.com/CommunityToolkit/Labs-Windows). 
 
 When the Labs experiment is merged, this repo will be archived and succeeded by the Labs package. The namespaces will change, and adapter classes with 100% compatability will be provided.
 
-Below is a recent copy of the proposal.
+## Getting started
+
+Published releases are available on [NuGet](https://www.nuget.org/packages/OwlCore.Storage).  To install, run the following command in the [Package Manager Console](https://docs.nuget.org/docs/start-here/using-the-package-manager-console).
+
+    PM> Install-Package OwlCore.Storage
+    
+Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
+
+    > dotnet add package OwlCore.Storage
+
+
+Below is a recent copy of the proposal. Or, [visit the proposal directly](https://github.com/CommunityToolkit/Labs-Windows/discussions/229)
+
+---
 
 ---
 
