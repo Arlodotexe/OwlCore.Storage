@@ -18,7 +18,7 @@
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
-		This package allows early adoption of the interfaces being developed in an active proposal for a CommunityToolkit.Storage package in CommunityToolkit/dotnet. 
+		This package enables early adoption of CommunityToolkit.Storage, a proposed package in Toolkit Labs, eventually to end up in CommunityToolkit/dotnet on GitHub. 
     </Description>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
