@@ -27,7 +27,6 @@ public static class FolderExtensions
     /// <returns></returns>
     public static IAsyncEnumerable<IFolder> GetFoldersAsync(this IFolder folder, CancellationToken cancellationToken = default) => folder.GetItemsAsync(StorableType.Folder, cancellationToken).Cast<IFolder>();
 
-
     /// <summary>
     /// Retrieves the <see cref="IStorable"/> item which has the provided <paramref name="id"/>.
     /// </summary>
