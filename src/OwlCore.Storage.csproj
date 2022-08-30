@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.0.0</Version>
+		<Version>0.1.0</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,6 +23,10 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.1.0 ---
+[New]
+Added all missing interfaces and extension methods from proposal.
+      
 --- 0.0.0 ---
 [New]
 Initial release of OwlCore.Storage.
