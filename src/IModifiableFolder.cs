@@ -6,7 +6,7 @@ namespace OwlCore.Storage;
 /// <summary>
 /// Represents a folder that can be modified.
 /// </summary>
-public interface IModifiableFolder  : IMutableFolder 
+public interface IModifiableFolder : IMutableFolder 
 {
     /// <summary>
     /// Deletes the provided storable item from this folder.
