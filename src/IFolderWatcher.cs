@@ -8,4 +8,8 @@ namespace OwlCore.Storage;
 /// </summary>
 public interface IFolderWatcher : INotifyCollectionChanged, IDisposable, IAsyncDisposable
 {
+    /// <summary>
+    /// The folder being watched for changes.
+    /// </summary>
+    public IMutableFolder Folder { get; }
 }
