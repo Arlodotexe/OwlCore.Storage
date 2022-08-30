@@ -37,6 +37,7 @@ public class SystemFile : IAddressableFile
     public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
         var stream = File.Open(Path, FileMode.Open, accessMode);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return Task.FromResult<Stream>(stream);
     }
