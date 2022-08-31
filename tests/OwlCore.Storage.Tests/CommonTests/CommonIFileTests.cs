@@ -7,22 +7,22 @@ namespace OwlCore.Storage.Tests.SystemIO
         /// <summary>
         /// Call the constructor using valid input parameters.
         /// </summary>
-        public abstract Task<IFile> CreateInstance_ValidParameters();
+        public abstract Task<IFile> CreateFile();
 
         /// <summary>
         /// Call the constructor using invalid input parameters, such as a wrong path.
         /// </summary>
-        public abstract Task<IFile> CreateInstance_InvalidParameters();
+        public abstract Task<IFile> CreateFileWithInvalidParameters();
         
         [TestMethod]
-        public virtual Task ConstructorCall_ValidParameters()
+        public Task ConstructorCall_ValidParameters()
         {
             // Shouldn't throw when constructor is called.
-            return CreateInstance_ValidParameters();
+            return CreateFile();
         }
         
         [TestMethod]
-        public virtual async Task ConstructorCall_InvalidParameters()
+        public async Task ConstructorCall_InvalidParameters()
         {
             // Should throw any exception when constructor is called with invalid params.
             // The specific exceptions that can be thrown by the constructor (and ONLY the constructor)
@@ -31,7 +31,7 @@ namespace OwlCore.Storage.Tests.SystemIO
 
             try
             {
-                await CreateInstance_InvalidParameters();
+                await CreateFileWithInvalidParameters();
             }
             catch (Exception)
             {
@@ -42,12 +42,20 @@ namespace OwlCore.Storage.Tests.SystemIO
                 Assert.IsTrue(thrown);
             }
         }
+
+        [TestMethod]
+        public async Task IdNotNullOrWhiteSpace()
+        {
+            var file = await CreateFile();
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(file.Id));
+        }
         
         [TestMethod]
         [AllEnumFlagCombinations(typeof(FileAccess))]
-        public virtual async Task OpenStreamAndTryEachAccessMode(FileAccess accessMode)
+        public async Task OpenStreamAndTryEachAccessMode(FileAccess accessMode)
         {
-            var file = await CreateInstance_ValidParameters();
+            var file = await CreateFile();
 
             if (accessMode == 0)
             {
@@ -71,11 +79,11 @@ namespace OwlCore.Storage.Tests.SystemIO
         
         [TestMethod]
         [AllEnumFlagCombinations(typeof(FileAccess))]
-        public virtual async Task OpenStreamWithEachAccessModeAndCancelToken(FileAccess accessMode)
+        public async Task OpenStreamWithEachAccessModeAndCancelToken(FileAccess accessMode)
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var file = await CreateInstance_ValidParameters();
+            var file = await CreateFile();
 
             if (accessMode == 0)
             {

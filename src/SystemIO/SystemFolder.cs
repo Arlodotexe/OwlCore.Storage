@@ -52,10 +52,17 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     /// <inheritdoc />
     public async IAsyncEnumerable<IStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (type == StorableType.None)
+            throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
+
         if (type.HasFlag(StorableType.All))
         {
             foreach (var item in Directory.EnumerateFileSystemEntries(Path))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (item is null)
                     continue;
 
@@ -73,6 +80,8 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         {
             foreach (var file in Directory.EnumerateFiles(Path))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (file is null)
                     continue;
 
@@ -84,6 +93,8 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         {
             foreach (var folder in Directory.EnumerateDirectories(Path))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (folder is null)
                     continue;
 
@@ -220,7 +231,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         return Task.FromResult<IAddressableFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
     }
 
-    private static bool IsFile(string path) => System.IO.Path.GetFileName(path) is { } str && str != string.Empty;
+    private static bool IsFile(string path) => System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);
 
-    private static bool IsFolder(string path) => path.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar) == System.IO.Path.GetDirectoryName(path);
+    private static bool IsFolder(string path) => Directory.Exists(path);
 }

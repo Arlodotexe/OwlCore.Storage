@@ -6,7 +6,7 @@ namespace OwlCore.Storage.Tests.SystemIO
     public class IFileTests : CommonIFileTests
     {
         // Required for base class to perform common tests.
-        public override async Task<IFile> CreateInstance_ValidParameters()
+        public override async Task<IFile> CreateFile()
         {
             var filePath = await GenerateRandomFile(256_000);
             return new SystemFile(filePath);
@@ -35,9 +35,6 @@ namespace OwlCore.Storage.Tests.SystemIO
         }
 
         // Required for base class to perform common tests.
-        public override Task<IFile> CreateInstance_InvalidParameters()
-        {
-            return Task.FromResult<IFile>(new SystemFile(Guid.NewGuid().ToString()));
-        }
+        public override Task<IFile> CreateFileWithInvalidParameters() => Task.FromResult<IFile>(new SystemFile(Guid.NewGuid().ToString()));
     }
 }
