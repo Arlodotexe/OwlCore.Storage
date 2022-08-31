@@ -118,7 +118,7 @@ public abstract class CommonIFolderTests
         Assert.AreEqual(0, otherReturnedItemCount, "Unknown object types were returned.");
     }
 
-    [TestMethod, Timeout(10)]
+    [TestMethod]
     [AllEnumFlagCombinations(typeof(StorableType))]
     public async Task GetItemsAsync_AllCombinations_ImmediateTokenCancellation(StorableType type)
     {
