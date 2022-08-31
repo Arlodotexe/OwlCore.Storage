@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Nullable>enable</Nullable>
@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.1.0</Version>
+		<Version>0.2.0</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,6 +23,21 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.2.0 ---
+THIS IS A BREAKING RELEASE.
+Update asap, and do not use older versions.
+We will switch to pure semver2.0 once a stable 1.0.0 released is made.
+
+[Breaking]
+Due to the wildly different strategies that could be used for generic recursive folder moving/copying, IModifiableFolder.CreateCopyOfAsync and IModifiableFolder.MoveFromAsync now exclusively handle files. This may be added back later as a fast-path interface + extension method.
+
+A new property has been added to the IFolderWatcher interface. Supplying the folder which is being observed is now a requirement. The "sender" in the INotifyCollectionChanged handler should be the watcher instead of the folder, meaning the folder can't be accessed from event handlers unless the watcher supplies it. 
+
+[New]
+OwlCore.Storage.SimpleStorableItem has been added, a minimum possible implementation of IStorable. This is useful in scenarios when you need to identify a resource but shouldn't supply any access to it, such as when a file or folder is removed.
+
+We've started adding inbox interface implementations, starting with System.IO, under the namespace OwlCore.Storage.SystemIO.
+
 --- 0.1.0 ---
 [New]
 Added all missing interfaces and extension methods from proposal.
