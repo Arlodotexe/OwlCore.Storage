@@ -1,52 +1,25 @@
 using OwlCore.Extensions;
 
-namespace OwlCore.Storage.Tests.SystemIO
+namespace OwlCore.Storage.Tests.CommonTests
 {
     public abstract class CommonIFileTests
     {
         /// <summary>
         /// Call the constructor using valid input parameters.
         /// </summary>
-        public abstract Task<IFile> CreateFile();
-
-        /// <summary>
-        /// Call the constructor using invalid input parameters, such as a wrong path.
-        /// </summary>
-        public abstract Task<IFile> CreateFileWithInvalidParameters();
+        public abstract Task<IFile> CreateFileAsync();
         
         [TestMethod]
         public Task ConstructorCall_ValidParameters()
         {
             // Shouldn't throw when constructor is called.
-            return CreateFile();
-        }
-        
-        [TestMethod]
-        public async Task ConstructorCall_InvalidParameters()
-        {
-            // Should throw any exception when constructor is called with invalid params.
-            // The specific exceptions that can be thrown by the constructor (and ONLY the constructor)
-            // are decided by the implementation, not the interface.
-            var thrown = false;
-
-            try
-            {
-                await CreateFileWithInvalidParameters();
-            }
-            catch (Exception)
-            {
-                thrown = true;
-            }
-            finally
-            {
-                Assert.IsTrue(thrown);
-            }
+            return CreateFileAsync();
         }
 
         [TestMethod]
         public async Task IdNotNullOrWhiteSpace()
         {
-            var file = await CreateFile();
+            var file = await CreateFileAsync();
 
             Assert.IsFalse(string.IsNullOrWhiteSpace(file.Id));
         }
@@ -55,7 +28,7 @@ namespace OwlCore.Storage.Tests.SystemIO
         [AllEnumFlagCombinations(typeof(FileAccess))]
         public async Task OpenStreamAndTryEachAccessMode(FileAccess accessMode)
         {
-            var file = await CreateFile();
+            var file = await CreateFileAsync();
 
             if (accessMode == 0)
             {
@@ -83,7 +56,7 @@ namespace OwlCore.Storage.Tests.SystemIO
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var file = await CreateFile();
+            var file = await CreateFileAsync();
 
             if (accessMode == 0)
             {

@@ -1,4 +1,5 @@
 using OwlCore.Storage.SystemIO;
+using OwlCore.Storage.Tests.CommonTests;
 
 namespace OwlCore.Storage.Tests.SystemIO;
 
@@ -6,17 +7,11 @@ namespace OwlCore.Storage.Tests.SystemIO;
 public class IFolderTests : CommonIFolderTests
 {
     // Required for base class to perform common tests.
-    public override Task<IFolder> CreateFolder()
+    public override Task<IFolder> CreateFolderAsync()
     {
         var directoryInfo = Directory.CreateDirectory(Path.GetTempPath());
 
         return Task.FromResult<IFolder>(new SystemFolder(directoryInfo.FullName));
-    }
-
-    // Required for base class to perform common tests.
-    public override Task<IFolder> CreateFolderUsingInvalidParameters()
-    {
-        return Task.FromResult<IFolder>(new SystemFolder(Guid.NewGuid().ToString()));
     }
 
     public override Task<IFolder> CreateFolderWithItems(int fileCount, int folderCount)

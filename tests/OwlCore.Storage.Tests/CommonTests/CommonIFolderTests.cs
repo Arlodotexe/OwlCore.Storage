@@ -1,19 +1,14 @@
-namespace OwlCore.Storage.Tests.SystemIO;
+namespace OwlCore.Storage.Tests.CommonTests;
 
 public abstract class CommonIFolderTests
 {
     /// <summary>
     /// Call the constructor using valid input parameters.
     /// </summary>
-    public abstract Task<IFolder> CreateFolder();
+    public abstract Task<IFolder> CreateFolderAsync();
 
     /// <summary>
-    /// Call the constructor using invalid input parameters, such as a wrong path.
-    /// </summary>
-    public abstract Task<IFolder> CreateFolderUsingInvalidParameters();
-
-    /// <summary>
-    /// Call the constructor using invalid input parameters, such as a wrong path.
+    /// Creates a folder with items in it.
     /// </summary>
     public abstract Task<IFolder> CreateFolderWithItems(int fileCount, int folderCount);
 
@@ -21,35 +16,13 @@ public abstract class CommonIFolderTests
     public Task ConstructorCall_ValidParameters()
     {
         // Shouldn't throw when constructor is called.
-        return CreateFolder();
-    }
-
-    [TestMethod]
-    public async Task ConstructorCall_InvalidParameters()
-    {
-        // Should throw any exception when constructor is called with invalid params.
-        // The specific exceptions that can be thrown by the constructor (and ONLY the constructor)
-        // are decided by the implementation, not the interface.
-        var thrown = false;
-
-        try
-        {
-            await CreateFolderUsingInvalidParameters();
-        }
-        catch (Exception)
-        {
-            thrown = true;
-        }
-        finally
-        {
-            Assert.IsTrue(thrown);
-        }
+        return CreateFolderAsync();
     }
 
     [TestMethod]
     public async Task HasValidName()
     {
-        var folder = await CreateFolder();
+        var folder = await CreateFolderAsync();
 
         Assert.IsFalse(string.IsNullOrWhiteSpace(folder.Name));
     }
@@ -57,7 +30,7 @@ public abstract class CommonIFolderTests
     [TestMethod]
     public async Task HasValidId()
     {
-        var folder = await CreateFolder();
+        var folder = await CreateFolderAsync();
 
         Assert.IsFalse(string.IsNullOrWhiteSpace(folder.Id));
         Assert.AreNotEqual(folder.Name, folder.Id, "Names should not be used as an unique identifier. Use something more specific.");
@@ -125,7 +98,7 @@ public abstract class CommonIFolderTests
         var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
 
-        var folder = await CreateFolder();
+        var folder = await CreateFolderAsync();
 
         await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () => await folder.GetItemsAsync(type, cancellationTokenSource.Token).ToListAsync(cancellationToken: cancellationTokenSource.Token), "Does not cancel immediately if a canceled token is passed.");
     }
