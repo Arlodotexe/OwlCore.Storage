@@ -27,7 +27,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             throw new FileNotFoundException($"Directory not found at path {path}");
 
         Id = path;
-        Name = System.IO.Path.GetDirectoryName(path) ?? throw new ArgumentException($"Could not determine directory name from path {path}");
+        Name = System.IO.Path.GetFileName(path) ?? throw new ArgumentException($"Could not determine directory name from path {path}");
         Path = path;
     }
 
