@@ -222,7 +222,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         if (overwrite)
             File.Delete(newPath);
 
-        File.Create(newPath);
+        File.Create(newPath).Dispose();
         return Task.FromResult<IFile>(new SystemFile(newPath));
     }
 
