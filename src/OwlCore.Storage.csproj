@@ -23,6 +23,12 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.3.2 ---
+[Fixes]
+Fixed SystemFolder not extracting the folder name from the path correctly.
+Fixed SystemFile.OpenStreamAsync failing when call on a file returned from System.CreateFileAsync
+Fixed an issue with SystemFileWatcher where it couldn't reliably determine if an arbitrary path is a File or a Folder.
+
 --- 0.3.1 ---
 [Fixes]
 Fixed a crash that may occur when calling SystemFolder.CreateCopyOfAsync, when the stream of the file being copied doesn't support seeking.
