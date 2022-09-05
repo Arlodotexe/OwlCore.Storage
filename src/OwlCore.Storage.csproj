@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.3.0</Version>
+		<Version>0.3.1</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,6 +23,10 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.3.1 ---
+[Fixes]
+Fixed a crash that may occur when calling SystemFolder.CreateCopyOfAsync, when the stream of the file being copied doesn't support seeking.
+
 --- 0.3.0 ---
 [New]
 Added MemoryFile and MemoryFolder under OwlCore.Storage.Memory.

@@ -164,13 +164,14 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         }
 
         // Manual file copy. Slower, but covers all other scenarios.
-        using var stream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
-        stream.Position = 0;
+        using var sourceStream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
+
+        if (sourceStream.CanSeek)
+            sourceStream.Seek(0, SeekOrigin.Begin);
 
         using var destinationStream = File.Create(newPath);
 
-        destinationStream.Position = 0;
-        await stream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
+        await sourceStream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
 
         return new SystemFile(newPath);
     }
