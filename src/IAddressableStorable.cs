@@ -16,5 +16,5 @@ public interface IAddressableStorable : IStorable
     /// <summary>
     /// Gets the containing folder for this item, if any.
     /// </summary>
-    public Task<IAddressableFolder?> GetParentAsync(CancellationToken cancellationToken = default); 
+    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default); 
 }

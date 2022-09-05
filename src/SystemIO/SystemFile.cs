@@ -42,8 +42,8 @@ public class SystemFile : IAddressableFile
     }
 
     /// <inheritdoc />
-    public Task<IAddressableFolder?> GetParentAsync(CancellationToken cancellationToken = default)
+    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult<IAddressableFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
+        return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
     }
 }
