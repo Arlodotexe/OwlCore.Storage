@@ -109,8 +109,8 @@ namespace OwlCore.Storage.SystemIO
             throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {path}");
         }
 
-        private static bool IsFile(string path) => Path.GetFileName(path) != string.Empty;
+        private static bool IsFile(string path) => Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);
 
-        private static bool IsFolder(string path) => path.TrimEnd(Path.PathSeparator, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) == Path.GetDirectoryName(path);
+        private static bool IsFolder(string path) => Directory.Exists(path);
     }
 }
