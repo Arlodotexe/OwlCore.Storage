@@ -16,16 +16,16 @@ public static class FolderExtensions
     /// </summary>
     /// <param name="folder">The folder to get files from.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
-    /// <returns></returns>
-    public static IAsyncEnumerable<IFile> GetFilesAsync(this IFolder folder, CancellationToken cancellationToken = default) => folder.GetItemsAsync(StorableType.File, cancellationToken).Cast<IFile>();
+    /// <returns>An async enumerable which yields the files in the provided folder.</returns>
+    public static IAsyncEnumerable<IAddressableFile> GetFilesAsync(this IFolder folder, CancellationToken cancellationToken = default) => folder.GetItemsAsync(StorableType.File, cancellationToken).Cast<IAddressableFile>();
 
     /// <summary>
     /// Retrieves all files from the provided <see cref="IFolder"/>.
     /// </summary>
     /// <param name="folder">The folder to get files from.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
-    /// <returns></returns>
-    public static IAsyncEnumerable<IFolder> GetFoldersAsync(this IFolder folder, CancellationToken cancellationToken = default) => folder.GetItemsAsync(StorableType.Folder, cancellationToken).Cast<IFolder>();
+    /// <returns>An async enumerable which yields the folders in the provided folder.</returns>
+    public static IAsyncEnumerable<IAddressableFolder> GetFoldersAsync(this IFolder folder, CancellationToken cancellationToken = default) => folder.GetItemsAsync(StorableType.Folder, cancellationToken).Cast<IAddressableFolder>();
 
     /// <summary>
     /// Retrieves the <see cref="IStorable"/> item which has the provided <paramref name="id"/>.
@@ -33,9 +33,9 @@ public static class FolderExtensions
     /// <param name="folder">The folder to get items from.</param>
     /// <param name="id">The <see cref="IStorable.Id"/> of the storable item to retrieve.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
-    /// <returns>The relevant</returns>
+    /// <returns>An async enumerable which yields the items in the provided folder.</returns>
     /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
-    public static async Task<IStorable> GetItemAsync(this IFolder folder, string id, CancellationToken cancellationToken = default)
+    public static async Task<IAddressableStorable> GetItemAsync(this IFolder folder, string id, CancellationToken cancellationToken = default)
     {
         if (folder is IFolderCanFastGetItem fastPath)
             return await fastPath.GetItemAsync(id, cancellationToken);

@@ -50,7 +50,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     public string Path { get; }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<IStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -104,7 +104,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public Task<IStorable> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public Task<IAddressableStorable> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
         if (IsFile(id))
@@ -116,7 +116,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             if (!File.Exists(fullPath))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
 
-            return Task.FromResult<IStorable>(new SystemFile(fullPath));
+            return Task.FromResult<IAddressableStorable>(new SystemFile(fullPath));
         }
 
         if (IsFolder(id))
@@ -127,7 +127,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             if (containingDirectory != Path || !Directory.Exists(id))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
 
-            return Task.FromResult<IStorable>(new SystemFile(id));
+            return Task.FromResult<IAddressableStorable>(new SystemFile(id));
         }
 
         throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
@@ -140,7 +140,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync(IStorable item, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(IAddressableStorable item, CancellationToken cancellationToken = default)
     {
         if (IsFolder(item.Id))
             Directory.Delete(item.Id);
@@ -152,7 +152,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public async Task<IFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IAddressableFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, fileToCopy.Name);
 
@@ -177,7 +177,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public async Task<IFile> MoveFromAsync(IFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IAddressableFile> MoveFromAsync(IAddressableFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, fileToMove.Name);
 
@@ -201,7 +201,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public Task<IFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public Task<IAddressableFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, name);
 
@@ -210,11 +210,11 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             File.Delete(newPath);
 
         Directory.CreateDirectory(newPath);
-        return Task.FromResult<IFolder>(new SystemFolder(newPath));
+        return Task.FromResult<IAddressableFolder>(new SystemFolder(newPath));
     }
 
     /// <inheritdoc />
-    public Task<IFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, name);
 
@@ -223,7 +223,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             File.Delete(newPath);
 
         File.Create(newPath).Dispose();
-        return Task.FromResult<IFile>(new SystemFile(newPath));
+        return Task.FromResult<IAddressableFile>(new SystemFile(newPath));
     }
 
     /// <inheritdoc />

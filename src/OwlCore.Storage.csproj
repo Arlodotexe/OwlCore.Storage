@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.4.0</Version>
+		<Version>0.5.0</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,12 +23,27 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.5.0 ---
+THIS IS A BREAKING RELEASE
+Update asap, and do not use older versions.
+
+[Breaking]
+Items in a folder always have a parent, so they're always addressable. We've updated the interfaces and inbox implementations to reflect this.
+
+IFolder.GetItemsAsync() now returns IAddressableStorable instead of IStorable.
+IModifiableFolder.CreateCopyOfAsync now returns IAddressableFile instead of IFile.
+IModifiableFolder.MoveFromAsync now returns IAddressableFile instead of IFile.
+IModifiableFolder.MoveFromAsync now takes IAddressableFile instead of IFile as the first parameter.
+IModifiableFolder.CreateFileAsync now returns IAddressableFile instead of IFile.
+IModifiableFolder.CreateFolderAsync now returns IAddressableFolder instead of IFolder.
+IModifiableFolder.DeleteAsync now takes IAddressableStorable instead of IStorable as the first parameter.
+
 --- 0.4.0 ---
 THIS IS A BREAKING RELEASE
 Update asap, and do not use older versions.
 
 [Breaking]
-IAddressableStorable.GetParentAsync() now returns IFolder? instead of IAddressableFolder?. Any type of folder could yield an IAddressableStorable, so we've made sure the parent of any IAddressableStorable can be any type of folder. To
+IAddressableStorable.GetParentAsync() now returns IFolder? instead of IAddressableFolder?. Any type of folder could yield an IAddressableStorable, so we've made sure the parent of any IAddressableStorable can be any type of folder.
 
 To migrate, simply change the return type of IAddressableStorable.GetParentAsync() to IFolder? in your implementations. No other changes are required.
 
