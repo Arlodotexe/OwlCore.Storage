@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.3.2</Version>
+		<Version>0.4.0</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,6 +23,15 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.4.0 ---
+THIS IS A BREAKING RELEASE
+Update asap, and do not use older versions.
+
+[Breaking]
+IAddressableStorable.GetParentAsync() now returns IFolder? instead of IAddressableFolder?. Any type of folder could yield an IAddressableStorable, so we've made sure the parent of any IAddressableStorable can be any type of folder. To
+
+To migrate, simply change the return type of IAddressableStorable.GetParentAsync() to IFolder? in your implementations. No other changes are required.
+
 --- 0.3.2 ---
 [Fixes]
 Fixed SystemFolder not extracting the folder name from the path correctly.
