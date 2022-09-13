@@ -1,5 +1,5 @@
 using OwlCore.Storage.SystemIO;
-using OwlCore.Storage.Tests.CommonTests;
+using OwlCore.Storage.CommonTests;
 
 namespace OwlCore.Storage.Tests.SystemIO;
 
