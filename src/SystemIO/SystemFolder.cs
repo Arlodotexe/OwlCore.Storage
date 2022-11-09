@@ -35,7 +35,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     /// Creates a new instance of <see cref="SystemFolder"/>.
     /// </summary>
     /// <param name="directoryInfo">The directory to use.</param>
-    public SystemFolder(DirectoryInfo directoryInfo) 
+    public SystemFolder(DirectoryInfo directoryInfo)
         : this(directoryInfo.FullName)
     {
     }
@@ -192,7 +192,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
 
             return new SystemFile(newPath);
         }
-        
+
         // Manual move. Slower, but covers all other scenarios.
         var file = await CreateCopyOfAsync(fileToMove, overwrite, cancellationToken);
         await source.DeleteAsync(fileToMove, cancellationToken);
@@ -205,9 +205,8 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     {
         var newPath = System.IO.Path.Combine(Path, name);
 
-        // In all .NET versions, you can call Delete(String) before calling Move, which will only delete the file if it exists.
         if (overwrite)
-            File.Delete(newPath);
+            Directory.Delete(newPath);
 
         Directory.CreateDirectory(newPath);
         return Task.FromResult<IAddressableFolder>(new SystemFolder(newPath));
@@ -217,12 +216,10 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     public Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, name);
+        
+        if (overwrite || !File.Exists(newPath))
+            File.Create(newPath).Dispose();
 
-        // In all .NET versions, you can call Delete(String) before calling Move, which will only delete the file if it exists.
-        if (overwrite)
-            File.Delete(newPath);
-
-        File.Create(newPath).Dispose();
         return Task.FromResult<IAddressableFile>(new SystemFile(newPath));
     }
 

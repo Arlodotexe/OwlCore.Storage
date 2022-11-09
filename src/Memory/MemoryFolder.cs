@@ -128,7 +128,7 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
             _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(existingFolder.Value.Id, existingFolder.Value.Name));
         }
 
-        var folder = new AddressableMemoryFolder(name, new IFolder[] { this });
+        var folder = existingFolder.Value as AddressableMemoryFolder ?? new AddressableMemoryFolder(name, new IFolder[] { this });
 
         _folderContents.Add(folder.Id, folder);
         _folderWatcher.NotifyItemAdded(folder);
@@ -149,7 +149,7 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
             _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(existingFile.Value.Id, existingFile.Value.Name));
         }
 
-        var file = new AddressableMemoryFile(name, new MemoryStream(), new IFolder[] { this });
+        var file = existingFile.Value as AddressableMemoryFile ?? new AddressableMemoryFile(name, new MemoryStream(), new IFolder[] { this });
 
         _folderContents.Add(file.Id, file);
         _folderWatcher.NotifyItemAdded(file);
