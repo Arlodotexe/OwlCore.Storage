@@ -17,9 +17,12 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
     > dotnet add package OwlCore.Storage
 
 
-Below is a recent copy of the proposal. Or, [visit the proposal directly](https://github.com/CommunityToolkit/Labs-Windows/discussions/229)
-
+# Proposal
 ---
+
+Below is a recent copy of the proposal.
+
+Or, [visit the proposal directly](https://github.com/CommunityToolkit/Labs-Windows/discussions/229)
 
 ---
 
