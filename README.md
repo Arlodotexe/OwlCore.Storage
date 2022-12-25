@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/nuget/v/OwlCore.Storage.svg)](https://www.nuget.org/packages/OwlCore.Storage)
 
-### This package enables early adoption of CommunityToolkit.Storage, a package in the [proposal](https://github.com/CommunityToolkit/Labs-Windows/discussions/229) stage in [Toolkit Labs](https://github.com/CommunityToolkit/Labs-Windows). 
+#### This package enables early adoption of CommunityToolkit.Storage, a package in the [proposal](https://github.com/CommunityToolkit/Labs-Windows/discussions/229) stage in [Toolkit Labs](https://github.com/CommunityToolkit/Labs-Windows). 
 
 When the Labs experiment is merged, this repo will be archived and succeeded by the Labs package. The namespaces will change, and adapter classes with 100% compatability will be provided.
 
@@ -17,9 +17,12 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
     > dotnet add package OwlCore.Storage
 
 
-Below is a recent copy of the proposal. Or, [visit the proposal directly](https://github.com/CommunityToolkit/Labs-Windows/discussions/229)
-
+# Proposal
 ---
+
+Below is a recent copy of the proposal.
+
+Or, [visit the proposal directly](https://github.com/CommunityToolkit/Labs-Windows/discussions/229)
 
 ---
 
@@ -79,11 +82,11 @@ Plus countless **custom** HTTP based file systems. These are usually created in-
 - You can't easily mock a file system for unit tests, especially when code is hardcoded to a specific API.
 
 # History
-This started out as AbstractStorage in [OwlCore](https://www.nuget.org/packages/OwlCore/) in 2020. Based on the Windows StorageFile APIs and written in `netstandard2.0`, it was designed to be completely agnostic of any underlying platform or protocol.
+This started out as an experiment called AbstractStorage. It was a 1:1 recreation of the most used parts of the StorageFile APIs, but in .NET Standard 2.0, and was created in Strix Music v2 before being moved into [OwlCore](https://www.nuget.org/packages/OwlCore/), which enabled others to start using it and giving feedback.
 
-It's been incubating for a while in OwlCore, and is used by projects like Fluent Store, Strix Music, Quarrel, ZuneModdingHelper, and more.
+Over time, we gathered feedback from those in the UWP Community who were using it: Fluent Store, Strix Music, Quarrel, ZuneModdingHelper, etc. 
 
-I've learned a LOT from using and building for AbstractStorage, and gathering feedback from others who've used it.
+We learned a lot from the feedback we got, but the AbstractStorage experiment is now over. The next stage is in this proposal.
 
 # Proposal
 We'll use Labs to build a significantly improved version of AbstractStorage under the name `CommunityToolkit.Storage`, and work to bring our experiment to the .NET Community Toolkit.
@@ -97,6 +100,14 @@ _We can do better_.
 > This proposal has been updated. Based on feedback, some major amendments have been made. For all the details, see:
 > [Amendment 1](https://github.com/CommunityToolkit/Labs-Windows/discussions/229#discussioncomment-3283872): Getting folder contents
 > [Amendment 2](https://github.com/CommunityToolkit/Labs-Windows/discussions/229#discussioncomment-3391244): Storage properties
+
+---
+
+> **Note**
+> 
+> Due to popular request, we've made these interfaces (and a System.IO implementation) available for early adoption under [OwlCore.Storage](https://github.com/Arlodotexe/OwlCore.Storage).
+> 
+> Toolkit Labs doesn't have an NS2.0 project template yet, and the Toolkit team is generally focused on other things. It could be a while before a published experiment is ready.
 
 ## Minimum end goal
 Without sacrificing potential functionality or performance, we should strive to:
@@ -337,10 +348,17 @@ IFile newFile = await file.CopyToAsync(destination);
 public interface IMutableFolder : IFolder
 {
     /// <summary>
-    /// Raised when the contents of the folder are changed.
-    /// TODO: Put behind async method to accommodate for setting up change tracking (websocket, native filesystem, etc). Returned object should be disposable.
+    /// Asynchronously retrieves a disposable object which can notify of changes to the folder.
     /// </summary>
-    public EventHandler<CollectionChangeEventArgs<IStorable>> ContentsChanged;
+    /// <returns>A Task. The result is a disposable object which can notify of changes to the folder.</returns>
+    public Task<IFolderWatcher> GetFolderWatcherAsync(CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// A disposable object which can notify of changes to the folder.
+/// </summary>
+public interface IFolderWatcher : INotifyCollectionChanged, IDisposable, IAsyncDisposable
+{
 }
 
 /// <summary>
@@ -351,28 +369,42 @@ public interface IModifiableFolder  : IMutableFolder
     /// <summary>
     /// Deletes the provided storable item from this folder.
     /// </summary>
-    public Task DeleteAsync(IStorable item, bool permanantly = false, CancellationToken cancellationToken = default);
-    
+    /// <param name="item">The item to be removed from this folder.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task DeleteAsync(IStorable item, CancellationToken cancellationToken = default);
+
     /// <summary>
-    /// Creates a copy of the provided storable item in this folder.
-    /// See above for explainers on why this is here, instead of being on the file.
+    /// Creates a copy of the provided file within this folder.
     /// </summary>
-    public Task<IStorable> CreateCopyOfAsync(IStorable itemToCopy, CollisionOption collisionOption = default, CancellationToken cancellationToken = default);
-    
+    /// <param name="fileToCopy">The file to be copied into this folder.</param>
+    /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task<IStorable> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Moves a storable item out of the provided folder, and into this folder. Returns the new item that resides in this folder.
     /// </summary>
-    public Task<IStorable> MoveFromAsync(IStorable itemToMove, IModifiableFolder source, CollisionOption collisionOption = default, CancellationToken cancellationToken = default);
+    /// <param name="itemToMove">The storable item being moved into this folder.</param>
+    /// <param name="source">The folder that <paramref name="itemToMove"/> is being moved from.</param>
+    /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task<IStorable> MoveFromAsync(IStorable itemToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Creates a new folder with the desired name inside this folder.
     /// </summary>
-    public Task<IFolder?> CreateFolderAsync(string desiredName, CollisionOption collisionOption = default, CancellationToken cancellationToken = default);
+    /// <param name="name">The name of the new folder.</param>
+    /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task<IFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Creates a new file with the desired name inside this folder.
     /// </summary>
-    public Task<IFile?> CreateFileAsync(string desiredName, CollisionOption collisionOption = default, CancellationToken cancellationToken = default);
+    /// <param name="name">The name of the new file.</param>
+    /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task<IFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default);
 }
 ```
 
