@@ -4,25 +4,25 @@ using OwlCore.Storage.SystemIO;
 namespace OwlCore.Storage.Tests.SystemIO;
 
 [TestClass]
-public class IFolderTests : CommonIFolderTests
+public class IFolderTests : IModifiableFolderTests
 {
-    // Required for base class to perform common tests.
-    public override Task<IFolder> CreateFolderAsync()
+    public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
         var directoryInfo = Directory.CreateDirectory(Path.GetTempPath());
 
-        return Task.FromResult<IFolder>(new SystemFolder(directoryInfo.FullName));
+        return Task.FromResult<IModifiableFolder>(new SystemFolder(directoryInfo.FullName));
     }
 
-    public override Task<IFolder> CreateFolderWithItems(int fileCount, int folderCount)
+    public override Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
     {
         var tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempFolder);
+        var dir = Directory.CreateDirectory(tempFolder);
 
         for (var i = 0; i < fileCount; i++)
         {
             var path = Path.Combine(tempFolder, $"File.{i}.tmp");
-            using var _ = File.Create(path);
+            var file = File.Create(path);
+            file.Dispose();
         }
 
         for (var i = 0; i < folderCount; i++)
@@ -31,6 +31,6 @@ public class IFolderTests : CommonIFolderTests
             Directory.CreateDirectory(path);
         }
 
-        return Task.FromResult<IFolder>(new SystemFolder(tempFolder));
+        return Task.FromResult<IModifiableFolder>(new SystemFolder(tempFolder));
     }
 }

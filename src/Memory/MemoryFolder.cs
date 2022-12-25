@@ -89,14 +89,31 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
         cancellationToken.ThrowIfCancellationRequested();
 
         using var stream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
-
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (stream.CanSeek)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+        }
+        else if (stream.Position == 0)
+        {
+            throw new InvalidOperationException("The opened file stream is not at position 0 and cannot be seeked. Unable to copy.");
+        }
+
         var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         memoryStream.Position = 0;
 
         var file = new AddressableMemoryFile(fileToCopy.Name, memoryStream, new IFolder[] { this });
-        _folderContents.Add(file.Id, file);
+
+        if (!overwrite && _folderContents.TryGetValue(file.Id, out var existingStorable) && existingStorable is IAddressableFile existingFile)
+            return existingFile;
+
+        if (!_folderContents.ContainsKey(file.Id))
+            _folderContents.Add(file.Id, file);
+        else
+            _folderContents[file.Id] = file;
+
         _folderWatcher.NotifyItemAdded(file);
 
         return file;
@@ -116,44 +133,55 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     }
 
     /// <inheritdoc />
-    public Task<IAddressableFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public async Task<IAddressableFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFolder = _folderContents.FirstOrDefault(x => x.Value.Name == name);
+        var existingFolderKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
+        IAddressableFolder? existingFolder = (IAddressableFolder?)existingFolderKvp.Value;
 
-        if (overwrite && existingFolder is { })
+        if (overwrite && existingFolder is not null)
         {
-            _folderContents.Remove(existingFolder.Key);
-            _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(existingFolder.Value.Id, existingFolder.Value.Name));
+            await DeleteAsync(existingFolder, cancellationToken);
         }
 
-        var folder = existingFolder.Value as AddressableMemoryFolder ?? new AddressableMemoryFolder(name, new IFolder[] { this });
+        var emptyMemoryFolder = new AddressableMemoryFolder(name, new IFolder[] { this });
+        var folder = overwrite ? emptyMemoryFolder : (existingFolder ?? emptyMemoryFolder);
 
-        _folderContents.Add(folder.Id, folder);
-        _folderWatcher.NotifyItemAdded(folder);
+        if (!_folderContents.ContainsKey(folder.Id))
+        {
+            _folderContents.Add(folder.Id, folder);
+            _folderWatcher.NotifyItemAdded(folder);
+        }
+        else
+            _folderContents[folder.Id] = folder;
 
-        return Task.FromResult<IAddressableFolder>(folder);
+        return folder;
     }
 
     /// <inheritdoc />
-    public Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public async Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFile = _folderContents.FirstOrDefault(x => x.Value.Name == name);
+        var existingFileKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name);
+        IAddressableFile? existingFile = (IAddressableFile?)existingFileKvp.Value;
 
-        if (overwrite && existingFile is { })
+        if (overwrite && existingFile is not null)
         {
-            _folderContents.Remove(existingFile.Key);
-            _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(existingFile.Value.Id, existingFile.Value.Name));
+            await DeleteAsync(existingFile, cancellationToken);
         }
 
-        var file = existingFile.Value as AddressableMemoryFile ?? new AddressableMemoryFile(name, new MemoryStream(), new IFolder[] { this });
+        var emptyMemoryFolder = new AddressableMemoryFile(name, new MemoryStream(), new IFolder[] { this });
+        var file = overwrite ? emptyMemoryFolder : (existingFile ?? emptyMemoryFolder);
 
-        _folderContents.Add(file.Id, file);
+        if (!_folderContents.ContainsKey(file.Id))
+            _folderContents.Add(file.Id, file);
+        else
+            _folderContents[file.Id] = file;
+
         _folderWatcher.NotifyItemAdded(file);
 
-        return Task.FromResult<IAddressableFile>(file);
+        return file;
     }
 }

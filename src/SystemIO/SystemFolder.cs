@@ -159,7 +159,20 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         // Use provided system methods where possible.
         if (fileToCopy is SystemFile sysFile)
         {
+            // If the target and destination are the same, there's no need to copy.
+            if (sysFile.Path == newPath)
+                return new SystemFile(newPath);
+
+            if (File.Exists(newPath))
+            {
+                if (!overwrite)
+                    return new SystemFile(newPath);
+
+                File.Delete(newPath);
+            }
+            
             File.Copy(sysFile.Path, newPath, overwrite);
+
             return new SystemFile(newPath);
         }
 
@@ -170,7 +183,6 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             sourceStream.Seek(0, SeekOrigin.Begin);
 
         using var destinationStream = File.Create(newPath);
-
         await sourceStream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
 
         return new SystemFile(newPath);
@@ -184,7 +196,9 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         // Use provided system methods where possible.
         if (fileToMove is SystemFile sysFile)
         {
-            // In all .NET versions, you can call Delete(String) before calling Move, which will only delete the file if it exists.
+            if (File.Exists(newPath) && !overwrite)
+                return new SystemFile(newPath);
+
             if (overwrite)
                 File.Delete(newPath);
 
@@ -206,7 +220,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         var newPath = System.IO.Path.Combine(Path, name);
 
         if (overwrite)
-            Directory.Delete(newPath);
+            Directory.Delete(newPath, recursive: true);
 
         Directory.CreateDirectory(newPath);
         return Task.FromResult<IAddressableFolder>(new SystemFolder(newPath));
@@ -216,7 +230,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     public Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, name);
-        
+
         if (overwrite || !File.Exists(newPath))
             File.Create(newPath).Dispose();
 

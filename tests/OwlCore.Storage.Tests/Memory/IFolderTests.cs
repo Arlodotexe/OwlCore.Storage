@@ -4,15 +4,15 @@ using OwlCore.Storage.Memory;
 namespace OwlCore.Storage.Tests.Memory;
 
 [TestClass]
-public class IFolderTests : CommonIFolderTests
+public class IFolderTests : IModifiableFolderTests
 {
     // Required for base class to perform common tests.
-    public override Task<IFolder> CreateFolderAsync()
+    public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
-        return Task.FromResult<IFolder>(new MemoryFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}"));
+        return Task.FromResult<IModifiableFolder>(new MemoryFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}"));
     }
 
-    public override async Task<IFolder> CreateFolderWithItems(int fileCount, int folderCount)
+    public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
     {
         var folder = new MemoryFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}");
 

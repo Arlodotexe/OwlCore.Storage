@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.5.1</Version>
+		<Version>0.5.2</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,7 +23,16 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.5.2 ---
+[Fixes]
+Fixed several bugs in MemoryFolder and SystemFolder regarding overwrite behavior.
+
+[Improvements]
+Updated downstream NuGet packages
+Wrote basic CommonTests for IModifiableFolder
+
 --- 0.5.1 ---
+[Fixes]
 Fixed an issue in MemoryFolder and SystemFolder where calling CreateFileAsync and CreateFolderAsync with overwrite set to false wouldn't return an existing storable.
 
 --- 0.5.0 ---
@@ -116,7 +125,7 @@ Initial release of OwlCore.Storage.
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	</ItemGroup>
