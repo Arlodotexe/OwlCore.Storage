@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +49,9 @@ public class ZipArchiveEntryFile : IAddressableFile
     public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (accessMode == 0)
+            throw new ArgumentOutOfRangeException(nameof(accessMode), $"{nameof(FileAccess)}.{accessMode} is not valid here.");
 
         return Task.FromResult(_entry.Open());
     }
