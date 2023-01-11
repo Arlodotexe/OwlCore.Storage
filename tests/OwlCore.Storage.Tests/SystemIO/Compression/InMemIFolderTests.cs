@@ -21,10 +21,7 @@ public class InMemIFolderTests : IModifiableFolderTests
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
     {
-        MemoryStream archiveStream = new();
-        ZipArchive archive = new(archiveStream, ZipArchiveMode.Update);
-
-        var folder = new ZipArchiveFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive);
+        var folder = await CreateModifiableFolderAsync();
 
         for (int i = 0; i < fileCount; i++)
         {
