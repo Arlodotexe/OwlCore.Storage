@@ -168,8 +168,8 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         {
             itemPath = NormalizeEnding(itemPath);
             if (_virtualFolders.TryGetValue(itemPath, out var existingFolder))
-            item = existingFolder;
-        else
+                item = existingFolder;
+            else
                 item = new ZipArchiveFolder(id, id, _archive, itemPath);
         }
 
@@ -184,23 +184,44 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         if (type == StorableType.None)
             throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
 
+        bool IsChild(string path)
+        {
+            int idx = path.IndexOf(Path);
+            if (idx == 0)
+            {
+                // The folder path is the start of the item path,
+                // which means this item is at least a descendant
+                // of this folder.
+
+                // If there are no more directory separators after
+                // the matched path, the item is a direct child.
+                idx = path.IndexOf(ZIP_DIRECTORY_SEPARATOR, Path.Length + 1);
+                return idx < 0;
+            }
+
+            return false;
+        }
+
         if (type.HasFlag(StorableType.File))
         {
-            foreach (var entry in _archive.Entries.Where(e => e.FullName.StartsWith(Path)))
+            foreach (var entry in _archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                yield return new ZipArchiveEntryFile(entry, this);
+                if (IsChild(entry.FullName))
+                    yield return new ZipArchiveEntryFile(entry, this);
             }
         }
 
         if (type.HasFlag(StorableType.Folder))
         {
-            foreach (var virtualFolder in _virtualFolders.Values.Where(e => e.Path.StartsWith(Path)))
+            foreach (var virtualFolder in _virtualFolders.Values)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                yield return virtualFolder;
+                string pathWithoutTrailingSep = virtualFolder.Path.Substring(0, virtualFolder.Path.Length - 1);
+                if (IsChild(pathWithoutTrailingSep))
+                    yield return virtualFolder;
             }
         }
     }
