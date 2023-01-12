@@ -7,8 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using IOPath = System.IO.Path;
-
 #pragma warning disable CS1998
 
 namespace OwlCore.Storage.SystemIO.Compression;
@@ -39,7 +37,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
     {
         Id = id;
         Name = name;
-        Path = path;
+        Path = NormalizeEnding(path);
 
         _archive = archive;
     }
@@ -83,7 +81,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string realSubPath = IOPath.Combine(Path, name);
+        string realSubPath = Path + name;
 
         ZipArchiveEntry? entry = _archive.GetEntry(realSubPath);
 
@@ -103,7 +101,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string subPath = NormalizeEnding(IOPath.Combine(Path, name));
+        string subPath = NormalizeEnding(Path + name);
         bool exists = _virtualFolders.TryGetValue(subPath, out ZipArchiveFolder? folder);
 
         if (overwrite && exists)
@@ -159,15 +157,21 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         cancellationToken.ThrowIfCancellationRequested();
         IAddressableStorable item;
 
-        string itemPath = IOPath.Combine(Path, id);
+        string itemPath = Path + id;
 
         var entry = _archive.GetEntry(itemPath);
         if (entry is not null)
+        {
             item = new ZipArchiveEntryFile(entry, this);
-        else if (_virtualFolders.TryGetValue(itemPath, out var existingFolder))
+        }
+        else
+        {
+            itemPath = NormalizeEnding(itemPath);
+            if (_virtualFolders.TryGetValue(itemPath, out var existingFolder))
             item = existingFolder;
         else
-            item = new ZipArchiveFolder(id, IOPath.GetFileName(id), _archive, itemPath);
+                item = new ZipArchiveFolder(id, id, _archive, itemPath);
+        }
 
         return Task.FromResult(item);
     }
