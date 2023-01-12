@@ -18,8 +18,15 @@ namespace OwlCore.Storage.SystemIO.Compression;
 /// </summary>
 public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGetItem
 {
+    /// <summary>
+    /// The directory separator as defined by the ZIP standard.
+    /// This is constant no matter the operating system (see 4.4.17.1).
+    /// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+    /// </summary>
+    const char ZIP_DIRECTORY_SEPARATOR = '/';
+
     private readonly ZipArchive _archive;
-    private Dictionary<string, ZipArchiveFolder> _virtualFolders = new();
+    private readonly Dictionary<string, ZipArchiveFolder> _virtualFolders = new();
 
     /// <summary>
     /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
@@ -27,7 +34,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
     /// <param name="id">A unique and consistent identifier for this file or folder.</param>
     /// <param name="name">The name of the file or folder, with the extension (if any).</param>
     /// <param name="archive">An existing ZIP archive which is provided as contents of the folder.</param>
-    /// <param name="path">The actual path inside the ZIP archive. Leave empty for the root folder.</param>
+    /// <param name="path">The relative path inside the ZIP archive. Leave empty for the root folder.</param>
     public ZipArchiveFolder(string id, string name, ZipArchive archive, string path = "")
     {
         Id = id;
@@ -96,7 +103,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string subPath = IOPath.Combine(Path, name);
+        string subPath = NormalizeEnding(IOPath.Combine(Path, name));
         bool exists = _virtualFolders.TryGetValue(subPath, out ZipArchiveFolder? folder);
 
         if (overwrite && exists)
@@ -108,9 +115,8 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         if (folder is null)
         {
             folder = new ZipArchiveFolder(name, name, _archive, subPath);
-            _virtualFolders.Add(folder.Id, folder);
+            _virtualFolders[folder.Path] = folder;
         }
-
 
         return folder;
     }
@@ -124,10 +130,8 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         {
             // NOTE: Should this be recursive, or should it
             // throw if the virtual folder isn't empty?
-            string pathStart = item.Path.Length > 0 && item.Path[item.Path.Length - 1] == IOPath.DirectorySeparatorChar
-                ? item.Path : item.Path + IOPath.DirectorySeparatorChar;
 
-            if (_archive.Entries.Any(e => e.FullName.StartsWith(pathStart)))
+            if (_archive.Entries.Any(e => e.FullName.StartsWith(folder.Path)))
                 throw new IOException("The directory specified by path is not empty.");
 
             _virtualFolders.Remove(folder.Id);
@@ -155,15 +159,15 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         cancellationToken.ThrowIfCancellationRequested();
         IAddressableStorable item;
 
-        string realPath = IOPath.Combine(Path, id);
+        string itemPath = IOPath.Combine(Path, id);
 
-        var entry = _archive.GetEntry(realPath);
+        var entry = _archive.GetEntry(itemPath);
         if (entry is not null)
             item = new ZipArchiveEntryFile(entry, this);
-        else if (_virtualFolders.TryGetValue(realPath, out var existingFolder))
+        else if (_virtualFolders.TryGetValue(itemPath, out var existingFolder))
             item = existingFolder;
         else
-            item = new ZipArchiveFolder(id, IOPath.GetFileName(id), _archive, realPath);
+            item = new ZipArchiveFolder(id, IOPath.GetFileName(id), _archive, itemPath);
 
         return Task.FromResult(item);
     }
@@ -178,7 +182,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
 
         if (type.HasFlag(StorableType.File))
         {
-            foreach (var entry in _archive.Entries)
+            foreach (var entry in _archive.Entries.Where(e => e.FullName.StartsWith(Path)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -188,7 +192,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
 
         if (type.HasFlag(StorableType.Folder))
         {
-            foreach (var virtualFolder in _virtualFolders.Values)
+            foreach (var virtualFolder in _virtualFolders.Values.Where(e => e.Path.StartsWith(Path)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -211,10 +215,17 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         cancellationToken.ThrowIfCancellationRequested();
 
         // Zip archives can't move files around, so we have to take
-        // the slower manual id every time.
+        // the slower manual path every time.
         var file = await CreateCopyOfAsync(fileToMove, overwrite, cancellationToken);
         await source.DeleteAsync(fileToMove, cancellationToken);
 
         return file;
+    }
+
+    private static string NormalizeEnding(string path)
+    {
+        return path.Length == 0 || path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR
+            ? path
+            : path + ZIP_DIRECTORY_SEPARATOR;
     }
 }
