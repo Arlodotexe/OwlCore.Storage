@@ -1,11 +1,11 @@
 ﻿using OwlCore.Storage.CommonTests;
-using OwlCore.Storage.SystemIO.Compression;
+using OwlCore.Storage.Archive;
 using System.IO.Compression;
 
-namespace OwlCore.Storage.Tests.SystemIO.Compression;
+namespace OwlCore.Storage.Tests.Archive.Compression;
 
 /// <summary>
-/// A test suite for <see cref="ZipArchiveFolder"/>s created entirely in memory.
+/// A test suite for <see cref="ZipFolder"/>s created entirely in memory.
 /// </summary>
 [TestClass]
 public class InMemIFolderTests : IModifiableFolderTests
@@ -16,7 +16,7 @@ public class InMemIFolderTests : IModifiableFolderTests
         MemoryStream archiveStream = new();
         ZipArchive archive = new(archiveStream, ZipArchiveMode.Update);
 
-        return Task.FromResult<IModifiableFolder>(new ZipArchiveFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
+        return Task.FromResult<IModifiableFolder>(new ZipFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)

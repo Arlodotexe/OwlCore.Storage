@@ -4,22 +4,22 @@ using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.SystemIO.Compression;
+namespace OwlCore.Storage.Archive;
 
 /// <summary>
 /// A file implementation wrapping a <see cref="ZipArchiveEntry"/>.
 /// </summary>
-public class ZipArchiveEntryFile : IAddressableFile
+public class ZipEntryFile : IAddressableFile
 {
     private readonly IFolder? _parent;
     private readonly ZipArchiveEntry _entry;
 
     /// <summary>
-    /// Creates a new instance of <see cref="ZipArchiveEntryFile"/>.
+    /// Creates a new instance of <see cref="ZipEntryFile"/>.
     /// </summary>
     /// <param name="entry">The archive entry for this file.</param>
     /// <param name="parent">The parent folder.</param>
-    public ZipArchiveEntryFile(ZipArchiveEntry entry, IFolder? parent)
+    public ZipEntryFile(ZipArchiveEntry entry, IFolder? parent)
     {
         Id = Name = entry.Name;
         Path = entry.FullName;

@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.SystemIO.Compression;
+namespace OwlCore.Storage.Archive;
 
 /// <summary>
-/// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipArchiveFolder"/>.
+/// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipFolder"/>.
 /// </summary>
-public class ZipArchiveFolderWatcher : IFolderWatcher
+public class ZipFolderWatcher : IFolderWatcher
 {
     /// <summary>
     /// Creates a new instance of <see cref="MemoryFolderWatcher"/>.
     /// </summary>
     /// <param name="folder">The folder being watched.</param>
-    public ZipArchiveFolderWatcher(IMutableFolder folder)
+    public ZipFolderWatcher(IMutableFolder folder)
     {
         Folder = folder;
     }
