@@ -19,7 +19,6 @@ namespace OwlCore.Storage.SystemIO.Compression;
 public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGetItem
 {
     private readonly ZipArchive _archive;
-    private readonly string _realPath;
     private Dictionary<string, ZipArchiveFolder> _virtualFolders = new();
 
     /// <summary>
@@ -28,17 +27,14 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
     /// <param name="id">A unique and consistent identifier for this file or folder.</param>
     /// <param name="name">The name of the file or folder, with the extension (if any).</param>
     /// <param name="archive">An existing ZIP archive which is provided as contents of the folder.</param>
-    public ZipArchiveFolder(string id, string name, ZipArchive archive)
+    /// <param name="path">The actual path inside the ZIP archive. Leave empty for the root folder.</param>
+    public ZipArchiveFolder(string id, string name, ZipArchive archive, string path = "")
     {
-        Id = Path = id;
+        Id = id;
         Name = name;
+        Path = path;
 
         _archive = archive;
-
-        // This is the ID inside the archive,
-        // the same as the 'path' but without the
-        // name of the root folder.
-        _realPath = IOPath.GetPathRoot(Path);
     }
 
     /// <inheritdoc/>
@@ -80,7 +76,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string realSubPath = IOPath.Combine(_realPath, name);
+        string realSubPath = IOPath.Combine(Path, name);
 
         ZipArchiveEntry? entry = _archive.GetEntry(realSubPath);
 
@@ -111,7 +107,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
 
         if (folder is null)
         {
-            folder = new ZipArchiveFolder(subPath, name, _archive);
+            folder = new ZipArchiveFolder(name, name, _archive, subPath);
             _virtualFolders.Add(folder.Id, folder);
         }
 
@@ -128,7 +124,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         {
             // NOTE: Should this be recursive, or should it
             // throw if the virtual folder isn't empty?
-            string pathStart = item.Path[Path.Length - 1] == IOPath.DirectorySeparatorChar
+            string pathStart = item.Path.Length > 0 && item.Path[item.Path.Length - 1] == IOPath.DirectorySeparatorChar
                 ? item.Path : item.Path + IOPath.DirectorySeparatorChar;
 
             if (_archive.Entries.Any(e => e.FullName.StartsWith(pathStart)))
@@ -159,13 +155,15 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         cancellationToken.ThrowIfCancellationRequested();
         IAddressableStorable item;
 
-        var entry = _archive.GetEntry(id);
+        string realPath = IOPath.Combine(Path, id);
+
+        var entry = _archive.GetEntry(realPath);
         if (entry is not null)
             item = new ZipArchiveEntryFile(entry, this);
-        else if (_virtualFolders.TryGetValue(id, out var existingFolder))
+        else if (_virtualFolders.TryGetValue(realPath, out var existingFolder))
             item = existingFolder;
         else
-            item = new ZipArchiveFolder(id, IOPath.GetFileName(id), _archive);
+            item = new ZipArchiveFolder(id, IOPath.GetFileName(id), _archive, realPath);
 
         return Task.FromResult(item);
     }
