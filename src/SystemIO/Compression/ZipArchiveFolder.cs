@@ -64,7 +64,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         else if (srcStream.Position == 0)
             throw new InvalidOperationException("The opened file stream is not at position 0 and cannot be seeked. Unable to copy.");
 
-        var existingEntry = _archive.GetEntry(fileToCopy.Id);
+        var existingEntry = TryGetEntry(fileToCopy.Id);
         if (!overwrite && existingEntry is not null)
             return new ZipArchiveEntryFile(existingEntry, this);
 
@@ -83,7 +83,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
 
         string realSubPath = Path + name;
 
-        ZipArchiveEntry? entry = _archive.GetEntry(realSubPath);
+        ZipArchiveEntry? entry = TryGetEntry(realSubPath);
 
         if (overwrite && entry is not null)
         {
@@ -136,7 +136,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         }
         else
         {
-            var entry = _archive.GetEntry(item.Path);
+            var entry = TryGetEntry(item.Path);
             entry?.Delete();
         }
 
@@ -159,7 +159,7 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
 
         string itemPath = Path + id;
 
-        var entry = _archive.GetEntry(itemPath);
+        var entry = TryGetEntry(itemPath);
         if (entry is not null)
         {
             item = new ZipArchiveEntryFile(entry, this);
@@ -252,5 +252,12 @@ public class ZipArchiveFolder : IAddressableFolder, IModifiableFolder, IFolderCa
         return path.Length == 0 || path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR
             ? path
             : path + ZIP_DIRECTORY_SEPARATOR;
+    }
+
+    private ZipArchiveEntry? TryGetEntry(string entryName)
+    {
+        return _archive.Mode != ZipArchiveMode.Create
+            ? _archive.GetEntry(entryName)
+            : null;
     }
 }
