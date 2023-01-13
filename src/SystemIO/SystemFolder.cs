@@ -122,9 +122,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         if (IsFolder(id))
         {
             // Ensure containing directory matches current folder.
-            var containingDirectory = System.IO.Path.GetDirectoryName(id);
-
-            if (containingDirectory != Path || !Directory.Exists(id))
+            if (System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
 
             return Task.FromResult<IAddressableStorable>(new SystemFile(id));
@@ -142,11 +140,15 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     /// <inheritdoc />
     public Task DeleteAsync(IAddressableStorable item, CancellationToken cancellationToken = default)
     {
-        if (IsFolder(item.Id))
-            Directory.Delete(item.Id);
+        // Ensure containing directory matches current folder.
+        if (GetParentPath(item.Path).TrimEnd(System.IO.Path.DirectorySeparatorChar) != Path)
+            throw new FileNotFoundException($"The provided item does not exist in this folder.");
 
-        if (IsFile(item.Id))
-            File.Delete(item.Id);
+        if (IsFolder(item.Path))
+            Directory.Delete(item.Path, recursive: true);
+
+        if (IsFile(item.Path))
+            File.Delete(item.Path);
 
         return Task.CompletedTask;
     }
@@ -244,6 +246,23 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     private static bool IsFile(string path) => System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);
-
     private static bool IsFolder(string path) => Directory.Exists(path);
+
+    string GetParentPath(string relativePath)
+    {
+        // Path.GetDirectoryName() treats strings that end with a directory separator as a directory. If there's no trailing slash, it's treated as a file.
+        // Run it twice for folders. The first time only shaves off the trailing directory separator.
+        var parentDirectoryName = relativePath.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()) ? System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(relativePath)) : System.IO.Path.GetDirectoryName(relativePath);
+
+        // It also doesn't return a string that has a path separator at the end.
+        return parentDirectoryName + System.IO.Path.DirectorySeparatorChar;
+    }
+
+    string GetParentDirectoryName(string relativePath)
+    {
+        var parentPath = GetParentPath(relativePath);
+        var parentParentPath = GetParentPath(parentPath);
+
+        return parentPath.Replace(parentParentPath, "").TrimEnd(System.IO.Path.DirectorySeparatorChar);
+    }
 }

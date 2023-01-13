@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.5.2</Version>
+		<Version>0.5.3</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,6 +23,13 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.5.3 ---
+[Fixes]
+Fixed an issue in SystemFolder where deleting a folder that has children would throw instead of deleting recursively.
+
+[Improvements]
+Updated testing dependencies.
+
 --- 0.5.2 ---
 [Fixes]
 Fixed several bugs in MemoryFolder and SystemFolder regarding overwrite behavior.
