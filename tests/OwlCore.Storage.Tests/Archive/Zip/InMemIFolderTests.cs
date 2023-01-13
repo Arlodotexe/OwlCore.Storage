@@ -2,7 +2,7 @@
 using OwlCore.Storage.Archive;
 using System.IO.Compression;
 
-namespace OwlCore.Storage.Tests.Archive.Compression;
+namespace OwlCore.Storage.Tests.Archive.Zip;
 
 /// <summary>
 /// A test suite for <see cref="ZipFolder"/>s created entirely in memory.
