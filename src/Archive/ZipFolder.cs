@@ -61,7 +61,7 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
 
         if (srcStream.CanSeek)
             srcStream.Seek(0, SeekOrigin.Begin);
-        else if (srcStream.Position == 0)
+        else if (srcStream.Position != 0)
             throw new InvalidOperationException("The opened file stream is not at position 0 and cannot be seeked. Unable to copy.");
 
         var existingEntry = TryGetEntry(fileToCopy.Id);
