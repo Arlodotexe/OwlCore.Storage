@@ -126,11 +126,9 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
 
         if (item is ZipFolder folder)
         {
-            // NOTE: Should this be recursive, or should it
-            // throw if the virtual folder isn't empty?
-
-            if (_archive.Entries.Any(e => e.FullName.StartsWith(folder.Path)))
-                throw new IOException("The directory specified by path is not empty.");
+            // Recursively remove any sub-entries
+            foreach (var entry in _archive.Entries.Where(e => e.FullName.StartsWith(folder.Path)))
+                entry.Delete();
 
             _virtualFolders.Remove(folder.Id);
         }
