@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using IOPath = System.IO.Path;
 
 #pragma warning disable CS1998
 
@@ -21,25 +22,28 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
     /// This is constant no matter the operating system (see 4.4.17.1).
     /// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
     /// </summary>
-    const char ZIP_DIRECTORY_SEPARATOR = '/';
+    private const char ZIP_DIRECTORY_SEPARATOR = '/';
 
-    private readonly ZipArchive _archive;
+    private readonly Stream _stream;
+    private readonly IStorable _rootStorable;
     private readonly Dictionary<string, ZipFolder> _virtualFolders = new();
+    
+    private ZipArchive? _archive;
 
     /// <summary>
     /// Creates a new instance of <see cref="ZipFolder"/>.
     /// </summary>
-    /// <param name="id">A unique and consistent identifier for this file or folder.</param>
-    /// <param name="name">The name of the file or folder, with the extension (if any).</param>
-    /// <param name="archive">An existing ZIP archive which is provided as contents of the folder.</param>
+    /// <param name="stream">The stream containing the ZIP archive.</param>
+    /// <param name="storable">A storable containing the ID and name to use for the root folder.</param>
     /// <param name="path">The relative path inside the ZIP archive. Leave empty for the root folder.</param>
-    public ZipFolder(string id, string name, ZipArchive archive, string path = "")
+    public ZipFolder(Stream stream, IStorable storable, string path = "")
     {
-        Id = id;
-        Name = name;
+        Id = $"{storable.Id}_0782efd61b7a6b02e602cc6a11673ec9{ZIP_DIRECTORY_SEPARATOR}" + path;
+        Name = System.IO.Path.GetFileNameWithoutExtension(storable.Name);
         Path = NormalizeEnding(path);
 
-        _archive = archive;
+        _stream = stream;
+        _rootStorable = storable;
     }
 
     /// <inheritdoc/>
@@ -77,7 +81,7 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
     }
 
     /// <inheritdoc/>
-    public Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -91,9 +95,9 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
             entry = null;
         }
 
-        entry ??= _archive.CreateEntry(realSubPath);
+        entry ??= GetArchive().CreateEntry(realSubPath);
 
-        return Task.FromResult<IAddressableFile>(new ZipEntryFile(entry, this));
+        return new ZipEntryFile(entry, this);
     }
 
     /// <inheritdoc/>
@@ -127,7 +131,7 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
         if (item is ZipFolder folder)
         {
             // Recursively remove any sub-entries
-            foreach (var entry in _archive.Entries.Where(e => e.FullName.StartsWith(folder.Path)))
+            foreach (var entry in GetArchive().Entries.Where(e => e.FullName.StartsWith(folder.Path)))
                 entry.Delete();
 
             _virtualFolders.Remove(folder.Id);
@@ -166,9 +170,14 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
         {
             itemPath = NormalizeEnding(itemPath);
             if (_virtualFolders.TryGetValue(itemPath, out var existingFolder))
+            {
                 item = existingFolder;
+            }
             else
-                item = new ZipFolder(id, id, _archive, itemPath);
+            {
+                SimpleStorableItem itemStorable = new(id, IOPath.GetFileNameWithoutExtension(itemPath));
+                item = new ZipFolder(_stream, itemStorable, itemPath);
+            }
         }
 
         return Task.FromResult(item);
@@ -202,7 +211,7 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
 
         if (type.HasFlag(StorableType.File))
         {
-            foreach (var entry in _archive.Entries)
+            foreach (var entry in GetArchive().Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -254,8 +263,14 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
 
     private ZipArchiveEntry? TryGetEntry(string entryName)
     {
-        return _archive.Mode != ZipArchiveMode.Create
-            ? _archive.GetEntry(entryName)
+        return GetArchive().Mode != ZipArchiveMode.Create
+            ? GetArchive().GetEntry(entryName)
             : null;
+    }
+
+    private ZipArchive GetArchive()
+    {
+        _archive ??= new ZipArchive(_stream, ZipArchiveMode.Update);
+        return _archive;
     }
 }
