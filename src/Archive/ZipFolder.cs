@@ -15,45 +15,23 @@ namespace OwlCore.Storage.Archive;
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/>.
 /// </summary>
-public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGetItem
+public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGetItem
 {
-    /// <summary>
-    /// The directory separator as defined by the ZIP standard.
-    /// This is constant no matter the operating system (see 4.4.17.1).
-    /// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-    /// </summary>
-    private const char ZIP_DIRECTORY_SEPARATOR = '/';
-
-    private readonly Stream _stream;
-    private readonly IStorable _rootStorable;
-    private readonly Dictionary<string, ZipFolder> _virtualFolders = new();
-    
-    private ZipArchive? _archive;
-
     /// <summary>
     /// Creates a new instance of <see cref="ZipFolder"/>.
     /// </summary>
     /// <param name="stream">The stream containing the ZIP archive.</param>
-    /// <param name="storable">A storable containing the ID and name to use for the root folder.</param>
+    /// <param name="storable">A storable containing the ID and name to use for this folder.</param>
     /// <param name="path">The relative path inside the ZIP archive. Leave empty for the root folder.</param>
     public ZipFolder(Stream stream, IStorable storable, string path = "")
+        : base(stream, storable, path)
     {
-        Id = $"{storable.Id}_0782efd61b7a6b02e602cc6a11673ec9{ZIP_DIRECTORY_SEPARATOR}" + path;
-        Name = System.IO.Path.GetFileNameWithoutExtension(storable.Name);
-        Path = NormalizeEnding(path);
-
-        _stream = stream;
-        _rootStorable = storable;
     }
-
-    /// <inheritdoc/>
-    public string Id { get; }
-
-    /// <inheritdoc/>
-    public string Name { get; }
-
-    /// <inheritdoc/>
-    public string Path { get; }
+    
+    protected ZipFolder(Stream zipStream, string rootId, string path, ZipArchiveMode mode = ZipArchiveMode.Read)
+        : base(zipStream, rootId, path, mode)
+    {
+    }
 
     /// <inheritdoc/>
     public async Task<IAddressableFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
@@ -116,7 +94,8 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
 
         if (folder is null)
         {
-            folder = new ZipFolder(name, name, _archive, subPath);
+            SimpleStorableItem storable = new(Id + name + ZIP_DIRECTORY_SEPARATOR, name);
+            folder = new ZipFolder(_zipStream, storable, subPath);
             _virtualFolders[folder.Path] = folder;
         }
 
@@ -184,64 +163,6 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
     }
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (type == StorableType.None)
-            throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
-
-        bool IsChild(string path)
-        {
-            int idx = path.IndexOf(Path);
-            if (idx == 0)
-            {
-                // The folder path is the start of the item path,
-                // which means this item is at least a descendant
-                // of this folder.
-
-                // If there are no more directory separators after
-                // the matched path, the item is a direct child.
-                idx = path.IndexOf(ZIP_DIRECTORY_SEPARATOR, Path.Length + 1);
-                return idx < 0;
-            }
-
-            return false;
-        }
-
-        if (type.HasFlag(StorableType.File))
-        {
-            foreach (var entry in GetArchive().Entries)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (IsChild(entry.FullName))
-                    yield return new ZipEntryFile(entry, this);
-            }
-        }
-
-        if (type.HasFlag(StorableType.Folder))
-        {
-            foreach (var virtualFolder in _virtualFolders.Values)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string pathWithoutTrailingSep = virtualFolder.Path.Substring(0, virtualFolder.Path.Length - 1);
-                if (IsChild(pathWithoutTrailingSep))
-                    yield return virtualFolder;
-            }
-        }
-    }
-
-    /// <inheritdoc/>
-    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return Task.FromResult<IFolder?>(null);
-    }
-
-    /// <inheritdoc/>
     public async Task<IAddressableFile> MoveFromAsync(IAddressableFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -252,25 +173,5 @@ public class ZipFolder : IAddressableFolder, IModifiableFolder, IFolderCanFastGe
         await source.DeleteAsync(fileToMove, cancellationToken);
 
         return file;
-    }
-
-    private static string NormalizeEnding(string path)
-    {
-        return path.Length == 0 || path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR
-            ? path
-            : path + ZIP_DIRECTORY_SEPARATOR;
-    }
-
-    private ZipArchiveEntry? TryGetEntry(string entryName)
-    {
-        return GetArchive().Mode != ZipArchiveMode.Create
-            ? GetArchive().GetEntry(entryName)
-            : null;
-    }
-
-    private ZipArchive GetArchive()
-    {
-        _archive ??= new ZipArchive(_stream, ZipArchiveMode.Update);
-        return _archive;
     }
 }
