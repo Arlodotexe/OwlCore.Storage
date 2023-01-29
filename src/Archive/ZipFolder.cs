@@ -20,16 +20,10 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
     /// <summary>
     /// Creates a new instance of <see cref="ZipFolder"/>.
     /// </summary>
-    /// <param name="stream">The stream containing the ZIP archive.</param>
-    /// <param name="storable">A storable containing the ID and name to use for this folder.</param>
-    /// <param name="path">The relative path inside the ZIP archive. Leave empty for the root folder.</param>
-    public ZipFolder(Stream stream, IStorable storable, string path = "")
-        : base(stream, storable, path)
-    {
-    }
-    
-    protected ZipFolder(Stream zipStream, string rootId, string path, ZipArchiveMode mode = ZipArchiveMode.Read)
-        : base(zipStream, rootId, path, mode)
+    /// <param name="archive">A ZIP archive which is provided as the contents of the folder.</param>
+    /// <param name="storable">A storable containing the ID, name, and path of this folder.</param>
+    public ZipFolder(ZipArchive archive, SimpleZipStorableItem storable)
+        : base(archive, storable)
     {
     }
 
@@ -73,7 +67,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
             entry = null;
         }
 
-        entry ??= GetArchive().CreateEntry(realSubPath);
+        entry ??= _archive.CreateEntry(realSubPath);
 
         return new ZipEntryFile(entry, this);
     }
@@ -83,10 +77,10 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string subPath = NormalizeEnding(Path + name);
-        bool exists = _virtualFolders.TryGetValue(subPath, out ZipFolder? folder);
+        string subPath = Path + name + ZIP_DIRECTORY_SEPARATOR;
+        GetVirtualFolders().TryGetValue(subPath, out var folder);
 
-        if (overwrite && exists)
+        if (overwrite && folder is not null)
         {
             await DeleteAsync(folder, cancellationToken);
             folder = null;
@@ -94,9 +88,9 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
 
         if (folder is null)
         {
-            SimpleStorableItem storable = new(Id + name + ZIP_DIRECTORY_SEPARATOR, name);
-            folder = new ZipFolder(_zipStream, storable, subPath);
-            _virtualFolders[folder.Path] = folder;
+            var storable = SimpleZipStorableItem.CreateFromParentId(Id, name, true);
+            folder = new ZipFolder(_archive, storable);
+            GetVirtualFolders()[folder.Path] = folder;
         }
 
         return folder;
@@ -110,10 +104,10 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
         if (item is ZipFolder folder)
         {
             // Recursively remove any sub-entries
-            foreach (var entry in GetArchive().Entries.Where(e => e.FullName.StartsWith(folder.Path)))
+            foreach (var entry in _archive.Entries.Where(e => e.FullName.StartsWith(folder.Path)))
                 entry.Delete();
 
-            _virtualFolders.Remove(folder.Id);
+            GetVirtualFolders().Remove(folder.Id);
         }
         else
         {
@@ -147,15 +141,15 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
         }
         else
         {
-            itemPath = NormalizeEnding(itemPath);
-            if (_virtualFolders.TryGetValue(itemPath, out var existingFolder))
+            itemPath = SimpleZipStorableItem.NormalizeEnding(itemPath);
+            if (GetVirtualFolders().TryGetValue(itemPath, out var existingFolder))
             {
                 item = existingFolder;
             }
             else
             {
-                SimpleStorableItem itemStorable = new(id, IOPath.GetFileNameWithoutExtension(itemPath));
-                item = new ZipFolder(_stream, itemStorable, itemPath);
+                SimpleZipStorableItem storable = new(id, itemPath, true);
+                item = CreateSubfolderItem(_archive, storable);
             }
         }
 

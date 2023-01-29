@@ -20,35 +20,29 @@ public class ReadOnlyZipFolder : IAddressableFolder
     /// This is constant no matter the operating system (see 4.4.17.1).
     /// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
     /// </summary>
-    protected const char ZIP_DIRECTORY_SEPARATOR = '/';
+    internal const char ZIP_DIRECTORY_SEPARATOR = '/';
     
-    protected readonly Stream _zipStream;
-    private readonly ZipArchiveMode _mode;
-    protected readonly Dictionary<string, ZipFolder> _virtualFolders = new();
+    protected readonly ZipArchive _archive;
+    protected readonly IFolder? _parent;
     
-    private ZipArchive? _archive;
+    protected Dictionary<string, IAddressableFolder>? _virtualFolders;
     
     /// <summary>
-    /// Creates a new instance of <see cref="ZipFolder"/>.
+    /// Creates a new instance of <see cref="ReadOnlyZipFolder"/>.
     /// </summary>
-    /// <param name="zipStream">The stream containing the ZIP archive.</param>
-    /// <param name="storable">A storable containing the ID and name to use for this folder.</param>
-    /// <param name="path">The relative path inside the ZIP archive. Leave empty for the root folder.</param>
-    public ReadOnlyZipFolder(Stream zipStream, IStorable storable, string path = "")
+    /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
+    /// <param name="storable">A storable containing the ID, name, and path of this folder.</param>
+    /// <param name="parent">The parent of this folder, if one exists.</param>
+    public ReadOnlyZipFolder(ZipArchive archive, SimpleZipStorableItem storable, IFolder? parent = null)
     {
-        _zipStream = zipStream;
+        _archive = archive;
+        _parent = parent;
         
         Id = storable.Id;
         Name = storable.Name;
-        Path = NormalizeEnding(path);
+        Path = storable.Path;
     }
 
-    protected ReadOnlyZipFolder(Stream zipStream, string rootId, string path, ZipArchiveMode mode = ZipArchiveMode.Read)
-        : this(zipStream, new SimpleStorableItem($"{rootId}{ZIP_DIRECTORY_SEPARATOR}{path}", IOPath.GetFileName(path)), path)
-    {
-        _mode = mode;
-    }
-    
     /// <inheritdoc/>
     public string Id { get; }
     
@@ -68,7 +62,7 @@ public class ReadOnlyZipFolder : IAddressableFolder
 
         if (type.HasFlag(StorableType.File))
         {
-            foreach (var entry in GetArchive().Entries)
+            foreach (var entry in _archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -79,12 +73,11 @@ public class ReadOnlyZipFolder : IAddressableFolder
 
         if (type.HasFlag(StorableType.Folder))
         {
-            foreach (var virtualFolder in _virtualFolders.Values)
+            foreach (var virtualFolder in GetVirtualFolders().Values)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                string pathWithoutTrailingSep = virtualFolder.Path.Substring(0, virtualFolder.Path.Length - 1);
-                if (IsChild(pathWithoutTrailingSep))
+                if (IsChild(virtualFolder.Path))
                     yield return virtualFolder;
             }
         }
@@ -94,46 +87,55 @@ public class ReadOnlyZipFolder : IAddressableFolder
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        // TODO: Implement proper parent traversal
-        return Task.FromResult<IFolder?>(null);
-    }
-    
-    protected static string NormalizeEnding(string path)
-    {
-        return path.Length == 0 || path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR
-            ? path
-            : path + ZIP_DIRECTORY_SEPARATOR;
+        return Task.FromResult<IFolder?>(_parent);
     }
 
+    /// <summary>
+    /// Attempts to get the entry, without throwing if the archive does not support reading entries. 
+    /// </summary>
+    /// <param name="entryName">The name of the entry to get.</param>
+    /// <returns>
+    /// The matching <see cref="ZipArchiveEntry"/> if one exists, or
+    /// <see langword="null"/> if the archive does not support reading or
+    /// the entry does not exist.
+    /// </returns>
     protected ZipArchiveEntry? TryGetEntry(string entryName)
     {
-        return GetArchive().Mode != ZipArchiveMode.Create
-            ? GetArchive().GetEntry(entryName)
+        return _archive.Mode != ZipArchiveMode.Create
+            ? _archive.GetEntry(entryName)
             : null;
     }
 
-    protected ZipArchive GetArchive()
+    /// <summary>
+    /// Gets the list of virtual folders.
+    /// </summary>
+    protected Dictionary<string, IAddressableFolder> GetVirtualFolders()
     {
-        if (_archive is null)
+        if (_virtualFolders is null)
         {
-            // Lazy init the archive
-            _archive = new ZipArchive(_zipStream, _mode);
-            
+            _virtualFolders = new();
+        
             // Populate list of virtual folders
             foreach (var entry in _archive.Entries)
             {
-                string path = NormalizeEnding(entry.FullName);
+                string path = SimpleZipStorableItem.NormalizeEnding(entry.FullName);
                 if (IsChild(path))
-                    _virtualFolders[path] = new ReadOnlyZipFolder();
-            }
+                    _virtualFolders[path] = CreateSubfolderItem(_archive, new SimpleZipStorableItem(Id, entry), this);
+            }    
         }
         
-        return _archive;
+        return _virtualFolders;
     }
     
+    /// <summary>
+    /// Determines if the <paramref name="path"/> is a child of the current folder.
+    /// </summary>
     protected bool IsChild(string path)
     {
+        // Remove trailing separator
+        if (path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR)
+            path = path.Substring(0, path.Length - 1);
+        
         int idx = path.IndexOf(Path, StringComparison.Ordinal);
         if (idx != 0)
             return false;
@@ -147,6 +149,16 @@ public class ReadOnlyZipFolder : IAddressableFolder
         idx = path.IndexOf(ZIP_DIRECTORY_SEPARATOR, Path.Length + 1);
         return idx < 0;
     }
-    
-    protected virtual IFolder CreateSubfolder(Stream stream, string path, )
+
+    /// <summary>
+    /// Creates a new <see cref="IFolder"/> object with the current folder as its parent.
+    /// </summary>
+    /// <param name="archive">The ZIP archive.</param>
+    /// <param name="storable">The ID, name, and path of the new folder.</param>
+    /// <param name="parent">The parent of the folder, if one exists..</param>
+    /// <returns></returns>
+    protected virtual IAddressableFolder CreateSubfolderItem(ZipArchive archive, SimpleZipStorableItem storable, IFolder? parent = null)
+    {
+        return new ReadOnlyZipFolder(archive, storable, parent);
+    }
 }
