@@ -104,7 +104,11 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
         if (item is ZipFolder folder)
         {
             // Recursively remove any sub-entries
-            foreach (var entry in _archive.Entries.Where(e => IsChild(e.FullName, folder.Path)))
+            // Pre-enumerate because the entries list will change in the loop
+            var childEntries = _archive.Entries
+                .Where(e => IsChild(e.FullName, folder.Path))
+                .ToList();
+            foreach (var entry in childEntries)
                 entry.Delete();
 
             GetVirtualFolders().Remove(folder.Id);
