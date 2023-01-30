@@ -13,7 +13,7 @@ namespace OwlCore.Storage.Archive;
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
 /// mode <see cref="ZipArchiveMode.Read"/> or <see cref="ZipArchiveMode.Update"/>.
 /// </summary>
-public class ReadOnlyZipFolder : IAddressableFolder
+public class ReadOnlyZipArchiveFolder : IAddressableFolder
 {
     /// <summary>
     /// The directory separator as defined by the ZIP standard.
@@ -27,11 +27,11 @@ public class ReadOnlyZipFolder : IAddressableFolder
     private protected Dictionary<string, IAddressableFolder>? _virtualFolders;
 
     /// <summary>
-    /// Creates a new instance of <see cref="ReadOnlyZipFolder"/>.
+    /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
     /// </summary>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
     /// <param name="sourceFile">The file that this archive originated from.</param>
-    public ReadOnlyZipFolder(ZipArchive archive, IStorable sourceFile)
+    public ReadOnlyZipArchiveFolder(ZipArchive archive, IStorable sourceFile)
     {
         if(string.IsNullOrWhiteSpace(sourceFile.Id))
             throw new ArgumentNullException(nameof(sourceFile.Id), "Source file's ID cannot be null or empty.");
@@ -48,12 +48,12 @@ public class ReadOnlyZipFolder : IAddressableFolder
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="ReadOnlyZipFolder"/>.
+    /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
     /// </summary>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
     /// <param name="name">The name of this item</param>
     /// <param name="parent">The parent of this folder.</param>
-    internal ReadOnlyZipFolder(ZipArchive archive, string name, ReadOnlyZipFolder parent)
+    internal ReadOnlyZipArchiveFolder(ZipArchive archive, string name, ReadOnlyZipArchiveFolder parent)
     {
         _archive = archive;
         _parent = parent;
@@ -95,7 +95,7 @@ public class ReadOnlyZipFolder : IAddressableFolder
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (IsChild(entry.FullName))
-                    yield return new ZipEntryFile(entry, this);
+                    yield return new ZipArchiveEntryFile(entry, this);
             }
         }
 
@@ -155,7 +155,7 @@ public class ReadOnlyZipFolder : IAddressableFolder
                     continue;
 
                 var entry = _archive.Entries[e];
-                _virtualFolders[path] = new ReadOnlyZipFolder(_archive, entry.Name, this);
+                _virtualFolders[path] = new ReadOnlyZipArchiveFolder(_archive, entry.Name, this);
             }
         }
 

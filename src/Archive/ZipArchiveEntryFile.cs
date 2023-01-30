@@ -9,17 +9,17 @@ namespace OwlCore.Storage.Archive;
 /// <summary>
 /// A file implementation wrapping a <see cref="ZipArchiveEntry"/>.
 /// </summary>
-public class ZipEntryFile : IAddressableFile
+public class ZipArchiveEntryFile : IAddressableFile
 {
     private readonly IFolder? _parent;
     private readonly ZipArchiveEntry _entry;
 
     /// <summary>
-    /// Creates a new instance of <see cref="ZipEntryFile"/>.
+    /// Creates a new instance of <see cref="ZipArchiveEntryFile"/>.
     /// </summary>
     /// <param name="entry">The archive entry for this file.</param>
     /// <param name="parent">The parent folder.</param>
-    internal ZipEntryFile(ZipArchiveEntry entry, ReadOnlyZipFolder parent)
+    internal ZipArchiveEntryFile(ZipArchiveEntry entry, ReadOnlyZipArchiveFolder parent)
     {
         Name = entry.Name;
         Id = $"{parent.Id}{entry.Name}";

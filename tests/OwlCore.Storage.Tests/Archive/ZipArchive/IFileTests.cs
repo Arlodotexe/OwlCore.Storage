@@ -3,7 +3,7 @@ using OwlCore.Storage.Archive;
 using System.IO.Compression;
 using OwlCore.Storage.SystemIO;
 
-namespace OwlCore.Storage.Tests.Archive.Zip;
+namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 
 [TestClass]
 public class IFileTests : CommonIFileTests
@@ -28,13 +28,13 @@ public class IFileTests : CommonIFileTests
 
         var createdArchive = new SystemFile(archiveFullPath);
         var stream = await createdArchive.OpenStreamAsync(FileAccess.ReadWrite);
-        var archive = new ZipArchive(stream, ZipArchiveMode.Update);
+        var archive = new System.IO.Compression.ZipArchive(stream, ZipArchiveMode.Update);
 
         var entry = archive.GetEntry(entryId);
         Assert.IsNotNull(entry);
 
-        var zipFolder = new ZipFolder(archive, createdArchive);
-        var file = new ZipEntryFile(entry, zipFolder);
+        var zipFolder = new ZipArchiveFolder(archive, createdArchive);
+        var file = new ZipArchiveEntryFile(entry, zipFolder);
 
         return file;
 

@@ -3,10 +3,10 @@ using OwlCore.Storage.Archive;
 using System.IO.Compression;
 using OwlCore.Storage.Memory;
 
-namespace OwlCore.Storage.Tests.Archive.Zip;
+namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 
 /// <summary>
-/// A test suite for <see cref="ZipEntryFile"/>s created entirely in memory.
+/// A test suite for <see cref="ZipArchiveEntryFile"/>s created entirely in memory.
 /// </summary>
 [TestClass]
 public class InMemIFileTests : CommonIFileTests
@@ -16,7 +16,7 @@ public class InMemIFileTests : CommonIFileTests
     {
         var archiveStream = new MemoryStream();
         var sourceFile = new MemoryFile($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archiveStream);
-        var archive = new ZipArchive(archiveStream, ZipArchiveMode.Update);
+        var archive = new System.IO.Compression.ZipArchive(archiveStream, ZipArchiveMode.Update);
         var entry = archive.CreateEntry($"{Guid.NewGuid()}");
 
         using (var entryStream = entry.Open())
@@ -25,7 +25,7 @@ public class InMemIFileTests : CommonIFileTests
             entryStream.Write(randomData);
         }
 
-        var file = new ZipEntryFile(entry, new ZipFolder(archive, sourceFile));
+        var file = new ZipArchiveEntryFile(entry, new ZipArchiveFolder(archive, sourceFile));
 
         return Task.FromResult<IFile>(file);
 

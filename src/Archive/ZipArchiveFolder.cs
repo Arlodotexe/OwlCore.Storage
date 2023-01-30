@@ -12,20 +12,20 @@ namespace OwlCore.Storage.Archive;
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/>.
 /// </summary>
-public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGetItem
+public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFolderCanFastGetItem
 {
     /// <summary>
-    /// Creates a new instance of <see cref="ZipFolder"/>.
+    /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
     /// </summary>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
     /// <param name="sourceFile">The file that this archive originated from.</param>
-    public ZipFolder(ZipArchive archive, IStorable sourceFile)
+    public ZipArchiveFolder(ZipArchive archive, IStorable sourceFile)
         : base(archive, sourceFile)
     {
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="ZipFolder"/>.
+    /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
     /// </summary>
     /// <remarks>
     /// This constructor is used internally for creating subfolders.
@@ -33,7 +33,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
     /// <param name="name">The name of this item</param>
     /// <param name="parent">The parent of this folder.</param>
-    internal ZipFolder(ZipArchive archive, string name, ReadOnlyZipFolder parent)
+    internal ZipArchiveFolder(ZipArchive archive, string name, ReadOnlyZipArchiveFolder parent)
         : base(archive, name, parent)
     {
     }
@@ -53,7 +53,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
 
         var existingEntry = TryGetEntry($"{Path}{fileToCopy.Name}");
         if (!overwrite && existingEntry is not null)
-            return new ZipEntryFile(existingEntry, this);
+            return new ZipArchiveEntryFile(existingEntry, this);
 
         var copy = await CreateFileAsync(fileToCopy.Name, overwrite, cancellationToken);
         using var dstStream = await copy.OpenStreamAsync(FileAccess.Write, cancellationToken);
@@ -80,7 +80,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
 
         entry ??= _archive.CreateEntry(realSubPath);
 
-        return new ZipEntryFile(entry, this);
+        return new ZipArchiveEntryFile(entry, this);
     }
 
     /// <inheritdoc/>
@@ -99,7 +99,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
 
         if (folder is null)
         {
-            folder = new ZipFolder(_archive, name, this);
+            folder = new ZipArchiveFolder(_archive, name, this);
             GetVirtualFolders()[subPath] = folder;
         }
 
@@ -111,7 +111,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (item is ZipFolder folder)
+        if (item is ZipArchiveFolder folder)
         {
             // Recursively remove any sub-entries
             // Pre-enumerate because the entries list will change in the loop
@@ -137,7 +137,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return Task.FromResult<IFolderWatcher>(new ZipFolderWatcher(this));
+        return Task.FromResult<IFolderWatcher>(new ZipArchiveFolderWatcher(this));
     }
 
     /// <inheritdoc/>
@@ -153,7 +153,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
         if (entry is not null)
         {
             // Get file
-            item = new ZipEntryFile(entry, this);
+            item = new ZipArchiveEntryFile(entry, this);
         }
         else
         {

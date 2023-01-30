@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage.Archive;
 
 /// <summary>
-/// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipFolder"/>.
+/// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipArchiveFolder"/>.
 /// </summary>
-internal sealed class ZipFolderWatcher : IFolderWatcher
+internal sealed class ZipArchiveFolderWatcher : IFolderWatcher
 {
     /// <summary>
     /// Creates a new instance of <see cref="MemoryFolderWatcher"/>.
     /// </summary>
     /// <param name="folder">The folder being watched.</param>
-    internal ZipFolderWatcher(IMutableFolder folder)
+    internal ZipArchiveFolderWatcher(IMutableFolder folder)
     {
         Folder = folder;
     }

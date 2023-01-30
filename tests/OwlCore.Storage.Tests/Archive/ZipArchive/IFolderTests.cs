@@ -3,7 +3,7 @@ using OwlCore.Storage.Archive;
 using System.IO.Compression;
 using OwlCore.Storage.SystemIO;
 
-namespace OwlCore.Storage.Tests.Archive.Zip;
+namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 
 [TestClass]
 public class IFolderTests : IModifiableFolderTests
@@ -14,9 +14,9 @@ public class IFolderTests : IModifiableFolderTests
         var sourceFile = new SystemFile(CreateEmptyArchiveOnDisk());
 
         var stream = await sourceFile.OpenStreamAsync(FileAccess.ReadWrite);
-        var archive = new ZipArchive(stream, ZipArchiveMode.Update);
+        var archive = new System.IO.Compression.ZipArchive(stream, ZipArchiveMode.Update);
         
-        return new ZipFolder(archive, sourceFile);
+        return new ZipArchiveFolder(archive, sourceFile);
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
