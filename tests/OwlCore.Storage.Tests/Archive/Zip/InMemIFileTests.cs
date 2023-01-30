@@ -1,6 +1,7 @@
 ﻿using OwlCore.Storage.CommonTests;
 using OwlCore.Storage.Archive;
 using System.IO.Compression;
+using OwlCore.Storage.Memory;
 
 namespace OwlCore.Storage.Tests.Archive.Zip;
 
@@ -13,8 +14,9 @@ public class InMemIFileTests : CommonIFileTests
     // Required for base class to perform common tests.
     public override Task<IFile> CreateFileAsync()
     {
-        MemoryStream archiveStream = new();
-        ZipArchive archive = new(archiveStream, ZipArchiveMode.Update);
+        var archiveStream = new MemoryStream();
+        var sourceFile = new MemoryFile($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archiveStream);
+        var archive = new ZipArchive(archiveStream, ZipArchiveMode.Update);
         var entry = archive.CreateEntry($"{Guid.NewGuid()}");
 
         using (var entryStream = entry.Open())
@@ -22,9 +24,8 @@ public class InMemIFileTests : CommonIFileTests
             var randomData = GenerateRandomData(256_000);
             entryStream.Write(randomData);
         }
-        
-        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
-        var file = new ZipEntryFile(entry, new ZipFolder(archive, storable));
+
+        var file = new ZipEntryFile(entry, new ZipFolder(archive, sourceFile));
 
         return Task.FromResult<IFile>(file);
 

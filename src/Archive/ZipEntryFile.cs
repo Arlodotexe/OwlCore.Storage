@@ -19,11 +19,11 @@ public class ZipEntryFile : IAddressableFile
     /// </summary>
     /// <param name="entry">The archive entry for this file.</param>
     /// <param name="parent">The parent folder.</param>
-    public ZipEntryFile(ZipArchiveEntry entry, IFolder? parent)
+    internal ZipEntryFile(ZipArchiveEntry entry, ReadOnlyZipFolder parent)
     {
-        Path = entry.FullName;
         Name = entry.Name;
-        Id = (parent?.Id ?? string.Empty) + Name;
+        Id = $"{parent.Id}{entry.Name}";
+        Path = $"{parent.Path}{entry.Name}";
 
         _parent = parent;
         _entry = entry;

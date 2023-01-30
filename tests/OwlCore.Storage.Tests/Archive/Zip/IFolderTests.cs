@@ -1,6 +1,7 @@
 ﻿using OwlCore.Storage.CommonTests;
 using OwlCore.Storage.Archive;
 using System.IO.Compression;
+using OwlCore.Storage.SystemIO;
 
 namespace OwlCore.Storage.Tests.Archive.Zip;
 
@@ -8,12 +9,14 @@ namespace OwlCore.Storage.Tests.Archive.Zip;
 public class IFolderTests : IModifiableFolderTests
 {
     // Required for base class to perform common tests.
-    public override Task<IModifiableFolder> CreateModifiableFolderAsync()
+    public override async Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
-        ZipArchive archive = ZipFile.Open(CreateEmptyArchiveOnDisk(), ZipArchiveMode.Update);
+        var sourceFile = new SystemFile(CreateEmptyArchiveOnDisk());
+
+        var stream = await sourceFile.OpenStreamAsync(FileAccess.ReadWrite);
+        var archive = new ZipArchive(stream, ZipArchiveMode.Update);
         
-        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
-        return Task.FromResult<IModifiableFolder>(new ZipFolder(archive, storable));
+        return new ZipFolder(archive, sourceFile);
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)

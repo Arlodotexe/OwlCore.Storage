@@ -1,6 +1,7 @@
 ﻿using OwlCore.Storage.CommonTests;
 using OwlCore.Storage.Archive;
 using System.IO.Compression;
+using OwlCore.Storage.SystemIO;
 
 namespace OwlCore.Storage.Tests.Archive.Zip;
 
@@ -8,7 +9,7 @@ namespace OwlCore.Storage.Tests.Archive.Zip;
 public class IFileTests : CommonIFileTests
 {
     // Required for base class to perform common tests.
-    public override Task<IFile> CreateFileAsync()
+    public override async Task<IFile> CreateFileAsync()
     {
         // Create new archive on disk
         string entryId = Guid.NewGuid().ToString();
@@ -21,16 +22,21 @@ public class IFileTests : CommonIFileTests
             var randomData = GenerateRandomData(256_000);
             entryStream.Write(randomData);
         }
-        ZipFile.CreateFromDirectory(tempArchivePath, tempArchivePath + ".zip");
 
-        ZipArchive archive = ZipFile.Open(tempArchivePath + ".zip", ZipArchiveMode.Update);
+        var archiveFullPath = tempArchivePath + ".zip";
+        ZipFile.CreateFromDirectory(tempArchivePath, archiveFullPath);
+
+        var createdArchive = new SystemFile(archiveFullPath);
+        var stream = await createdArchive.OpenStreamAsync(FileAccess.ReadWrite);
+        var archive = new ZipArchive(stream, ZipArchiveMode.Update);
+
         var entry = archive.GetEntry(entryId);
         Assert.IsNotNull(entry);
 
-        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
-        var file = new ZipEntryFile(entry, new ZipFolder(archive, storable));
+        var zipFolder = new ZipFolder(archive, createdArchive);
+        var file = new ZipEntryFile(entry, zipFolder);
 
-        return Task.FromResult<IFile>(file);
+        return file;
 
         static byte[] GenerateRandomData(int length)
         {

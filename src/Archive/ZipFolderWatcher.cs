@@ -8,13 +8,13 @@ namespace OwlCore.Storage.Archive;
 /// <summary>
 /// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipFolder"/>.
 /// </summary>
-public class ZipFolderWatcher : IFolderWatcher
+internal sealed class ZipFolderWatcher : IFolderWatcher
 {
     /// <summary>
     /// Creates a new instance of <see cref="MemoryFolderWatcher"/>.
     /// </summary>
     /// <param name="folder">The folder being watched.</param>
-    public ZipFolderWatcher(IMutableFolder folder)
+    internal ZipFolderWatcher(IMutableFolder folder)
     {
         Folder = folder;
     }

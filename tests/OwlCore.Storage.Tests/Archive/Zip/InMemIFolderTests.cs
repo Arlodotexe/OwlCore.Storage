@@ -1,6 +1,7 @@
 ﻿using OwlCore.Storage.CommonTests;
 using OwlCore.Storage.Archive;
 using System.IO.Compression;
+using OwlCore.Storage.Memory;
 
 namespace OwlCore.Storage.Tests.Archive.Zip;
 
@@ -13,11 +14,11 @@ public class InMemIFolderTests : IModifiableFolderTests
     // Required for base class to perform common tests.
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
-        MemoryStream archiveStream = new();
-        ZipArchive archive = new(archiveStream, ZipArchiveMode.Update);
+        using var archiveStream = new MemoryStream();
+        var archive = new ZipArchive(archiveStream, ZipArchiveMode.Update);
+        var sourceFile = new MemoryFile($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archiveStream);
 
-        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
-        return Task.FromResult<IModifiableFolder>(new ZipFolder(archive, storable));
+        return Task.FromResult<IModifiableFolder>(new ZipFolder(archive, sourceFile));
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
@@ -85,31 +86,31 @@ public class InMemIFolderTests : IModifiableFolderTests
 
         // Check each path
         var fileRootEx = await root.GetItemAsync($"{root.Id}fileRoot");
-        Assert.AreEqual("fileRoot", fileRootEx.Path);
+        Assert.AreEqual("/fileRoot", fileRootEx.Path);
 
-        var subAEx = await root.GetItemAsync($"{root.Id}subA") as IAddressableFolder;
+        var subAEx = await root.GetItemAsync($"{root.Id}subA/") as IAddressableFolder;
         Assert.IsNotNull(subAEx);
-        Assert.AreEqual("subA/", subAEx.Path);
+        Assert.AreEqual("/subA/", subAEx.Path);
 
         var fileAEx = await subAEx.GetItemAsync($"{root.Id}subA/fileA");
         Assert.IsInstanceOfType<IFile>(fileAEx);
-        Assert.AreEqual("subA/fileA", fileAEx.Path);
+        Assert.AreEqual("/subA/fileA", fileAEx.Path);
 
-        var subBEx = await root.GetItemAsync($"{root.Id}subB") as IAddressableFolder;
+        var subBEx = await root.GetItemAsync($"{root.Id}subB/") as IAddressableFolder;
         Assert.IsNotNull(subBEx);
-        Assert.AreEqual("subB/", subBEx.Path);
+        Assert.AreEqual("/subB/", subBEx.Path);
 
         var fileBEx = await subBEx.GetItemAsync($"{root.Id}subB/fileB");
         Assert.IsInstanceOfType<IFile>(fileBEx);
-        Assert.AreEqual("subB/fileB", fileBEx.Path);
+        Assert.AreEqual("/subB/fileB", fileBEx.Path);
 
-        var subCEx = await subBEx.GetItemAsync($"{root.Id}subB/subC") as IAddressableFolder;
+        var subCEx = await subBEx.GetItemAsync($"{root.Id}subB/subC/") as IAddressableFolder;
         Assert.IsNotNull(subCEx);
-        Assert.AreEqual("subB/subC/", subCEx.Path);
+        Assert.AreEqual("/subB/subC/", subCEx.Path);
 
         var fileCEx = await subCEx.GetItemAsync($"{root.Id}subB/subC/fileC");
         Assert.IsInstanceOfType<IFile>(fileCEx);
-        Assert.AreEqual("subB/subC/fileC", fileCEx.Path);
+        Assert.AreEqual("/subB/subC/fileC", fileCEx.Path);
     }
 
     [TestMethod]

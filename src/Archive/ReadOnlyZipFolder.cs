@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,40 +21,68 @@ public class ReadOnlyZipFolder : IAddressableFolder
     /// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
     /// </summary>
     internal const char ZIP_DIRECTORY_SEPARATOR = '/';
-    
+
     private readonly IFolder? _parent;
-    
-    protected readonly ZipArchive _archive;
-    protected Dictionary<string, IAddressableFolder>? _virtualFolders;
-    
+    private protected readonly ZipArchive _archive;
+    private protected Dictionary<string, IAddressableFolder>? _virtualFolders;
+
     /// <summary>
     /// Creates a new instance of <see cref="ReadOnlyZipFolder"/>.
     /// </summary>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
-    /// <param name="storable">A storable containing the ID, name, and path of this folder.</param>
-    /// <param name="parent">The parent of this folder, if one exists.</param>
-    public ReadOnlyZipFolder(ZipArchive archive, SimpleZipStorableItem storable, IFolder? parent = null)
+    /// <param name="sourceFile">The file that this archive originated from.</param>
+    public ReadOnlyZipFolder(ZipArchive archive, IStorable sourceFile)
+    {
+        if(string.IsNullOrWhiteSpace(sourceFile.Id))
+            throw new ArgumentNullException(nameof(sourceFile.Id), "Source file's ID cannot be null or empty.");
+
+        _archive = archive;
+
+        RootFolder = this;
+
+        // e.g., a file named MyArchive.zip becomes a folder named MyArchive
+        Name = IOPath.GetFileNameWithoutExtension(sourceFile.Name);
+
+        Id = $"{ZIP_DIRECTORY_SEPARATOR}{sourceFile.Id.Trim(ZIP_DIRECTORY_SEPARATOR)}{ZIP_DIRECTORY_SEPARATOR}";
+        Path = $"{ZIP_DIRECTORY_SEPARATOR}";
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ReadOnlyZipFolder"/>.
+    /// </summary>
+    /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
+    /// <param name="name">The name of this item</param>
+    /// <param name="parent">The parent of this folder.</param>
+    internal ReadOnlyZipFolder(ZipArchive archive, string name, ReadOnlyZipFolder parent)
     {
         _archive = archive;
         _parent = parent;
-        
-        Id = storable.Id;
-        Name = storable.Name;
-        Path = storable.Path;
+
+        RootFolder = parent.RootFolder;
+
+        Name = name;
+        Path = $"{parent.Path}{name}{ZIP_DIRECTORY_SEPARATOR}";
+        Id = $"{parent.Id}{name}{ZIP_DIRECTORY_SEPARATOR}";
     }
 
     /// <inheritdoc/>
     public string Id { get; }
-    
+
     /// <inheritdoc/>
     public string Name { get; }
-    
+
     /// <inheritdoc/>
     public string Path { get; }
-    
+
+    /// <summary>
+    /// A folder that points to the root of the archive.
+    /// </summary>
+    public IFolder RootFolder { get; }
+
     /// <inheritdoc/>
     public async IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (type == StorableType.None)
@@ -83,12 +110,12 @@ public class ReadOnlyZipFolder : IAddressableFolder
             }
         }
     }
-    
+
     /// <inheritdoc/>
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult<IFolder?>(_parent);
+        return Task.FromResult(_parent);
     }
 
     /// <summary>
@@ -103,7 +130,7 @@ public class ReadOnlyZipFolder : IAddressableFolder
     protected ZipArchiveEntry? TryGetEntry(string entryName)
     {
         return _archive.Mode != ZipArchiveMode.Create
-            ? _archive.GetEntry(entryName)
+            ? (_archive.GetEntry(entryName) ?? _archive.GetEntry(entryName.TrimEnd(ZIP_DIRECTORY_SEPARATOR)))
             : null;
     }
 
@@ -115,25 +142,26 @@ public class ReadOnlyZipFolder : IAddressableFolder
         if (_virtualFolders is null)
         {
             _virtualFolders = new();
-        
+
             // Populate list of virtual folders
             var entryPaths = _archive.Entries
-                .Select(e => SimpleZipStorableItem.NormalizeEnding(e.FullName))
+                .Select(e => NormalizeEnding(e.FullName))
                 .ToList();
-            for (int e = 0; e < _archive.Entries.Count; e++)
+
+            for (var e = 0; e < _archive.Entries.Count; e++)
             {
-                string path = entryPaths[e];
+                var path = entryPaths[e];
                 if (!IsChild(path) || entryPaths.Any(p => p.StartsWith(path)))
                     continue;
 
                 var entry = _archive.Entries[e];
-                _virtualFolders[path] = CreateSubfolderItem(_archive, new SimpleZipStorableItem(Id, entry), this);
-            } 
+                _virtualFolders[path] = new ReadOnlyZipFolder(_archive, entry.Name, this);
+            }
         }
-        
+
         return _virtualFolders;
     }
-    
+
     /// <summary>
     /// Determines if the <paramref name="path"/> is a child of the given or current folder.
     /// </summary>
@@ -142,15 +170,15 @@ public class ReadOnlyZipFolder : IAddressableFolder
     protected bool IsChild(string path, string? parentPath = null)
     {
         parentPath ??= Path;
-        
+
         // Remove trailing separator
         if (path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR)
             path = path.Substring(0, path.Length - 1);
-        
-        int idx = path.IndexOf(Path, StringComparison.Ordinal);
+
+        var idx = path.IndexOf(parentPath, StringComparison.Ordinal);
         if (idx != 0)
             return false;
-            
+
         // The folder path is the start of the item path,
         // which means this item is at least a descendant
         // of this folder.
@@ -162,14 +190,14 @@ public class ReadOnlyZipFolder : IAddressableFolder
     }
 
     /// <summary>
-    /// Creates a new <see cref="IFolder"/> object with the current folder as its parent.
+    /// Ensures the given path ends with exactly one directory separator.
     /// </summary>
-    /// <param name="archive">The ZIP archive.</param>
-    /// <param name="storable">The ID, name, and path of the new folder.</param>
-    /// <param name="parent">The parent of the folder, if one exists..</param>
-    /// <returns></returns>
-    protected virtual IAddressableFolder CreateSubfolderItem(ZipArchive archive, SimpleZipStorableItem storable, IFolder? parent = null)
+    /// <param name="path">The path to normalize.</param>
+    /// <returns>The normalized string with a trailing directory separator.</returns>
+    public static string NormalizeEnding(string path)
     {
-        return new ReadOnlyZipFolder(archive, storable, parent);
+        return path.Length == 0 || path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR
+            ? path
+            : path + ZIP_DIRECTORY_SEPARATOR;
     }
 }
