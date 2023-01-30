@@ -39,7 +39,8 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
         else if (srcStream.Position != 0)
             throw new InvalidOperationException("The opened file stream is not at position 0 and cannot be seeked. Unable to copy.");
 
-        var existingEntry = TryGetEntry(fileToCopy.Id);
+        SimpleZipStorableItem storable = new(fileToCopy.Id);
+        var existingEntry = TryGetEntry(storable.Path);
         if (!overwrite && existingEntry is not null)
             return new ZipEntryFile(existingEntry, this);
 
