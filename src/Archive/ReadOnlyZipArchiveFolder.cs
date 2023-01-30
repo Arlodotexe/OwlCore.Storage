@@ -30,10 +30,25 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
     /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
     /// </summary>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
-    /// <param name="sourceFile">The file that this archive originated from.</param>
-    public ReadOnlyZipArchiveFolder(ZipArchive archive, IStorable sourceFile)
+    /// <param name="sourceFileData">The Id and Name of the "source file" that created this item.</param>
+    public ReadOnlyZipArchiveFolder(ZipArchive archive, SimpleStorableItem sourceFileData)
+        : this(archive, (IStorable)sourceFileData)
     {
-        if(string.IsNullOrWhiteSpace(sourceFile.Id))
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
+    /// </summary>
+    /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
+    /// <param name="sourceFile">The file that this archive originated from.</param>
+    public ReadOnlyZipArchiveFolder(ZipArchive archive, IFile sourceFile)
+        : this(archive, (IStorable)sourceFile)
+    {
+    }
+    
+    private ReadOnlyZipArchiveFolder(ZipArchive archive, IStorable sourceFile)
+    {
+        if (string.IsNullOrWhiteSpace(sourceFile.Id))
             throw new ArgumentNullException(nameof(sourceFile.Id), "Source file's ID cannot be null or empty.");
 
         _archive = archive;
