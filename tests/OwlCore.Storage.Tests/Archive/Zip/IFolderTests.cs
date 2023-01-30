@@ -12,7 +12,7 @@ public class IFolderTests : IModifiableFolderTests
     {
         ZipArchive archive = ZipFile.Open(CreateEmptyArchiveOnDisk(), ZipArchiveMode.Update);
 
-        return Task.FromResult<IModifiableFolder>(new ZipFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
+        return Task.FromResult<IModifiableFolder>(new ZipArchiveFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)

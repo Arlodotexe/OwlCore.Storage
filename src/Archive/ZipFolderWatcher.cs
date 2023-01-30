@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage.Archive;
 
 /// <summary>
-/// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipFolder"/>.
+/// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipArchiveFolder"/>.
 /// </summary>
 public class ZipFolderWatcher : IFolderWatcher
 {

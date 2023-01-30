@@ -5,7 +5,7 @@ using System.IO.Compression;
 namespace OwlCore.Storage.Tests.Archive.Zip;
 
 /// <summary>
-/// A test suite for <see cref="ZipEntryFile"/>s created entirely in memory.
+/// A test suite for <see cref="ZipArchiveFile"/>s created entirely in memory.
 /// </summary>
 [TestClass]
 public class InMemIFileTests : CommonIFileTests
@@ -23,7 +23,7 @@ public class InMemIFileTests : CommonIFileTests
             entryStream.Write(randomData);
         }
 
-        var file = new ZipEntryFile(entry, new ZipFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
+        var file = new ZipArchiveFile(entry, new ZipArchiveFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
 
         return Task.FromResult<IFile>(file);
 
