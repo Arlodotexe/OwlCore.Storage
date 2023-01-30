@@ -140,9 +140,7 @@ public class ZipFolder : ReadOnlyZipFolder, IModifiableFolder, IFolderCanFastGet
         else
         {
             storable.ChangeStorableType(true);
-            item = GetVirtualFolders().TryGetValue(storable.Path, out var existingFolder)
-                ? existingFolder
-                : CreateSubfolderItem(_archive, storable);
+            item = GetVirtualFolders()[storable.Path];
         }
 
         return Task.FromResult(item);
