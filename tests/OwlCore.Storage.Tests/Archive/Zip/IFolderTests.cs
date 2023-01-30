@@ -11,8 +11,9 @@ public class IFolderTests : IModifiableFolderTests
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
         ZipArchive archive = ZipFile.Open(CreateEmptyArchiveOnDisk(), ZipArchiveMode.Update);
-
-        return Task.FromResult<IModifiableFolder>(new ZipFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
+        
+        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
+        return Task.FromResult<IModifiableFolder>(new ZipFolder(archive, storable));
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)

@@ -21,8 +21,9 @@ public class ZipEntryFile : IAddressableFile
     /// <param name="parent">The parent folder.</param>
     public ZipEntryFile(ZipArchiveEntry entry, IFolder? parent)
     {
-        Id = Name = entry.Name;
         Path = entry.FullName;
+        Name = entry.Name;
+        Id = (parent?.Id ?? string.Empty) + Name;
 
         _parent = parent;
         _entry = entry;

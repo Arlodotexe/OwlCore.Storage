@@ -10,8 +10,8 @@ public class SimpleZipStorableItem : IStorable
     public SimpleZipStorableItem(string rootId, string id, string path, string name, bool isFolder)
     {
         RootId = rootId;
-        Id = NormalizeEnding(id);
-        Path = NormalizeEnding(path);
+        Id = isFolder ? NormalizeEnding(id) : id;
+        Path = isFolder ? NormalizeEnding(path) : path;
         Name = name;
     }
     
@@ -43,7 +43,7 @@ public class SimpleZipStorableItem : IStorable
     /// </summary>
     /// <param name="storable">The <see cref="IStorable"/> to copy the ID and name from.</param>
     /// <param name="path">The path of the item, relative to the root entry.</param>
-    public SimpleZipStorableItem(IStorable storable, string path)
+    internal SimpleZipStorableItem(IStorable storable, string path)
     {
         Id = storable.Id;
         Name = storable.Name;
@@ -55,7 +55,7 @@ public class SimpleZipStorableItem : IStorable
             : Id.Substring(0, splitIdx);
     }
 
-    public SimpleZipStorableItem(string id, string path, bool isFolder)
+    internal SimpleZipStorableItem(string id, string path, bool isFolder)
     {
         Id = isFolder ? NormalizeEnding(id) : id;
         Path = isFolder ? NormalizeEnding(path) : path;
@@ -64,13 +64,12 @@ public class SimpleZipStorableItem : IStorable
         if (splitIdx < 0)
         {
             // This must be the root folder
-            RootId = id;
-            Name = string.Empty;
+            Name = RootId = id;
         }
         else
         {
             RootId = id.Substring(0, splitIdx);
-            Name = NormalizeEnding(System.IO.Path.GetFileName(path));
+            Name = System.IO.Path.GetFileName(path);
         }
     }
     
@@ -79,7 +78,7 @@ public class SimpleZipStorableItem : IStorable
     /// </summary>
     /// <param name="rootId">The ID of the root entry.</param>
     /// <param name="entry">The ZIP entry.</param>
-    public SimpleZipStorableItem(string rootId, ZipArchiveEntry entry)
+    internal SimpleZipStorableItem(string rootId, ZipArchiveEntry entry)
     {
         Id = rootId + ReadOnlyZipFolder.ZIP_DIRECTORY_SEPARATOR + entry.FullName;
         RootId = rootId;
@@ -88,20 +87,40 @@ public class SimpleZipStorableItem : IStorable
     }
     
     /// <inheritdoc/>
-    public string Id { get; }
+    public string Id { get; private set; }
     
     /// <summary>
     /// The ID of the root entry in the ZIP archive.
     /// </summary>
-    public string RootId { get; }
+    public string RootId { get; private set; }
     
     /// <inheritdoc/>
-    public string Name { get; }
+    public string Name { get; private set; }
     
     /// <summary>
     /// The path of the item, relative to the root entry.
     /// </summary>
-    public string Path { get; }
+    public string Path { get; private set; }
+
+    /// <summary>
+    /// Adds or removes the trailing directory separator.
+    /// </summary>
+    /// <param name="isFolder">Whether to treat the storable as a folder or file.</param>
+    public void ChangeStorableType(bool isFolder)
+    {
+        if (isFolder)
+        {
+            Path = NormalizeEnding(Path);
+            Id = NormalizeEnding(Id);
+        }
+        else
+        {
+            if (Path[Path.Length - 1] == ReadOnlyZipFolder.ZIP_DIRECTORY_SEPARATOR)
+                Path = Path.Substring(0, Path.Length - 1);
+            if (Id[Id.Length - 1] == ReadOnlyZipFolder.ZIP_DIRECTORY_SEPARATOR)
+                Id = Id.Substring(0, Id.Length - 1);
+        }
+    }
     
     /// <summary>
     /// Ensures the given path ends with exactly one directory separator.
@@ -123,8 +142,7 @@ public class SimpleZipStorableItem : IStorable
     /// <param name="isFolder">Whether this item is a folder.</param>
     public static SimpleZipStorableItem CreateFromParentId(string parentId, string name, bool isFolder)
     {
-        
-        string id = parentId + ReadOnlyZipFolder.ZIP_DIRECTORY_SEPARATOR + name;
+        string id = NormalizeEnding(parentId) + name;
         if (isFolder) id = NormalizeEnding(id);
 
         string rootId, path;
@@ -142,5 +160,10 @@ public class SimpleZipStorableItem : IStorable
         }
         
         return new(rootId, id, path, name, isFolder);
+    }
+
+    public static SimpleZipStorableItem CreateForRoot(string name)
+    {
+        return new SimpleZipStorableItem(name, name, string.Empty, name, true);
     }
 }

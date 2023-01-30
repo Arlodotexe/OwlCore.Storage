@@ -27,7 +27,8 @@ public class IFileTests : CommonIFileTests
         var entry = archive.GetEntry(entryId);
         Assert.IsNotNull(entry);
 
-        var file = new ZipEntryFile(entry, new ZipFolder(archive, new(archiveId, $"{Guid.NewGuid()}", true)));
+        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
+        var file = new ZipEntryFile(entry, new ZipFolder(archive, storable));
 
         return Task.FromResult<IFile>(file);
 

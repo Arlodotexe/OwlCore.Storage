@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +23,9 @@ public class ReadOnlyZipFolder : IAddressableFolder
     /// </summary>
     internal const char ZIP_DIRECTORY_SEPARATOR = '/';
     
-    protected readonly ZipArchive _archive;
-    protected readonly IFolder? _parent;
+    private readonly IFolder? _parent;
     
+    protected readonly ZipArchive _archive;
     protected Dictionary<string, IAddressableFolder>? _virtualFolders;
     
     /// <summary>
@@ -116,22 +117,32 @@ public class ReadOnlyZipFolder : IAddressableFolder
             _virtualFolders = new();
         
             // Populate list of virtual folders
-            foreach (var entry in _archive.Entries)
+            var entryPaths = _archive.Entries
+                .Select(e => SimpleZipStorableItem.NormalizeEnding(e.FullName))
+                .ToList();
+            for (int e = 0; e < _archive.Entries.Count; e++)
             {
-                string path = SimpleZipStorableItem.NormalizeEnding(entry.FullName);
-                if (IsChild(path))
-                    _virtualFolders[path] = CreateSubfolderItem(_archive, new SimpleZipStorableItem(Id, entry), this);
-            }    
+                string path = entryPaths[e];
+                if (!IsChild(path) || entryPaths.Any(p => p.StartsWith(path)))
+                    continue;
+
+                var entry = _archive.Entries[e];
+                _virtualFolders[path] = CreateSubfolderItem(_archive, new SimpleZipStorableItem(Id, entry), this);
+            } 
         }
         
         return _virtualFolders;
     }
     
     /// <summary>
-    /// Determines if the <paramref name="path"/> is a child of the current folder.
+    /// Determines if the <paramref name="path"/> is a child of the given or current folder.
     /// </summary>
-    protected bool IsChild(string path)
+    /// <param name="path">The child path to check.</param>
+    /// <param name="parentPath">The potential parent path.</param>
+    protected bool IsChild(string path, string? parentPath = null)
     {
+        parentPath ??= Path;
+        
         // Remove trailing separator
         if (path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR)
             path = path.Substring(0, path.Length - 1);

@@ -22,8 +22,9 @@ public class InMemIFileTests : CommonIFileTests
             var randomData = GenerateRandomData(256_000);
             entryStream.Write(randomData);
         }
-
-        var file = new ZipEntryFile(entry, new ZipFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
+        
+        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
+        var file = new ZipEntryFile(entry, new ZipFolder(archive, storable));
 
         return Task.FromResult<IFile>(file);
 

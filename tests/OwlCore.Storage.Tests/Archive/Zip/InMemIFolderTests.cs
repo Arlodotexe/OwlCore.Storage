@@ -16,7 +16,8 @@ public class InMemIFolderTests : IModifiableFolderTests
         MemoryStream archiveStream = new();
         ZipArchive archive = new(archiveStream, ZipArchiveMode.Update);
 
-        return Task.FromResult<IModifiableFolder>(new ZipFolder($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archive));
+        var storable = SimpleZipStorableItem.CreateForRoot($"{Guid.NewGuid()}");
+        return Task.FromResult<IModifiableFolder>(new ZipFolder(archive, storable));
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
@@ -83,30 +84,30 @@ public class InMemIFolderTests : IModifiableFolderTests
         var root = await CreateModifiableFolderWithNestedItems();
 
         // Check each path
-        var fileRootEx = await root.GetItemAsync("fileRoot");
+        var fileRootEx = await root.GetItemAsync($"{root.Id}fileRoot");
         Assert.AreEqual("fileRoot", fileRootEx.Path);
 
-        var subAEx = await root.GetItemAsync("subA") as IAddressableFolder;
+        var subAEx = await root.GetItemAsync($"{root.Id}subA") as IAddressableFolder;
         Assert.IsNotNull(subAEx);
         Assert.AreEqual("subA/", subAEx.Path);
 
-        var fileAEx = await subAEx.GetItemAsync("fileA");
+        var fileAEx = await subAEx.GetItemAsync($"{root.Id}subA/fileA");
         Assert.IsInstanceOfType<IFile>(fileAEx);
         Assert.AreEqual("subA/fileA", fileAEx.Path);
 
-        var subBEx = await root.GetItemAsync("subB") as IAddressableFolder;
+        var subBEx = await root.GetItemAsync($"{root.Id}subB") as IAddressableFolder;
         Assert.IsNotNull(subBEx);
         Assert.AreEqual("subB/", subBEx.Path);
 
-        var fileBEx = await subBEx.GetItemAsync("fileB");
+        var fileBEx = await subBEx.GetItemAsync($"{root.Id}subB/fileB");
         Assert.IsInstanceOfType<IFile>(fileBEx);
         Assert.AreEqual("subB/fileB", fileBEx.Path);
 
-        var subCEx = await subBEx.GetItemAsync("subC") as IAddressableFolder;
+        var subCEx = await subBEx.GetItemAsync($"{root.Id}subB/subC") as IAddressableFolder;
         Assert.IsNotNull(subCEx);
         Assert.AreEqual("subB/subC/", subCEx.Path);
 
-        var fileCEx = await subCEx.GetItemAsync("fileC");
+        var fileCEx = await subCEx.GetItemAsync($"{root.Id}subB/subC/fileC");
         Assert.IsInstanceOfType<IFile>(fileCEx);
         Assert.AreEqual("subB/subC/fileC", fileCEx.Path);
     }
@@ -116,7 +117,7 @@ public class InMemIFolderTests : IModifiableFolderTests
     {
         var root = await CreateModifiableFolderWithNestedItems();
 
-        var subA = await root.GetItemAsync("subA") as IFolder;
+        var subA = await root.GetItemAsync($"{root.Id}subA/") as IFolder;
         {
             Assert.IsNotNull(subA);
 
@@ -125,20 +126,20 @@ public class InMemIFolderTests : IModifiableFolderTests
 
             var fileA = subAItems[0];
             Assert.IsInstanceOfType<IFile>(fileA);
-            Assert.AreEqual("fileA", fileA.Id);
+            Assert.AreEqual($"{root.Id}subA/fileA", fileA.Id);
         }
 
-        var subB = await root.GetItemAsync("subB") as IFolder;
+        var subB = await root.GetItemAsync($"{root.Id}subB/") as IFolder;
         {
             Assert.IsNotNull(subB);
 
             var subBItems = await subB.GetItemsAsync().ToListAsync();
             Assert.AreEqual(2, subBItems.Count);
 
-            var fileB = subBItems.First(i => i.Id == "fileB");
+            var fileB = subBItems.First(i => i.Id == $"{root.Id}subB/fileB");
             Assert.IsInstanceOfType<IFile>(fileB);
 
-            var subC = subBItems.First(i => i.Id == "subC") as IFolder;
+            var subC = subBItems.First(i => i.Id == $"{root.Id}subB/subC/") as IFolder;
             {
                 Assert.IsNotNull(subC);
 
@@ -147,7 +148,7 @@ public class InMemIFolderTests : IModifiableFolderTests
 
                 var fileC = subCItems[0];
                 Assert.IsInstanceOfType<IFile>(fileC);
-                Assert.AreEqual("fileC", fileC.Id);
+                Assert.AreEqual($"{root.Id}subB/subC/fileC", fileC.Id);
             }
         }
     }
