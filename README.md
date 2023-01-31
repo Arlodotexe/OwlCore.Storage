@@ -17,7 +17,7 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
     > dotnet add package OwlCore.Storage
 
 ## Available implementations
-- [Memory only](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Memory)
+- [In memory](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Memory)
 - [System.IO](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/SystemIO)
 - [Windows.Storage](https://github.com/Arlodotexe/OwlCore.Storage.Uwp)
 - [IPFS / IPNS / MFS](https://github.com/Arlodotexe/OwlCore.Kubo/blob/main/docs/storageproviders.md)
