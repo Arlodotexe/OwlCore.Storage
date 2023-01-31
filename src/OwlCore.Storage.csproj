@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.5.3</Version>
+		<Version>0.6.0</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -25,8 +25,9 @@
 		<PackageReleaseNotes>
 --- 0.6.0 ---
 [New]
-Added StreamFile, a file implementation that presents a provided stream as file content.
-Added HttpFile, a file implementation which calls GET on a provided HTTP URL and returns it as file content.
+Added OwlCore.Storage.StreamFile, a file implementation that presents a provided stream as file content.
+Added OwlCore.Storage.HttpFile, a file implementation which calls GET on a provided HTTP URL and returns it as file content.
+Added OwlCore.Storage.Archive namespace, and new implementations for reading and writing a Zip archive from a file. Contributed by @yoshiask@github.com.
 
 [Improvements]
 Added new constructor to MemoryFile that requires only a MemoryStream, no Id or Name. These are calculated from the stream's hash code instead.
