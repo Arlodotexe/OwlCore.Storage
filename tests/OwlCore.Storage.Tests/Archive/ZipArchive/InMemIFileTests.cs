@@ -25,7 +25,7 @@ public class InMemIFileTests : CommonIFileTests
             entryStream.Write(randomData);
         }
 
-        var file = new ZipArchiveEntryFile(entry, new ZipArchiveFolder(archive, sourceFile));
+        var file = new ZipArchiveEntryFile(entry, new ZipArchiveFolder(sourceFile));
 
         return Task.FromResult<IFile>(file);
 

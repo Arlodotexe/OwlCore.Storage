@@ -12,11 +12,7 @@ public class IFolderTests : IModifiableFolderTests
     public override async Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
         var sourceFile = new SystemFile(CreateEmptyArchiveOnDisk());
-
-        var stream = await sourceFile.OpenStreamAsync(FileAccess.ReadWrite);
-        var archive = new System.IO.Compression.ZipArchive(stream, ZipArchiveMode.Update);
-        
-        return new ZipArchiveFolder(archive, sourceFile);
+        return new ZipArchiveFolder(sourceFile);
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)

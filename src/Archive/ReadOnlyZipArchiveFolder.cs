@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -13,7 +14,7 @@ namespace OwlCore.Storage.Archive;
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
 /// mode <see cref="ZipArchiveMode.Read"/> or <see cref="ZipArchiveMode.Update"/>.
 /// </summary>
-public class ReadOnlyZipArchiveFolder : IAddressableFolder
+public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
 {
     /// <summary>
     /// The directory separator as defined by the ZIP standard.
@@ -23,42 +24,43 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
     internal const char ZIP_DIRECTORY_SEPARATOR = '/';
 
     private readonly IFolder? _parent;
-    private protected readonly ZipArchive _archive;
     private protected Dictionary<string, IAddressableFolder>? _virtualFolders;
 
     /// <summary>
     /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
     /// </summary>
-    /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
-    /// <param name="sourceFileData">The Id and Name of the "source file" that created this item.</param>
-    public ReadOnlyZipArchiveFolder(ZipArchive archive, SimpleStorableItem sourceFileData)
-        : this(archive, (IStorable)sourceFileData)
+    /// <param name="sourceFile">The file that this archive originated from.</param>
+    public ReadOnlyZipArchiveFolder(IFile sourceFile)
+        : this((IStorable)sourceFile)
     {
+        if (string.IsNullOrWhiteSpace(sourceFile.Id))
+            throw new ArgumentNullException(nameof(sourceFile.Id), "Source file's ID cannot be null or empty.");
+
+        SourceFile = sourceFile;
     }
 
     /// <summary>
     /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
     /// </summary>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
-    /// <param name="sourceFile">The file that this archive originated from.</param>
-    public ReadOnlyZipArchiveFolder(ZipArchive archive, IFile sourceFile)
-        : this(archive, (IStorable)sourceFile)
+    /// <param name="sourceData">Data representing the file that this archive originated from.</param>
+    public ReadOnlyZipArchiveFolder(ZipArchive archive, SimpleStorableItem sourceData)
+        : this(sourceData)
     {
+        Archive = archive;
     }
-    
-    private ReadOnlyZipArchiveFolder(ZipArchive archive, IStorable sourceFile)
-    {
-        if (string.IsNullOrWhiteSpace(sourceFile.Id))
-            throw new ArgumentNullException(nameof(sourceFile.Id), "Source file's ID cannot be null or empty.");
 
-        _archive = archive;
+    private ReadOnlyZipArchiveFolder(IStorable sourceData)
+    {
+        if (string.IsNullOrWhiteSpace(sourceData.Id))
+            throw new ArgumentNullException(nameof(sourceData.Id), "Source file's ID cannot be null or empty.");
 
         RootFolder = this;
 
         // e.g., a file named MyArchive.zip becomes a folder named MyArchive
-        Name = IOPath.GetFileNameWithoutExtension(sourceFile.Name);
+        Name = IOPath.GetFileNameWithoutExtension(sourceData.Name);
 
-        Id = $"{ZIP_DIRECTORY_SEPARATOR}{sourceFile.Id.Trim(ZIP_DIRECTORY_SEPARATOR)}{ZIP_DIRECTORY_SEPARATOR}";
+        Id = $"{ZIP_DIRECTORY_SEPARATOR}{sourceData.Id.Trim(ZIP_DIRECTORY_SEPARATOR)}{ZIP_DIRECTORY_SEPARATOR}";
         Path = $"{ZIP_DIRECTORY_SEPARATOR}";
     }
 
@@ -70,10 +72,11 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
     /// <param name="parent">The parent of this folder.</param>
     internal ReadOnlyZipArchiveFolder(ZipArchive archive, string name, ReadOnlyZipArchiveFolder parent)
     {
-        _archive = archive;
+        Archive = archive;
         _parent = parent;
 
         RootFolder = parent.RootFolder;
+        SourceFile = parent.SourceFile;
 
         Name = name;
         Path = $"{parent.Path}{name}{ZIP_DIRECTORY_SEPARATOR}";
@@ -90,14 +93,24 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
     public string Path { get; }
 
     /// <summary>
-    /// A folder that points to the root of the archive.
+    /// A folder that represents the root of the archive.
     /// </summary>
     public IFolder RootFolder { get; }
+
+    /// <summary>
+    /// The file that this archive originated from.
+    /// </summary>
+    public IFile? SourceFile { get; }
+
+    /// <summary>
+    /// The instance used to explore the archive.
+    /// </summary>
+    public ZipArchive? Archive { get; protected set; }
 
     /// <inheritdoc/>
     public async IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await Task.Yield();
+        Archive ??= await OpenArchiveAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         if (type == StorableType.None)
@@ -105,7 +118,8 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
 
         if (type.HasFlag(StorableType.File))
         {
-            foreach (var entry in _archive.Entries)
+            Archive ??= await OpenArchiveAsync(cancellationToken);
+            foreach (var entry in Archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -144,8 +158,11 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
     /// </returns>
     protected ZipArchiveEntry? TryGetEntry(string entryName)
     {
-        return _archive.Mode != ZipArchiveMode.Create
-            ? (_archive.GetEntry(entryName) ?? _archive.GetEntry(entryName.TrimEnd(ZIP_DIRECTORY_SEPARATOR)))
+        if (Archive is null)
+            throw new ArgumentNullException(nameof(Archive));
+
+        return Archive.Mode != ZipArchiveMode.Create
+            ? (Archive.GetEntry(entryName) ?? Archive.GetEntry(entryName.TrimEnd(ZIP_DIRECTORY_SEPARATOR)))
             : null;
     }
 
@@ -154,23 +171,26 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
     /// </summary>
     protected Dictionary<string, IAddressableFolder> GetVirtualFolders()
     {
+        if (Archive is null)
+            throw new ArgumentNullException(nameof(Archive));
+
         if (_virtualFolders is null)
         {
             _virtualFolders = new();
 
             // Populate list of virtual folders
-            var entryPaths = _archive.Entries
+            var entryPaths = Archive.Entries
                 .Select(e => NormalizeEnding(e.FullName))
                 .ToList();
 
-            for (var e = 0; e < _archive.Entries.Count; e++)
+            for (var e = 0; e < Archive.Entries.Count; e++)
             {
                 var path = entryPaths[e];
                 if (!IsChild(path) || entryPaths.Any(p => p.StartsWith(path)))
                     continue;
 
-                var entry = _archive.Entries[e];
-                _virtualFolders[path] = new ReadOnlyZipArchiveFolder(_archive, entry.Name, this);
+                var entry = Archive.Entries[e];
+                _virtualFolders[path] = new ReadOnlyZipArchiveFolder(Archive, entry.Name, this);
             }
         }
 
@@ -214,5 +234,28 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder
         return path.Length == 0 || path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR
             ? path
             : path + ZIP_DIRECTORY_SEPARATOR;
+    }
+
+    /// <summary>
+    /// Manually opens the <see cref="Archive"/>.
+    /// </summary>
+    /// <returns>The opened archive. Dispose of it when you're done.</returns>
+    public virtual async Task<ZipArchive> OpenArchiveAsync(CancellationToken cancellationToken = default)
+    {
+        if (Archive is not null)
+            throw new ArgumentException(nameof(Archive), $"Argument was expected to be null, got {Archive}");
+
+        if (SourceFile is null)
+            throw new ArgumentNullException(nameof(SourceFile));
+
+        var stream = await SourceFile.OpenStreamAsync(FileAccess.Read, cancellationToken);
+        return Archive = new ZipArchive(stream, ZipArchiveMode.Read);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Archive?.Dispose();
+        Archive = null;
     }
 }

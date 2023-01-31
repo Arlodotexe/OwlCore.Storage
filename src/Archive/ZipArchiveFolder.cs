@@ -17,10 +17,19 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     /// <summary>
     /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
     /// </summary>
+    /// <param name="sourceFile">The Id and Name of the "source file" that created this item.</param>
+    public ZipArchiveFolder(IFile sourceFile)
+        : base(sourceFile)
+    {
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
+    /// </summary>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
-    /// <param name="sourceFile">The file that this archive originated from.</param>
-    public ZipArchiveFolder(ZipArchive archive, IStorable sourceFile)
-        : base(archive, sourceFile)
+    /// <param name="sourceData">The Id and Name of the "source file" that created this item.</param>
+    public ZipArchiveFolder(ZipArchive archive, SimpleStorableItem sourceData)
+        : base(archive, sourceData)
     {
     }
 
@@ -28,7 +37,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
     /// </summary>
     /// <remarks>
-    /// This constructor is used internally for creating subfolders.
+    /// This constructor is used internally for subfolders.
     /// </remarks>
     /// <param name="archive">An existing ZIP archive which is provided as the contents of the folder.</param>
     /// <param name="name">The name of this item</param>
@@ -42,6 +51,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     public async Task<IAddressableFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await OpenArchiveAsync(cancellationToken);
 
         using var srcStream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
@@ -49,7 +59,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
         if (srcStream.CanSeek && srcStream.Position != 0)
             srcStream.Seek(0, SeekOrigin.Begin);
         else if (srcStream.Position != 0)
-            throw new InvalidOperationException("The opened file stream is not at position 0 and cannot be seeked. Unable to copy.");
+            throw new InvalidOperationException("The opened file stream is not at position 0 and cannot seek. Unable to copy.");
 
         var existingEntry = TryGetEntry($"{Path}{fileToCopy.Name}");
         if (!overwrite && existingEntry is not null)
@@ -68,6 +78,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     public async Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        Archive ??= await OpenArchiveAsync(cancellationToken);
 
         var realSubPath = $"{Path}{name}";
 
@@ -77,8 +88,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
             entry.Delete();
             entry = null;
         }
-
-        entry ??= _archive.CreateEntry(realSubPath);
+        entry ??= Archive.CreateEntry(realSubPath);
 
         return new ZipArchiveEntryFile(entry, this);
     }
@@ -87,6 +97,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     public async Task<IAddressableFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        Archive ??= await OpenArchiveAsync(cancellationToken);
 
         var subPath = $"{Path}{name}{ZIP_DIRECTORY_SEPARATOR}";
         GetVirtualFolders().TryGetValue(subPath, out var folder);
@@ -99,7 +110,8 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
 
         if (folder is null)
         {
-            folder = new ZipArchiveFolder(_archive, name, this);
+            Archive ??= await OpenArchiveAsync(cancellationToken);
+            folder = new ZipArchiveFolder(Archive, name, this);
             GetVirtualFolders()[subPath] = folder;
         }
 
@@ -107,15 +119,16 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
 
     /// <inheritdoc/>
-    public Task DeleteAsync(IAddressableStorable item, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(IAddressableStorable item, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        Archive ??= await OpenArchiveAsync(cancellationToken);
 
         if (item is ZipArchiveFolder folder)
         {
             // Recursively remove any sub-entries
             // Pre-enumerate because the entries list will change in the loop
-            var childEntries = _archive.Entries
+            var childEntries = Archive.Entries
                 .Where(e => IsChild(e.FullName, folder.Path))
                 .ToList();
             foreach (var entry in childEntries)
@@ -128,8 +141,6 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
             var entry = TryGetEntry(item.Path);
             entry?.Delete();
         }
-
-        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
@@ -141,10 +152,12 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
 
     /// <inheritdoc/>
-    public Task<IAddressableStorable> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<IAddressableStorable> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         IAddressableStorable item;
+
+        Archive ??= await OpenArchiveAsync(cancellationToken);
 
         // Id can act as a Path (matches entry names) if we remove the prepended root folder Id.
         id = id.Replace(RootFolder.Id.TrimEnd(ZIP_DIRECTORY_SEPARATOR), string.Empty);
@@ -161,7 +174,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
             item = GetVirtualFolders()[id];
         }
 
-        return Task.FromResult(item);
+        return item;
     }
 
     /// <inheritdoc/>
@@ -175,5 +188,21 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
         await source.DeleteAsync(fileToMove, cancellationToken);
 
         return file;
+    }
+
+    /// <summary>
+    /// Manually opens the <see cref="Archive"/>.
+    /// </summary>
+    /// <returns>The opened archive. Dispose of it when you're done.</returns>
+    public override async Task<ZipArchive> OpenArchiveAsync(CancellationToken cancellationToken = default)
+    {
+        if (Archive is not null)
+            return Archive;
+
+        if (SourceFile is null)
+            throw new ArgumentNullException(nameof(SourceFile));
+
+        var stream = await SourceFile.OpenStreamAsync(FileAccess.ReadWrite, cancellationToken);
+        return Archive = new ZipArchive(stream, ZipArchiveMode.Update);
     }
 }

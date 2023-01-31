@@ -14,11 +14,10 @@ public class InMemIFolderTests : IModifiableFolderTests
     // Required for base class to perform common tests.
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
-        using var archiveStream = new MemoryStream();
-        var archive = new System.IO.Compression.ZipArchive(archiveStream, ZipArchiveMode.Update);
+        var archiveStream = new MemoryStream(256);
         var sourceFile = new MemoryFile($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archiveStream);
 
-        return Task.FromResult<IModifiableFolder>(new ZipArchiveFolder(archive, sourceFile));
+        return Task.FromResult<IModifiableFolder>(new ZipArchiveFolder(sourceFile));
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)

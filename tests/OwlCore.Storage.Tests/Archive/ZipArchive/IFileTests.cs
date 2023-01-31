@@ -17,7 +17,7 @@ public class IFileTests : CommonIFileTests
         var tempArchivePath = Path.Combine(Path.GetTempPath(), archiveId);
 
         var dir = Directory.CreateDirectory(tempArchivePath);
-        using (var entryStream = File.Create(Path.Combine(tempArchivePath, entryId)))
+        await using (var entryStream = File.Create(Path.Combine(tempArchivePath, entryId)))
         {
             var randomData = GenerateRandomData(256_000);
             entryStream.Write(randomData);
@@ -27,13 +27,15 @@ public class IFileTests : CommonIFileTests
         ZipFile.CreateFromDirectory(tempArchivePath, archiveFullPath);
 
         var createdArchive = new SystemFile(archiveFullPath);
-        var stream = await createdArchive.OpenStreamAsync(FileAccess.ReadWrite);
-        var archive = new System.IO.Compression.ZipArchive(stream, ZipArchiveMode.Update);
+        var zipFolder = new ZipArchiveFolder(createdArchive);
 
-        var entry = archive.GetEntry(entryId);
+        // Manually open the archive before using it directly.
+        await zipFolder.OpenArchiveAsync();
+        Assert.IsNotNull(zipFolder.Archive);
+
+        var entry = zipFolder.Archive.GetEntry(entryId);
         Assert.IsNotNull(entry);
 
-        var zipFolder = new ZipArchiveFolder(archive, createdArchive);
         var file = new ZipArchiveEntryFile(entry, zipFolder);
 
         return file;
