@@ -186,11 +186,12 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
             for (var e = 0; e < Archive.Entries.Count; e++)
             {
                 var path = entryPaths[e];
-                if (!IsChild(path) || entryPaths.Any(p => p.StartsWith(path)))
+                if (!entryPaths.Any(p => p != path && p.StartsWith(path)))
                     continue;
 
                 var entry = Archive.Entries[e];
-                _virtualFolders[path] = new ReadOnlyZipArchiveFolder(Archive, entry.Name, this);
+                if (!_virtualFolders.ContainsKey(path))
+                    _virtualFolders[path] = new ReadOnlyZipArchiveFolder(Archive, entry.Name, this);
             }
         }
 
