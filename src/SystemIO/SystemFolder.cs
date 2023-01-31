@@ -12,7 +12,7 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFastGetItem
+public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFastGetItem, IFolderCanFastGetItemByName
 {
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
@@ -129,6 +129,12 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
         }
 
         throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
+    }
+
+    /// <inheritdoc/>
+    public async Task<IAddressableStorable> GetItemByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await GetItemAsync(System.IO.Path.Combine(Path, name), cancellationToken);
     }
 
     /// <inheritdoc />
