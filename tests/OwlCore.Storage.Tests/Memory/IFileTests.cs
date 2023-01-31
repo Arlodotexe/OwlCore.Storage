@@ -4,17 +4,19 @@ using OwlCore.Storage.Memory;
 namespace OwlCore.Storage.Tests.Memory
 {
     [TestClass]
-    public class StreamFileTests : CommonIFileTests
+    public class MemoryFileTests : CommonIFileTests
     {
         // Required for base class to perform common tests.
-        public override Task<IFile> CreateFileAsync()
+        public override async Task<IFile> CreateFileAsync()
         {
             var randomData = GenerateRandomData(256_000);
-            var memoryStream = new MemoryStream(randomData);
+            using var tempStr = new MemoryStream(randomData);
             
-            var file = new MemoryFile($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", memoryStream);
-
-            return Task.FromResult<IFile>(file);
+            var memoryStream = new MemoryStream();
+            await tempStr.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+            
+            return new MemoryFile(memoryStream);
 
             static byte[] GenerateRandomData(int length)
             {

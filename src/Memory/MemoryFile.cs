@@ -15,6 +15,15 @@ namespace OwlCore.Storage.Memory
         /// <summary>
         /// Creates a new instance of <see cref="MemoryFile"/>.
         /// </summary>
+        /// <param name="memoryStream">An existing stream which is provided as the file contents.</param>
+        public MemoryFile(MemoryStream memoryStream)
+            : this($"{memoryStream.GetHashCode()}", $"{memoryStream.GetHashCode()}", memoryStream)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="MemoryFile"/>.
+        /// </summary>
         /// <param name="id">A unique and consistent identifier for this file or folder.</param>
         /// <param name="name">The name of the file or folder, with the extension (if any).</param>
         /// <param name="memoryStream">An existing stream which is provided as the file contents.</param>

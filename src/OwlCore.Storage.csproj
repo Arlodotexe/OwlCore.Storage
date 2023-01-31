@@ -26,6 +26,11 @@
 --- 0.6.0 ---
 [New]
 Added StreamFile, a file implementation that presents a provided stream as file content.
+Added HttpFile, a file implementation which calls GET on a provided HTTP URL and returns it as file content.
+
+[Improvements]
+Added new constructor to MemoryFile that requires only a MemoryStream, no Id or Name. These are calculated from the stream's hash code instead.
+Updated dependencies, inheriting bug fixes for transitive nuget packages.
 
 --- 0.5.3 ---
 [Fixes]

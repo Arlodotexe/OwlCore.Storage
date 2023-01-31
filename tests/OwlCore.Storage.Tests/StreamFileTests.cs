@@ -6,14 +6,16 @@ namespace OwlCore.Storage.Tests
     public class StreamFileTests : CommonIFileTests
     {
         // Required for base class to perform common tests.
-        public override Task<IFile> CreateFileAsync()
+        public override async Task<IFile> CreateFileAsync()
         {
             var randomData = GenerateRandomData(256_000);
-            var memoryStream = new MemoryStream(randomData);
+            using var tempStr = new MemoryStream(randomData);
             
-            var file = new StreamFile(memoryStream);
+            var memoryStream = new MemoryStream();
+            await tempStr.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
 
-            return Task.FromResult<IFile>(file);
+            return new StreamFile(memoryStream);
 
             static byte[] GenerateRandomData(int length)
             {
