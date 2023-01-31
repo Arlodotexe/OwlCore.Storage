@@ -138,7 +138,8 @@ Initial release of OwlCore.Storage.
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
-	</ItemGroup>
+    <InternalsVisibleTo Include="OwlCore.Storage.Tests" />
+  </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />

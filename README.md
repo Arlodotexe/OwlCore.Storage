@@ -22,11 +22,13 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 - [Windows.Storage](https://github.com/Arlodotexe/OwlCore.Storage.Uwp)
 - [IPFS / IPNS / MFS](https://github.com/Arlodotexe/OwlCore.Kubo/blob/main/docs/storageproviders.md)
 - [OneDrive](https://github.com/Arlodotexe/OwlCore.Storage.OneDrive)
+- [HttpFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/HttpFile.cs)
+- [StreamFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/StreamFile.cs)
+- [Archives](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Archive) (Zip only for now)
 
 ## Planned implementations
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
-- Archives ([Zip](https://github.com/Arlodotexe/OwlCore.Storage/pull/10), 7z, tar, etc)
-- HTTP (file only)
+- Archives (7z, tar, etc)
 - Google Drive
 
 # Proposal
