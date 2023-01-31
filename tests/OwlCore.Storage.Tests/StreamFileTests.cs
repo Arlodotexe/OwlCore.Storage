@@ -1,7 +1,6 @@
 using OwlCore.Storage.CommonTests;
-using OwlCore.Storage.Memory;
 
-namespace OwlCore.Storage.Tests.Memory
+namespace OwlCore.Storage.Tests
 {
     [TestClass]
     public class StreamFileTests : CommonIFileTests
@@ -12,7 +11,7 @@ namespace OwlCore.Storage.Tests.Memory
             var randomData = GenerateRandomData(256_000);
             var memoryStream = new MemoryStream(randomData);
             
-            var file = new MemoryFile($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", memoryStream);
+            var file = new StreamFile(memoryStream);
 
             return Task.FromResult<IFile>(file);
 

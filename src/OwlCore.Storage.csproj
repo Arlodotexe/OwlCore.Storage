@@ -23,6 +23,10 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.6.0 ---
+[New]
+Added StreamFile, a file implementation that presents a provided stream as file content.
+
 --- 0.5.3 ---
 [Fixes]
 Fixed an issue in SystemFolder where deleting a folder that has children would throw instead of deleting recursively.
