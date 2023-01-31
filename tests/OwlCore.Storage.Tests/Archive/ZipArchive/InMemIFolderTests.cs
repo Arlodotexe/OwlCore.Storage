@@ -9,7 +9,7 @@ namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 /// A test suite for <see cref="ZipArchiveFolder"/>s created entirely in memory.
 /// </summary>
 [TestClass]
-public class InMemIFolderTests : IModifiableFolderTests
+public class InMemIFolderTests : CommonIModifiableFolderTests
 {
     // Required for base class to perform common tests.
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()

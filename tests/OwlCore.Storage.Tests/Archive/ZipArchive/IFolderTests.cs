@@ -6,7 +6,7 @@ using OwlCore.Storage.SystemIO;
 namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 
 [TestClass]
-public class IFolderTests : IModifiableFolderTests
+public class IFolderTests : CommonIModifiableFolderTests
 {
     // Required for base class to perform common tests.
     public override async Task<IModifiableFolder> CreateModifiableFolderAsync()
