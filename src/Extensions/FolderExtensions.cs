@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -43,6 +44,27 @@ public static class FolderExtensions
         var targetItem = await folder.GetItemsAsync(cancellationToken: cancellationToken).FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
         if (targetItem is null)
             throw new FileNotFoundException($"No storage item with the ID \"{id}\" could be found.");
+
+        return targetItem;
+    }
+    
+    /// <summary>
+    /// Retrieves the <see cref="IStorable"/> item which has the provided <paramref name="name"/>.
+    /// </summary>
+    /// <param name="folder">The folder to get items from.</param>
+    /// <param name="name">The <see cref="IStorable.Name"/> of the storable item to retrieve.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>An async enumerable which yields the items in the provided folder.</returns>
+    /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
+    public static async Task<IAddressableStorable> GetItemByNameAsync(this IFolder folder, string name, CancellationToken cancellationToken = default)
+    {
+        if (folder is IFolderCanFastGetItemByName fastPath)
+            return await fastPath.GetItemByNameAsync(name, cancellationToken);
+
+        var targetItem = await folder.GetItemsAsync(cancellationToken: cancellationToken)
+            .FirstOrDefaultAsync(x => name.Equals(x.Name, StringComparison.Ordinal), cancellationToken: cancellationToken);
+        if (targetItem is null)
+            throw new FileNotFoundException($"No storage item with the name \"{name}\" could be found.");
 
         return targetItem;
     }
