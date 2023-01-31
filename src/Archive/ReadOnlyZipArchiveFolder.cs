@@ -60,8 +60,8 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
         // e.g., a file named MyArchive.zip becomes a folder named MyArchive
         Name = IOPath.GetFileNameWithoutExtension(sourceData.Name);
 
-        Id = $"{ZIP_DIRECTORY_SEPARATOR}{sourceData.Id.Trim(ZIP_DIRECTORY_SEPARATOR)}{ZIP_DIRECTORY_SEPARATOR}";
-        Path = $"{ZIP_DIRECTORY_SEPARATOR}";
+        Id = $"{sourceData.Id.Trim(ZIP_DIRECTORY_SEPARATOR)}{ZIP_DIRECTORY_SEPARATOR}";
+        Path = string.Empty;
     }
 
     /// <summary>
@@ -207,8 +207,7 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
         parentPath ??= Path;
 
         // Remove trailing separator
-        if (path[path.Length - 1] == ZIP_DIRECTORY_SEPARATOR)
-            path = path.Substring(0, path.Length - 1);
+        path = path.TrimEnd(ZIP_DIRECTORY_SEPARATOR);
 
         var idx = path.IndexOf(parentPath, StringComparison.Ordinal);
         if (idx != 0)

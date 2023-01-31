@@ -160,7 +160,9 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
         Archive ??= await OpenArchiveAsync(cancellationToken);
 
         // Id can act as a Path (matches entry names) if we remove the prepended root folder Id.
-        id = id.Replace(RootFolder.Id.TrimEnd(ZIP_DIRECTORY_SEPARATOR), string.Empty);
+        // Make sure the entire Id is removed, including the trailing separator.
+        if (id.StartsWith(RootFolder.Id))
+            id = id.Substring(RootFolder.Id.Length);
 
         var entry = TryGetEntry(id);
         if (entry is not null)
