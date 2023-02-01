@@ -12,7 +12,7 @@ namespace OwlCore.Storage.Archive;
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/>.
 /// </summary>
-public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFolderCanFastGetItem, IFolderCanFastGetItemByName
+public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFolderCanFastGetItem, IFolderCanFastGetFirstItemByName
 {
     /// <summary>
     /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
@@ -180,7 +180,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
     
     /// <inheritdoc/>
-    public async Task<IAddressableStorable> GetItemByNameAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<IAddressableStorable> GetFirstItemByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await GetItemAsync(Id + name, cancellationToken);
     }

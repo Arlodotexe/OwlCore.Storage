@@ -12,7 +12,7 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFastGetItem, IFolderCanFastGetItemByName
+public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFastGetItem, IFolderCanFastGetFirstItemByName
 {
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
@@ -132,7 +132,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc/>
-    public async Task<IAddressableStorable> GetItemByNameAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<IAddressableStorable> GetFirstItemByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await GetItemAsync(System.IO.Path.Combine(Path, name), cancellationToken);
     }
