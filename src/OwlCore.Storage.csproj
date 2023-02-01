@@ -25,7 +25,7 @@
 		<PackageReleaseNotes>
 --- 0.7.0 ---
 [New]
-Added IFolder.GetFirstItemByNameAsync and IFolderCanFastGetFirstItemByName, a folder extension to simplify the retrieval of items by name rather than ID. Contributed by @yoshiask@github.com.
+Added the IFolder.GetFirstItemByNameAsync extension method and the IFolderCanFastGetFirstItemByName interface. Contributed by @yoshiask@github.com.
 
 --- 0.6.1 ---
 [Fixes]
