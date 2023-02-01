@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.6.1</Version>
+		<Version>0.7.0</Version>
 		<Product>OwlCore</Product>
 		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
 		
@@ -23,6 +23,10 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.7.0 ---
+[New]
+Added IFolder.GetFirstItemByNameAsync and IFolderCanFastGetFirstItemByName, a folder extension to simplify the retrieval of items by name rather than ID. Contributed by @yoshiask@github.com.
+
 --- 0.6.1 ---
 [Fixes]
 Removed leading separator in ZIP archive IDs. Contributed by @yoshiask@github.com.
