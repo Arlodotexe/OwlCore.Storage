@@ -19,7 +19,7 @@ public class HttpFile : IFile
     /// </summary>
     /// <param name="uri">The http address to GET for the file content.</param>
     public HttpFile(Uri uri)
-        : this(uri, uri.OriginalString, uri.OriginalString)
+        : this(uri, uri.OriginalString, Path.GetFileName(uri.AbsolutePath))
     {
     }
 

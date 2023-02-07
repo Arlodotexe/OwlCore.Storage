@@ -14,5 +14,34 @@ namespace OwlCore.Storage.Tests
 
             return Task.FromResult<IFile>(file);
         }
+
+        [TestMethod]
+        public void NameShouldNotMatchUri()
+        {
+            var file = new HttpFile(new Uri("https://example.com/test.zip"));
+
+            Assert.AreNotEqual(file.Name, file.Uri.OriginalString);
+            Assert.IsTrue(file.Uri.OriginalString.Contains(file.Name));
+        }
+
+        [TestMethod]
+        public void FileNameOnSimpleUrl()
+        {
+            var file = new HttpFile(new Uri("https://example.com/test.zip"));
+
+            Assert.AreNotEqual(file.Name, file.Uri.OriginalString);
+            Assert.IsTrue(file.Uri.OriginalString.Contains(file.Name));
+            Assert.AreEqual(file.Name, "test.zip");
+        }
+
+        [TestMethod]
+        public void FileNameOnUrlWithParams()
+        {
+            var file = new HttpFile(new Uri("https://example.com/test.zip?utm_content=This+Is+\"Broken\""));
+
+            Assert.AreNotEqual(file.Name, file.Uri.OriginalString);
+            Assert.IsTrue(file.Uri.OriginalString.Contains(file.Name));
+            Assert.AreEqual(file.Name, "test.zip");
+        }
     }
 }
