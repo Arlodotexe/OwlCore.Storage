@@ -7,7 +7,7 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFile : IAddressableFile
+public class SystemFile : IChildFile
 {
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.

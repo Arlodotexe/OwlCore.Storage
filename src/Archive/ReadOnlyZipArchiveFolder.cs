@@ -14,7 +14,7 @@ namespace OwlCore.Storage.Archive;
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
 /// mode <see cref="ZipArchiveMode.Read"/> or <see cref="ZipArchiveMode.Update"/>.
 /// </summary>
-public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
+public class ReadOnlyZipArchiveFolder : IChildFolder, IDisposable
 {
     /// <summary>
     /// The directory separator as defined by the ZIP standard.
@@ -24,7 +24,7 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
     internal const char ZIP_DIRECTORY_SEPARATOR = '/';
 
     private readonly IFolder? _parent;
-    private protected Dictionary<string, IAddressableFolder>? _virtualFolders;
+    private protected Dictionary<string, ReadOnlyZipArchiveFolder>? _virtualFolders;
 
     /// <summary>
     /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
@@ -108,7 +108,7 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
     public ZipArchive? Archive { get; protected set; }
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         Archive ??= await OpenArchiveAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
@@ -169,7 +169,7 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
     /// <summary>
     /// Gets the list of virtual folders.
     /// </summary>
-    protected Dictionary<string, IAddressableFolder> GetVirtualFolders()
+    protected Dictionary<string, ReadOnlyZipArchiveFolder> GetVirtualFolders()
     {
         if (Archive is null)
             throw new ArgumentNullException(nameof(Archive));

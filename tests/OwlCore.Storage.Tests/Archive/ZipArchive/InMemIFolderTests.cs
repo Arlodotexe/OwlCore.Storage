@@ -85,31 +85,31 @@ public class InMemIFolderTests : CommonIModifiableFolderTests
 
         // Check each path
         var fileRootEx = await root.GetItemAsync($"{root.Id}fileRoot");
-        Assert.AreEqual("fileRoot", fileRootEx.Path);
+        Assert.AreEqual("fileRoot", fileRootEx.Id);
 
-        var subAEx = await root.GetItemAsync($"{root.Id}subA/") as IAddressableFolder;
+        var subAEx = await root.GetItemAsync($"{root.Id}subA/") as IChildFolder;
         Assert.IsNotNull(subAEx);
-        Assert.AreEqual("subA/", subAEx.Path);
+        Assert.AreEqual("subA/", subAEx.Id);
 
         var fileAEx = await subAEx.GetItemAsync($"{root.Id}subA/fileA");
         Assert.IsInstanceOfType<IFile>(fileAEx);
-        Assert.AreEqual("subA/fileA", fileAEx.Path);
+        Assert.AreEqual("subA/fileA", fileAEx.Id);
 
-        var subBEx = await root.GetItemAsync($"{root.Id}subB/") as IAddressableFolder;
+        var subBEx = await root.GetItemAsync($"{root.Id}subB/") as IChildFolder;
         Assert.IsNotNull(subBEx);
-        Assert.AreEqual("subB/", subBEx.Path);
+        Assert.AreEqual("subB/", subBEx.Id);
 
         var fileBEx = await subBEx.GetItemAsync($"{root.Id}subB/fileB");
         Assert.IsInstanceOfType<IFile>(fileBEx);
-        Assert.AreEqual("subB/fileB", fileBEx.Path);
+        Assert.AreEqual("subB/fileB", fileBEx.Id);
 
-        var subCEx = await subBEx.GetItemAsync($"{root.Id}subB/subC/") as IAddressableFolder;
+        var subCEx = await subBEx.GetItemAsync($"{root.Id}subB/subC/") as IChildFolder;
         Assert.IsNotNull(subCEx);
-        Assert.AreEqual("subB/subC/", subCEx.Path);
+        Assert.AreEqual("subB/subC/", subCEx.Id);
 
         var fileCEx = await subCEx.GetItemAsync($"{root.Id}subB/subC/fileC");
         Assert.IsInstanceOfType<IFile>(fileCEx);
-        Assert.AreEqual("subB/subC/fileC", fileCEx.Path);
+        Assert.AreEqual("subB/subC/fileC", fileCEx.Id);
     }
 
     [TestMethod]

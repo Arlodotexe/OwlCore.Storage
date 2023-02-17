@@ -14,15 +14,35 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.7.1</Version>
+		<Version>0.8.0</Version>
 		<Product>OwlCore</Product>
-		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
+		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214).
 		
 		This package enables early adoption of CommunityToolkit.Storage, a proposed package in Toolkit Labs, eventually to end up in CommunityToolkit/dotnet on GitHub. 
     </Description>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.8.0 ---
+THIS IS A BREAKING RELEASE
+Update asap, and do not use older versions or implementations.
+
+[Breaking]
+Renamed IStorageProperties{T} to IStorageProperty{T}.
+Path was removed from IAddressableStorable. This was not spec'd or standardized, and simply exposed the "path" used by the underlying implementation, so we removed it.
+IAddressableStorable was renamed to IStorableChild, as the only thing on the interface is now GetParentAsync.
+IAddressableFolder was renamed to IChildFolder.
+IAddressableFile was renamed to IChildFile.
+IFolderCanFastGetItem was renamed to IFastGetItem.
+The interface IFolderCanFastGetFirstItemByName has been renamed to IFastGetFirstByName.
+The extension method and interface method GetFirstItemByNameAsync has been shortened to GetFirstByNameAsync.
+IModifiableFolder no longer requires implementing copy/move operations.
+
+[New]
+Added IFastFileCopy{T} and IFastFileMove{T}.
+Added FolderExtensions.CreateCopyOfAsync{T}.
+Added FolderExtensions.MoveFromAsync{T}.
+
 --- 0.7.1 ---
 [Fix]
 Fixed an issue where providing only a Uri for HttpFile would yield an incorrect file name.

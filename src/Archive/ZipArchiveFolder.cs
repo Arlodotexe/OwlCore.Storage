@@ -12,7 +12,7 @@ namespace OwlCore.Storage.Archive;
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/>.
 /// </summary>
-public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFolderCanFastGetItem, IFolderCanFastGetFirstItemByName
+public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFastGetItem, IFastGetFirstByName
 {
     /// <summary>
     /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
@@ -48,7 +48,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
 
     /// <inheritdoc/>
-    public async Task<IAddressableFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         await OpenArchiveAsync(cancellationToken);
@@ -75,7 +75,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
 
     /// <inheritdoc/>
-    public async Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Archive ??= await OpenArchiveAsync(cancellationToken);
@@ -94,7 +94,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
 
     /// <inheritdoc/>
-    public async Task<IAddressableFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Archive ??= await OpenArchiveAsync(cancellationToken);
@@ -119,7 +119,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
 
     /// <inheritdoc/>
-    public async Task DeleteAsync(IAddressableStorable item, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Archive ??= await OpenArchiveAsync(cancellationToken);
@@ -136,11 +136,13 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
 
             GetVirtualFolders().Remove(folder.Id);
         }
-        else
+        else if (item is ReadOnlyZipArchiveFolder readOnlyFolder)
         {
-            var entry = TryGetEntry(item.Path);
+            var entry = TryGetEntry(readOnlyFolder.Path);
             entry?.Delete();
         }
+
+        throw new FileNotFoundException("The item was not found in the folder.");
     }
 
     /// <inheritdoc/>
@@ -152,10 +154,10 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
 
     /// <inheritdoc/>
-    public async Task<IAddressableStorable> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        IAddressableStorable item;
+        IStorableChild item;
 
         Archive ??= await OpenArchiveAsync(cancellationToken);
 
@@ -180,13 +182,13 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFo
     }
     
     /// <inheritdoc/>
-    public async Task<IAddressableStorable> GetFirstItemByNameAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await GetItemAsync(Id + name, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<IAddressableFile> MoveFromAsync(IAddressableFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

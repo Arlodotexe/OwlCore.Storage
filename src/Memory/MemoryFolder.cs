@@ -10,9 +10,9 @@ namespace OwlCore.Storage.Memory;
 /// <summary>
 /// A folder implementation that resides in memory.
 /// </summary>
-public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
+public class MemoryFolder : IModifiableFolder, IChildFolder, IFastGetItem
 {
-    private readonly Dictionary<string, IAddressableStorable> _folderContents = new();
+    private readonly Dictionary<string, IStorableChild> _folderContents = new();
     private readonly MemoryFolderWatcher _folderWatcher;
 
     /// <summary>
@@ -34,8 +34,13 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     /// <inheritdoc />
     public string Name { get; }
 
+    /// <summary>
+    /// The parent folder, if any.
+    /// </summary>
+    public MemoryFolder? Parent { get; internal set; }
+
     /// <inheritdoc />
-    public IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -59,7 +64,7 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     }
 
     /// <inheritdoc />
-    public Task<IAddressableStorable> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -70,7 +75,7 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync(IAddressableStorable item, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -84,7 +89,7 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     }
 
     /// <inheritdoc />
-    public async Task<IAddressableFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -104,9 +109,12 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
         await stream.CopyToAsync(memoryStream);
         memoryStream.Position = 0;
 
-        var file = new AddressableMemoryFile(fileToCopy.Name, memoryStream, new IFolder[] { this });
+        var file = new MemoryFile(fileToCopy.Id, fileToCopy.Name, memoryStream)
+        {
+            Parent = this,
+        };
 
-        if (!overwrite && _folderContents.TryGetValue(file.Id, out var existingStorable) && existingStorable is IAddressableFile existingFile)
+        if (!overwrite && _folderContents.TryGetValue(file.Id, out var existingStorable) && existingStorable is IChildFile existingFile)
             return existingFile;
 
         if (!_folderContents.ContainsKey(file.Id))
@@ -120,7 +128,7 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     }
 
     /// <inheritdoc />
-    public async Task<IAddressableFile> MoveFromAsync(IAddressableFile fileToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -133,20 +141,20 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     }
 
     /// <inheritdoc />
-    public async Task<IAddressableFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public async Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var existingFolderKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
-        IAddressableFolder? existingFolder = (IAddressableFolder?)existingFolderKvp.Value;
+        var existingFolder = existingFolderKvp.Value as IChildFolder;
 
         if (overwrite && existingFolder is not null)
         {
             await DeleteAsync(existingFolder, cancellationToken);
         }
 
-        var emptyMemoryFolder = new AddressableMemoryFolder(name, new IFolder[] { this });
-        var folder = overwrite ? emptyMemoryFolder : (existingFolder ?? emptyMemoryFolder);
+        var emptyMemoryFolder = new MemoryFolder($"{Guid.NewGuid()}", name);
+        IChildFolder folder = overwrite ? emptyMemoryFolder : (existingFolder ?? emptyMemoryFolder);
 
         if (!_folderContents.ContainsKey(folder.Id))
         {
@@ -160,19 +168,23 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
     }
 
     /// <inheritdoc />
-    public async Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var existingFileKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name);
-        IAddressableFile? existingFile = (IAddressableFile?)existingFileKvp.Value;
+        IChildFile? existingFile = (IChildFile?)existingFileKvp.Value;
 
         if (overwrite && existingFile is not null)
         {
             await DeleteAsync(existingFile, cancellationToken);
         }
 
-        var emptyMemoryFolder = new AddressableMemoryFile(name, new MemoryStream(), new IFolder[] { this });
+        var emptyMemoryFolder = new MemoryFile($"{Guid.NewGuid()}", name, new MemoryStream())
+        {
+            Parent = this,
+        };
+
         var file = overwrite ? emptyMemoryFolder : (existingFile ?? emptyMemoryFolder);
 
         if (!_folderContents.ContainsKey(file.Id))
@@ -183,5 +195,11 @@ public class MemoryFolder : IModifiableFolder, IFolderCanFastGetItem
         _folderWatcher.NotifyItemAdded(file);
 
         return file;
+    }
+
+    /// <inheritdoc />
+    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IFolder?>(Parent);
     }
 }

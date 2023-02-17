@@ -9,7 +9,7 @@ namespace OwlCore.Storage.Archive;
 /// <summary>
 /// A file implementation wrapping a <see cref="ZipArchiveEntry"/>.
 /// </summary>
-public class ZipArchiveEntryFile : IAddressableFile
+public class ZipArchiveEntryFile : IChildFile
 {
     private readonly IFolder? _parent;
     private readonly ZipArchiveEntry _entry;
