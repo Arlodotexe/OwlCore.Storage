@@ -8,7 +8,7 @@ namespace OwlCore.Storage;
 /// Provides a fast-path for the <see cref="FolderExtensions.MoveFromAsync"/> extension method.
 /// </summary>
 /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
-public interface IFastFileMove<T> : IModifiableFolder
+public interface IFastFileMove<in T> : IModifiableFolder
     where T : IFile, IStorableChild
 {
     /// <summary>
