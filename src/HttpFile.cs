@@ -3,7 +3,6 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace OwlCore.Storage;
 
@@ -15,7 +14,7 @@ public class HttpFile : IFile
     private HttpClient? _client;
 
     /// <summary>
-    /// Creates a new instance of <see cref="StreamFile"/>.
+    /// Creates a new instance of <see cref="HttpFile"/>.
     /// </summary>
     /// <param name="uri">The http address to GET for the file content.</param>
     public HttpFile(Uri uri)
@@ -24,6 +23,15 @@ public class HttpFile : IFile
         Name = Path.GetFileName(uri.AbsolutePath);
         Id = uri.OriginalString;
         MessageHandler = new HttpClientHandler();
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="HttpFile"/>.
+    /// </summary>
+    /// <param name="uri">The http address to GET for the file content.</param>
+    public HttpFile(string uri)
+        : this(new Uri(uri))
+    {
     }
 
     /// <summary>
