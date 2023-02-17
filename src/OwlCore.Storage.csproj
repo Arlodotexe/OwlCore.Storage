@@ -28,21 +28,26 @@ THIS IS A BREAKING RELEASE
 Update asap, and do not use older versions or implementations.
 
 [Breaking]
-Renamed IStorageProperties{T} to IStorageProperty{T}.
 Path was removed from IAddressableStorable. This was not spec'd or standardized, and simply exposed the "path" used by the underlying implementation, so we removed it.
-IAddressableStorable was renamed to IStorableChild, as the only thing on the interface is now GetParentAsync.
-IAddressableFolder was renamed to IChildFolder.
-IAddressableFile was renamed to IChildFile.
-IFolderCanFastGetItem was renamed to IFastGetItem.
-The interface IFolderCanFastGetFirstItemByName has been renamed to IFastGetFirstByName.
-The extension method and interface method GetFirstItemByNameAsync has been shortened to GetFirstByNameAsync.
-IModifiableFolder no longer requires implementing copy/move operations.
-The constructor for HttpFile now only has 1 parameter - the Uri.
+Renamed IStorageProperties{T} to IStorageProperty{T}.
+Renamed IAddressableStorable to IStorableChild, as the only thing on the interface is now GetParentAsync.
+Renamed IAddressableFolder to IChildFolder.
+Renamed IAddressableFile to IChildFile.
+Renamed IFolderCanFastGetItem to IFastGetItem.
+Renamed IFolderCanFastGetFirstItemByName to IFastGetFirstByName.
+Renamed the extension method GetFirstItemByNameAsync to GetFirstByNameAsync.
+IModifiableFolder no longer requires implementing copy/move operations. Please remove from your implementations, and implement the fastpath interfaces where appropriate.
+HttpFile's constructor now only has 1 parameter - the Uri.
 HttpFile.Name is now an init-only setter.
 HttpFile.Id is no longer customizable, and is always created from the provided Uri instead.
 
 [New]
-Added IFastFileCopy{T} and IFastFileMove{T}.
+Added GetRootAsync extension method.
+Added IFastGetRoot interface.
+SystemFolder now implements IFastGetRoot.
+ZipArchiveFolder and ReadOnlyZipArchiveFolder now implement IFastGetRoot.
+Added IFastFileCopy{T} interface.
+Added IFastFileMove{T} interface.
 Added FolderExtensions.CreateCopyOfAsync{T}.
 Added FolderExtensions.MoveFromAsync{T}.
 
