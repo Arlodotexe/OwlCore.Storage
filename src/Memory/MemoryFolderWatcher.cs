@@ -7,7 +7,7 @@ namespace OwlCore.Storage.Memory;
 /// <summary>
 /// Watches a <see cref="MemoryFolder"/> for changes.
 /// </summary>
-internal class MemoryFolderWatcher : IFolderWatcher
+internal sealed class MemoryFolderWatcher : IFolderWatcher
 {
     /// <summary>
     /// Creates a new instance of <see cref="MemoryFolderWatcher"/>.
