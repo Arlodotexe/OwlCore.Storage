@@ -13,23 +13,17 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFastGetFirstByName
+public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFastGetFirstByName, IFastGetRoot
 {
+    private DirectoryInfo _directoryInfo;
+
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
     /// </summary>
     /// <param name="path">The path to the folder.</param>
     public SystemFolder(string path)
+        : this(new DirectoryInfo(path))
     {
-        // For consistency, always remove the trailing directory separator.
-        path = path.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
-
-        if (!Directory.Exists(path))
-            throw new FileNotFoundException($"Directory not found at path {path}");
-
-        Id = path;
-        Name = System.IO.Path.GetFileName(path) ?? throw new ArgumentException($"Could not determine directory name from path {path}");
-        Path = path;
     }
 
     /// <summary>
@@ -37,8 +31,17 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
     /// </summary>
     /// <param name="directoryInfo">The directory to use.</param>
     public SystemFolder(DirectoryInfo directoryInfo)
-        : this(directoryInfo.FullName)
     {
+        _directoryInfo = directoryInfo;
+
+        // For consistency, always remove the trailing directory separator.
+        Path = directoryInfo.FullName.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+
+        if (!Directory.Exists(Path))
+            throw new FileNotFoundException($"Directory not found at path {Path}");
+
+        Id = Path;
+        Name = System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path {Path}");
     }
 
     /// <inheritdoc />
@@ -179,7 +182,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
 
                 File.Delete(newPath);
             }
-            
+
             File.Copy(sysFile.Path, newPath, overwrite);
 
             return new SystemFile(newPath);
@@ -250,6 +253,12 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
+    }
+
+    /// <inheritdoc />
+    public Task<IFolder?> GetRootAsync()
+    {
+        return Task.FromResult<IFolder?>(new SystemFolder(_directoryInfo.Root));
     }
 
     private static bool IsFile(string path) => System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);

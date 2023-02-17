@@ -14,7 +14,7 @@ namespace OwlCore.Storage.Archive;
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
 /// mode <see cref="ZipArchiveMode.Read"/> or <see cref="ZipArchiveMode.Update"/>.
 /// </summary>
-public class ReadOnlyZipArchiveFolder : IChildFolder, IDisposable
+public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IDisposable
 {
     /// <summary>
     /// The directory separator as defined by the ZIP standard.
@@ -146,6 +146,9 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IDisposable
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(_parent);
     }
+
+    /// <inheritdoc/>
+    public Task<IFolder?> GetRootAsync() => Task.FromResult<IFolder?>(RootFolder);
 
     /// <summary>
     /// Attempts to get the entry, without throwing if the archive does not support reading entries. 
