@@ -13,9 +13,9 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFastGetFirstByName, IFastGetRoot
+public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<SystemFile>, IFastFileMove<SystemFile>, IFastGetItem, IFastGetItemRecursive, IFastGetFirstByName, IFastGetRoot
 {
-    private DirectoryInfo _directoryInfo;
+    private readonly DirectoryInfo _directoryInfo;
 
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
@@ -108,12 +108,31 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
     }
 
     /// <inheritdoc />
+    public Task<IStorableChild> GetItemRecursiveAsync(string id, CancellationToken cancellationToken = default)
+    {
+        if (!id.Contains(Path))
+            throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+
+        // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
+        if (IsFile(id))
+            return Task.FromResult<IStorableChild>(new SystemFile(id));
+
+        if (IsFolder(id))
+            return Task.FromResult<IStorableChild>(new SystemFolder(id));
+
+        throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
+    }
+
+    /// <inheritdoc />
     public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
+        if (!id.Contains(Path))
+            throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+
         // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
         if (IsFile(id))
         {
-            // Capture file name, combine with known path. Forces reading from current folder.
+            // Capture file name, combine with known path. Forces reading from current folder only.
             var fileName = System.IO.Path.GetFileName(id) ?? throw new ArgumentException($"Could not determine file name from id: {id}");
             var fullPath = System.IO.Path.Combine(Path, fileName);
 
@@ -129,7 +148,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
             if (System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
 
-            return Task.FromResult<IStorableChild>(new SystemFile(id));
+            return Task.FromResult<IStorableChild>(new SystemFolder(id));
         }
 
         throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
@@ -164,6 +183,44 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
     }
 
     /// <inheritdoc />
+    public async Task<IChildFile> CreateCopyOfAsync(SystemFile fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
+    {
+        var newPath = System.IO.Path.Combine(Path, fileToCopy.Name);
+
+        // If the target and destination are the same, there's no need to copy.
+        if (fileToCopy.Path == newPath)
+            return new SystemFile(newPath);
+
+        if (File.Exists(newPath))
+        {
+            if (!overwrite)
+                return new SystemFile(newPath);
+
+            File.Delete(newPath);
+        }
+
+        File.Copy(fileToCopy.Path, newPath, overwrite);
+
+        return new SystemFile(newPath);
+    }
+
+    /// <inheritdoc />
+    public async Task<IChildFile> MoveFromAsync(SystemFile fileToMove, IModifiableFolder source, bool overwrite = default,
+        CancellationToken cancellationToken = default)
+    {
+        var newPath = System.IO.Path.Combine(Path, fileToMove.Name);
+        if (File.Exists(newPath) && !overwrite)
+            return new SystemFile(newPath);
+
+        if (overwrite)
+            File.Delete(newPath);
+
+        File.Move(fileToMove.Path, newPath);
+
+        return new SystemFile(newPath);
+    }
+
+    /// <inheritdoc />
     public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, fileToCopy.Name);
@@ -171,21 +228,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
         // Use provided system methods where possible.
         if (fileToCopy is SystemFile sysFile)
         {
-            // If the target and destination are the same, there's no need to copy.
-            if (sysFile.Path == newPath)
-                return new SystemFile(newPath);
-
-            if (File.Exists(newPath))
-            {
-                if (!overwrite)
-                    return new SystemFile(newPath);
-
-                File.Delete(newPath);
-            }
-
-            File.Copy(sysFile.Path, newPath, overwrite);
-
-            return new SystemFile(newPath);
         }
 
         // Manual file copy. Slower, but covers all other scenarios.
@@ -198,32 +240,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastGetItem, IFast
         await sourceStream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
 
         return new SystemFile(newPath);
-    }
-
-    /// <inheritdoc />
-    public async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
-    {
-        var newPath = System.IO.Path.Combine(Path, fileToMove.Name);
-
-        // Use provided system methods where possible.
-        if (fileToMove is SystemFile sysFile)
-        {
-            if (File.Exists(newPath) && !overwrite)
-                return new SystemFile(newPath);
-
-            if (overwrite)
-                File.Delete(newPath);
-
-            File.Move(sysFile.Path, newPath);
-
-            return new SystemFile(newPath);
-        }
-
-        // Manual move. Slower, but covers all other scenarios.
-        var file = await CreateCopyOfAsync(fileToMove, overwrite, cancellationToken);
-        await source.DeleteAsync(fileToMove, cancellationToken);
-
-        return file;
     }
 
     /// <inheritdoc />

@@ -14,7 +14,7 @@ namespace OwlCore.Storage.Archive;
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
 /// mode <see cref="ZipArchiveMode.Read"/> or <see cref="ZipArchiveMode.Update"/>.
 /// </summary>
-public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IDisposable
+public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem, IFastGetFirstByName, IDisposable
 {
     /// <summary>
     /// The directory separator as defined by the ZIP standard.
@@ -139,6 +139,37 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IDisposable
             }
         }
     }
+
+    /// <inheritdoc/>
+    public async Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        IStorableChild item;
+
+        Archive ??= await OpenArchiveAsync(cancellationToken);
+
+        // Id can act as a Path (matches entry names) if we remove the prepended root folder Id.
+        // Make sure the entire Id is removed, including the trailing separator.
+        if (id.StartsWith(RootFolder.Id))
+            id = id.Substring(RootFolder.Id.Length);
+
+        var entry = TryGetEntry(id);
+        if (entry is not null)
+        {
+            // Get file
+            item = new ZipArchiveEntryFile(entry, this);
+        }
+        else
+        {
+            // Get folder
+            item = GetVirtualFolders()[id];
+        }
+
+        return item;
+    }
+    
+    /// <inheritdoc/>
+    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default) => await GetItemAsync(Id + name, cancellationToken);
 
     /// <inheritdoc/>
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)

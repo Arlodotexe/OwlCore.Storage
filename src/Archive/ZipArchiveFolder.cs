@@ -5,14 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
-
 namespace OwlCore.Storage.Archive;
 
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/>.
 /// </summary>
-public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFastGetItem, IFastGetFirstByName
+public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
 {
     /// <summary>
     /// Creates a new instance of <see cref="ZipArchiveFolder"/>.
@@ -45,33 +43,6 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFa
     internal ZipArchiveFolder(ZipArchive archive, string name, ReadOnlyZipArchiveFolder parent)
         : base(archive, name, parent)
     {
-    }
-
-    /// <inheritdoc/>
-    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        await OpenArchiveAsync(cancellationToken);
-
-        using var srcStream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (srcStream.CanSeek && srcStream.Position != 0)
-            srcStream.Seek(0, SeekOrigin.Begin);
-        else if (srcStream.Position != 0)
-            throw new InvalidOperationException("The opened file stream is not at position 0 and cannot seek. Unable to copy.");
-
-        var existingEntry = TryGetEntry($"{Path}{fileToCopy.Name}");
-        if (!overwrite && existingEntry is not null)
-            return new ZipArchiveEntryFile(existingEntry, this);
-
-        var copy = await CreateFileAsync(fileToCopy.Name, overwrite, cancellationToken);
-        using var dstStream = await copy.OpenStreamAsync(FileAccess.Write, cancellationToken);
-
-        await srcStream.CopyToAsync(dstStream, 81920, cancellationToken);
-        srcStream.Position = 0;
-
-        return copy;
     }
 
     /// <inheritdoc/>
@@ -153,57 +124,10 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder, IFa
         return Task.FromResult<IFolderWatcher>(new ZipArchiveFolderWatcher(this));
     }
 
-    /// <inheritdoc/>
-    public async Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        IStorableChild item;
-
-        Archive ??= await OpenArchiveAsync(cancellationToken);
-
-        // Id can act as a Path (matches entry names) if we remove the prepended root folder Id.
-        // Make sure the entire Id is removed, including the trailing separator.
-        if (id.StartsWith(RootFolder.Id))
-            id = id.Substring(RootFolder.Id.Length);
-
-        var entry = TryGetEntry(id);
-        if (entry is not null)
-        {
-            // Get file
-            item = new ZipArchiveEntryFile(entry, this);
-        }
-        else
-        {
-            // Get folder
-            item = GetVirtualFolders()[id];
-        }
-
-        return item;
-    }
-    
-    /// <inheritdoc/>
-    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
-    {
-        return await GetItemAsync(Id + name, cancellationToken);
-    }
-
-    /// <inheritdoc/>
-    public async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // Zip archives can't move files around, so we have to take
-        // the slower manual path every time.
-        var file = await CreateCopyOfAsync(fileToMove, overwrite, cancellationToken);
-        await source.DeleteAsync(fileToMove, cancellationToken);
-
-        return file;
-    }
-
     /// <summary>
     /// Manually opens the <see cref="Archive"/>.
     /// </summary>
-    /// <returns>The opened archive. Dispose of it when you're done.</returns>
+    /// <returns>The opened archive.</returns>
     public override async Task<ZipArchive> OpenArchiveAsync(CancellationToken cancellationToken = default)
     {
         if (Archive is not null)
