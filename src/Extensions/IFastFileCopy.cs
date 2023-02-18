@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage;
 
 /// <summary>
-/// Provides a fast-path for the <see cref="ModifiableFolderExtensions.CreateCopyAsync"/> extension method.
+/// Provides a fast-path for the <see cref="ModifiableFolderExtensions.CreateCopyOfAsync{T}"/> extension method.
 /// </summary>
 /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
 public interface IFastFileCopy<in T> : IModifiableFolder

@@ -3,7 +3,7 @@
 namespace OwlCore.Storage;
 
 /// <summary>
-/// Provides a fast-path for the <see cref="FolderExtensions.GetRootAsync"/> extension method.
+/// Provides a fast-path for the <see cref="StorableChildExtensions.GetRootAsync(IStorableChild)"/> extension method.
 /// </summary>
 public interface IFastGetRoot : IStorableChild
 {
