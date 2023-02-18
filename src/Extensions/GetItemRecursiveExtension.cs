@@ -15,7 +15,7 @@ public static partial class FolderExtensions
     /// <param name="cancellationToken">A token to cancel the ongoing operation.</param>
     /// <exception cref="FileNotFoundException">No item with the provided <paramref name="id"/> was found in the provided <paramref name="folder"/>.</exception>
     /// <returns>The item</returns>
-    public static async Task<IStorable> GetItemRecursiveAsync(this IFolder folder, string id, CancellationToken cancellationToken = default)
+    public static async Task<IStorableChild> GetItemRecursiveAsync(this IFolder folder, string id, CancellationToken cancellationToken = default)
     {
         if (folder is IFastGetItemRecursive fastPath)
         {
