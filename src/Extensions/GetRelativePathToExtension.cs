@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace OwlCore.Storage;
@@ -12,6 +13,9 @@ public static partial class FolderExtensions
     /// <remarks>Example code. Not tested.</remarks>
     public static async Task<string> GetRelativePathToAsync(this IFolder from, IStorableChild to)
     {
+        if (Equals(from, to) || from.Id == to.Id)
+            return @"/";
+
         var pathComponents = new List<string>
         {
             to.Name,
@@ -33,7 +37,7 @@ public static partial class FolderExtensions
             var parent = await item.GetParentAsync();
             if (parent is IStorableChild child && parent.Id != from.Id)
             {
-                pathComponents.Insert(0, item.Name);
+                pathComponents.Insert(0, parent.Name);
                 await RecursiveAddParentToPathAsync(child);
             }
         }

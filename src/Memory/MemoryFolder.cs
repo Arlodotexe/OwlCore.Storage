@@ -153,7 +153,11 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IFastGetItem
             await DeleteAsync(existingFolder, cancellationToken);
         }
 
-        var emptyMemoryFolder = new MemoryFolder($"{Guid.NewGuid()}", name);
+        var emptyMemoryFolder = new MemoryFolder($"{Guid.NewGuid()}", name)
+        {
+            Parent = this,
+        };
+
         IChildFolder folder = overwrite ? emptyMemoryFolder : (existingFolder ?? emptyMemoryFolder);
 
         if (!_folderContents.ContainsKey(folder.Id))
