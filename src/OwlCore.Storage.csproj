@@ -16,9 +16,9 @@
 		<Author>Arlo Godfrey</Author>
 		<Version>0.8.0</Version>
 		<Product>OwlCore</Product>
-		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214).
+		<Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
-		This package enables early adoption of CommunityToolkit.Storage, a proposed package in Toolkit Labs, eventually to end up in CommunityToolkit/dotnet on GitHub. 
+      This package enables early adoption of CommunityToolkit.Storage, a proposed package in Toolkit Labs, eventually to end up in CommunityToolkit/dotnet on GitHub. 
     </Description>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
