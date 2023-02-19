@@ -97,11 +97,15 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
 
         if (item is ZipArchiveFolder folder)
         {
+            if (!GetVirtualFolders().ContainsKey(folder.Id))
+                throw new FileNotFoundException("The item was not found in the folder.");
+
             // Recursively remove any sub-entries
             // Pre-enumerate because the entries list will change in the loop
             var childEntries = Archive.Entries
                 .Where(e => IsChild(e.FullName, folder.Path))
                 .ToList();
+
             foreach (var entry in childEntries)
                 entry.Delete();
 
@@ -110,10 +114,12 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
         else if (item is ReadOnlyZipArchiveFolder readOnlyFolder)
         {
             var entry = TryGetEntry(readOnlyFolder.Path);
-            entry?.Delete();
-        }
 
-        throw new FileNotFoundException("The item was not found in the folder.");
+            if (entry is null)
+                throw new FileNotFoundException("The item was not found in the folder.");
+            else
+                entry.Delete();
+        }
     }
 
     /// <inheritdoc/>
