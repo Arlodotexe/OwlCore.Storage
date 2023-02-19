@@ -22,7 +22,6 @@ public class HttpFile : IFile
         Uri = uri;
         Name = Path.GetFileName(uri.AbsolutePath);
         Id = uri.OriginalString;
-        MessageHandler = new HttpClientHandler();
     }
 
     /// <summary>
@@ -35,9 +34,9 @@ public class HttpFile : IFile
     }
 
     /// <summary>
-    /// The default message handler to use for making HTTP requests.
+    /// The message handler to use for making HTTP requests.
     /// </summary>
-    public HttpMessageHandler MessageHandler { get; set; }
+    public HttpMessageHandler MessageHandler { get; init; } = new HttpClientHandler();
 
     /// <summary>
     /// The http address to GET for the file content.
