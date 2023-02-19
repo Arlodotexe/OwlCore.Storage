@@ -10,8 +10,8 @@ public static partial class StorableChildExtensions
     /// <summary>
     /// Retrieves the root of the provided <paramref name="item"/>.
     /// </summary>
-    /// <param name="item">The item to which the root should be retrieved from.</param>
-    /// <returns></returns>
+    /// <param name="item">The item which the root should be retrieved from.</param>
+    /// <returns>The folder that this implementation considers the "root".</returns>
     public static async Task<IFolder?> GetRootAsync(this IStorableChild item)
     {
         // If the item knows how to find the root quickly.

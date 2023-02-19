@@ -12,7 +12,7 @@ namespace OwlCore.Storage;
 public static partial class StorableExtensions
 {
     /// <summary>
-    /// Traverses the relative path from the provided <see cref="IStorable"/> and returns the item at that path.
+    /// From the provided <see cref="IStorable"/>, traverses the provided relative path and returns the item at that path.
     /// </summary>
     /// <param name="from">The item to start with when traversing.</param>
     /// <param name="relativePath">The path of the storable item to return, relative to the provided item.</param>
@@ -20,7 +20,8 @@ public static partial class StorableExtensions
     /// <returns>The <see cref="IStorable"/> item found at the relative path.</returns>
     /// <exception cref="ArgumentException">
     /// A parent directory was specified, but the provided <see cref="IStorable"/> is not addressable.
-    /// Or, the provided relative path named a folder, but the item was a file. 
+    /// Or, the provided relative path named a folder, but the item was a file.
+    /// Or, an empty path part was found.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">A parent folder was requested, but the storable item did not return a parent.</exception>
     /// <exception cref="FileNotFoundException">A named item was specified in a folder, but the item wasn't found.</exception>

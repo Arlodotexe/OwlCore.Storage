@@ -10,7 +10,6 @@ public static partial class FolderExtensions
     /// <summary>
     /// Crawls the ancestors of <paramref name="to" /> until <paramref name="from"/> is found, then returns the constructed relative path.
     /// </summary>
-    /// <remarks>Example code. Not tested.</remarks>
     public static async Task<string> GetRelativePathToAsync(this IFolder from, IStorableChild to)
     {
         if (Equals(from, to) || from.Id == to.Id)
