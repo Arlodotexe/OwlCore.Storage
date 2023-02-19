@@ -37,7 +37,7 @@ public class HttpFile : IFile
     /// <summary>
     /// The default message handler to use for making HTTP requests.
     /// </summary>
-    public HttpMessageHandler MessageHandler { get; }
+    public HttpMessageHandler MessageHandler { get; set; }
 
     /// <summary>
     /// The http address to GET for the file content.
