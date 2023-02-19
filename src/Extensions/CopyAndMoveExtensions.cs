@@ -44,7 +44,7 @@ public static partial class ModifiableFolderExtensions
     }
 
     /// <summary>
-    /// Moves a storable item out of the provided folder, and into this folder. Returns the new item that resides in this folder.
+    /// Moves a storable item out of the source folder, and into the destination folder. Returns the new item that resides in this folder.
     /// </summary>
     /// <param name="destinationFolder">The folder where the file is moved to.</param>
     /// <param name="fileToMove">The file being moved into this folder.</param>
