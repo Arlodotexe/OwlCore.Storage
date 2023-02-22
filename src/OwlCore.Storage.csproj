@@ -14,7 +14,7 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.8.0</Version>
+		<Version>0.8.1</Version>
 		<Product>OwlCore</Product>
 		<Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,10 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.8.1 ---
+[Fixes]
+Fixed an issue with the new CreateCopyOfAsync extension method where a writable stream was not requested for the destination file.
+
 --- 0.8.0 ---
 THIS IS A BREAKING RELEASE
 Update asap, and do not use older versions or implementations.

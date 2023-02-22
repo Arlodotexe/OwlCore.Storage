@@ -28,7 +28,7 @@ public static partial class ModifiableFolderExtensions
 
         // Create the destination file
         var newFile = await destinationFolder.CreateFileAsync(fileToCopy.Name, overwrite, cancellationToken);
-        using var destinationStream = await newFile.OpenStreamAsync(cancellationToken: cancellationToken);
+        using var destinationStream = await newFile.OpenStreamAsync(FileAccess.ReadWrite, cancellationToken: cancellationToken);
 
         // Align stream positions (if possible)
         if (destinationStream.CanSeek && destinationStream.Position != 0)
