@@ -19,9 +19,26 @@ public static partial class ModifiableFolderExtensions
     public static async Task<IChildFile> CreateCopyOfAsync<T>(this IModifiableFolder destinationFolder, T fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
         where T : IFile
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // If the destination folder can copy this file faster than us, use that.
         if (destinationFolder is IFastFileCopy<T> fastPath)
             return await fastPath.CreateCopyOfAsync(fileToCopy, overwrite, cancellationToken);
+
+        if (!overwrite)
+        {
+            try
+            {
+                var existingItem = await destinationFolder.GetFirstByNameAsync(fileToCopy.Name, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (existingItem is IChildFile childFile)
+                    return childFile;
+            }
+            catch (FileNotFoundException)
+            {
+            }
+        }
 
         // Open the source file
         using var sourceStream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
@@ -29,6 +46,7 @@ public static partial class ModifiableFolderExtensions
         // Create the destination file
         var newFile = await destinationFolder.CreateFileAsync(fileToCopy.Name, overwrite, cancellationToken);
         using var destinationStream = await newFile.OpenStreamAsync(FileAccess.ReadWrite, cancellationToken: cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         // Align stream positions (if possible)
         if (destinationStream.CanSeek && destinationStream.Position != 0)
@@ -54,6 +72,8 @@ public static partial class ModifiableFolderExtensions
     public static async Task<IChildFile> MoveFromAsync<T>(this IModifiableFolder destinationFolder, T fileToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default)
         where T : IFile, IStorableChild
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // If the destination folder can move this file faster than us, use that.
         if (destinationFolder is IFastFileMove<T> fastPath)
             return await fastPath.MoveFromAsync(fileToMove, source, overwrite, cancellationToken);
