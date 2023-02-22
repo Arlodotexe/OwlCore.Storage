@@ -3,6 +3,6 @@
 /// <summary>
 /// Represents a file that resides within a traversable folder structure.
 /// </summary>
-public interface IAddressableFile : IFile, IAddressableStorable
+public interface IChildFile : IFile, IStorableChild
 {
 }

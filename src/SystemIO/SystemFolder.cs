@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OwlCore.Storage.Memory;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -12,23 +13,17 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFastGetItem, IFolderCanFastGetFirstItemByName
+public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<SystemFile>, IFastFileMove<SystemFile>, IFastGetItem, IFastGetItemRecursive, IFastGetFirstByName, IFastGetRoot
 {
+    private readonly DirectoryInfo _directoryInfo;
+
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
     /// </summary>
     /// <param name="path">The path to the folder.</param>
     public SystemFolder(string path)
+        : this(new DirectoryInfo(path))
     {
-        // For consistency, always remove the trailing directory separator.
-        path = path.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
-
-        if (!Directory.Exists(path))
-            throw new FileNotFoundException($"Directory not found at path {path}");
-
-        Id = path;
-        Name = System.IO.Path.GetFileName(path) ?? throw new ArgumentException($"Could not determine directory name from path {path}");
-        Path = path;
     }
 
     /// <summary>
@@ -36,8 +31,17 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     /// </summary>
     /// <param name="directoryInfo">The directory to use.</param>
     public SystemFolder(DirectoryInfo directoryInfo)
-        : this(directoryInfo.FullName)
     {
+        _directoryInfo = directoryInfo;
+
+        // For consistency, always remove the trailing directory separator.
+        Path = directoryInfo.FullName.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+
+        if (!Directory.Exists(Path))
+            throw new FileNotFoundException($"Directory not found at path {Path}");
+
+        Id = Path;
+        Name = System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path {Path}");
     }
 
     /// <inheritdoc />
@@ -50,7 +54,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     public string Path { get; }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -104,19 +108,38 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public Task<IAddressableStorable> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public Task<IStorableChild> GetItemRecursiveAsync(string id, CancellationToken cancellationToken = default)
     {
+        if (!id.Contains(Path))
+            throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+
+        // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
+        if (IsFile(id))
+            return Task.FromResult<IStorableChild>(new SystemFile(id));
+
+        if (IsFolder(id))
+            return Task.FromResult<IStorableChild>(new SystemFolder(id));
+
+        throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
+    }
+
+    /// <inheritdoc />
+    public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    {
+        if (!id.Contains(Path))
+            throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+
         // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
         if (IsFile(id))
         {
-            // Capture file name, combine with known path. Forces reading from current folder.
+            // Capture file name, combine with known path. Forces reading from current folder only.
             var fileName = System.IO.Path.GetFileName(id) ?? throw new ArgumentException($"Could not determine file name from id: {id}");
             var fullPath = System.IO.Path.Combine(Path, fileName);
 
             if (!File.Exists(fullPath))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
 
-            return Task.FromResult<IAddressableStorable>(new SystemFile(fullPath));
+            return Task.FromResult<IStorableChild>(new SystemFile(fullPath));
         }
 
         if (IsFolder(id))
@@ -125,14 +148,14 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             if (System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
 
-            return Task.FromResult<IAddressableStorable>(new SystemFile(id));
+            return Task.FromResult<IStorableChild>(new SystemFolder(id));
         }
 
         throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
     }
 
     /// <inheritdoc/>
-    public async Task<IAddressableStorable> GetFirstItemByNameAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await GetItemAsync(System.IO.Path.Combine(Path, name), cancellationToken);
     }
@@ -144,44 +167,67 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync(IAddressableStorable item, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         // Ensure containing directory matches current folder.
-        if (GetParentPath(item.Path).TrimEnd(System.IO.Path.DirectorySeparatorChar) != Path)
+        if (GetParentPath(item.Id).TrimEnd(System.IO.Path.DirectorySeparatorChar) != Path)
             throw new FileNotFoundException($"The provided item does not exist in this folder.");
 
-        if (IsFolder(item.Path))
-            Directory.Delete(item.Path, recursive: true);
+        if (IsFolder(item.Id))
+            Directory.Delete(item.Id, recursive: true);
 
-        if (IsFile(item.Path))
-            File.Delete(item.Path);
+        if (IsFile(item.Id))
+            File.Delete(item.Id);
 
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async Task<IAddressableFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> CreateCopyOfAsync(SystemFile fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
+    {
+        var newPath = System.IO.Path.Combine(Path, fileToCopy.Name);
+
+        // If the target and destination are the same, there's no need to copy.
+        if (fileToCopy.Path == newPath)
+            return new SystemFile(newPath);
+
+        if (File.Exists(newPath))
+        {
+            if (!overwrite)
+                return new SystemFile(newPath);
+
+            File.Delete(newPath);
+        }
+
+        File.Copy(fileToCopy.Path, newPath, overwrite);
+
+        return new SystemFile(newPath);
+    }
+
+    /// <inheritdoc />
+    public async Task<IChildFile> MoveFromAsync(SystemFile fileToMove, IModifiableFolder source, bool overwrite = default,
+        CancellationToken cancellationToken = default)
+    {
+        var newPath = System.IO.Path.Combine(Path, fileToMove.Name);
+        if (File.Exists(newPath) && !overwrite)
+            return new SystemFile(newPath);
+
+        if (overwrite)
+            File.Delete(newPath);
+
+        File.Move(fileToMove.Path, newPath);
+
+        return new SystemFile(newPath);
+    }
+
+    /// <inheritdoc />
+    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, fileToCopy.Name);
 
         // Use provided system methods where possible.
         if (fileToCopy is SystemFile sysFile)
         {
-            // If the target and destination are the same, there's no need to copy.
-            if (sysFile.Path == newPath)
-                return new SystemFile(newPath);
-
-            if (File.Exists(newPath))
-            {
-                if (!overwrite)
-                    return new SystemFile(newPath);
-
-                File.Delete(newPath);
-            }
-            
-            File.Copy(sysFile.Path, newPath, overwrite);
-
-            return new SystemFile(newPath);
         }
 
         // Manual file copy. Slower, but covers all other scenarios.
@@ -197,33 +243,7 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
     }
 
     /// <inheritdoc />
-    public async Task<IAddressableFile> MoveFromAsync(IAddressableFile fileToMove, IModifiableFolder source, bool overwrite = false, CancellationToken cancellationToken = default)
-    {
-        var newPath = System.IO.Path.Combine(Path, fileToMove.Name);
-
-        // Use provided system methods where possible.
-        if (fileToMove is SystemFile sysFile)
-        {
-            if (File.Exists(newPath) && !overwrite)
-                return new SystemFile(newPath);
-
-            if (overwrite)
-                File.Delete(newPath);
-
-            File.Move(sysFile.Path, newPath);
-
-            return new SystemFile(newPath);
-        }
-
-        // Manual move. Slower, but covers all other scenarios.
-        var file = await CreateCopyOfAsync(fileToMove, overwrite, cancellationToken);
-        await source.DeleteAsync(fileToMove, cancellationToken);
-
-        return file;
-    }
-
-    /// <inheritdoc />
-    public Task<IAddressableFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, name);
 
@@ -231,24 +251,30 @@ public class SystemFolder : IModifiableFolder, IAddressableFolder, IFolderCanFas
             Directory.Delete(newPath, recursive: true);
 
         Directory.CreateDirectory(newPath);
-        return Task.FromResult<IAddressableFolder>(new SystemFolder(newPath));
+        return Task.FromResult<IChildFolder>(new SystemFolder(newPath));
     }
 
     /// <inheritdoc />
-    public Task<IAddressableFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public Task<IChildFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, name);
 
         if (overwrite || !File.Exists(newPath))
             File.Create(newPath).Dispose();
 
-        return Task.FromResult<IAddressableFile>(new SystemFile(newPath));
+        return Task.FromResult<IChildFile>(new SystemFile(newPath));
     }
 
     /// <inheritdoc />
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
+    }
+
+    /// <inheritdoc />
+    public Task<IFolder?> GetRootAsync()
+    {
+        return Task.FromResult<IFolder?>(new SystemFolder(_directoryInfo.Root));
     }
 
     private static bool IsFile(string path) => System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);

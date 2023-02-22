@@ -3,7 +3,6 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using OwlCore.Storage.Memory;
 
 namespace OwlCore.Storage;
 
@@ -15,32 +14,29 @@ public class HttpFile : IFile
     private HttpClient? _client;
 
     /// <summary>
-    /// Creates a new instance of <see cref="StreamFile"/>.
+    /// Creates a new instance of <see cref="HttpFile"/>.
     /// </summary>
     /// <param name="uri">The http address to GET for the file content.</param>
     public HttpFile(Uri uri)
-        : this(uri, uri.OriginalString, Path.GetFileName(uri.AbsolutePath))
-    {
-    }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="StreamFile"/>.
-    /// </summary>
-    /// <param name="uri">The http address to GET for the file content.</param>
-    /// <param name="id">A unique and consistent identifier for this file or folder.</param>
-    /// <param name="name">The name of the file or folder, with the extension (if any).</param>
-    public HttpFile(Uri uri, string id, string name)
     {
         Uri = uri;
-        Id = id;
-        Name = name;
-        MessageHandler = new HttpClientHandler();
+        Name = Path.GetFileName(uri.AbsolutePath);
+        Id = uri.OriginalString;
     }
 
     /// <summary>
-    /// The default message handler to use for making HTTP requests.
+    /// Creates a new instance of <see cref="HttpFile"/>.
     /// </summary>
-    public HttpMessageHandler MessageHandler { get; }
+    /// <param name="uri">The http address to GET for the file content.</param>
+    public HttpFile(string uri)
+        : this(new Uri(uri))
+    {
+    }
+
+    /// <summary>
+    /// The message handler to use for making HTTP requests.
+    /// </summary>
+    public HttpMessageHandler MessageHandler { get; init; } = new HttpClientHandler();
 
     /// <summary>
     /// The http address to GET for the file content.
@@ -51,7 +47,7 @@ public class HttpFile : IFile
     public string Id { get; }
 
     /// <inheritdoc />
-    public string Name { get; }
+    public string Name { get; init; }
 
     /// <inheritdoc />
     public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)

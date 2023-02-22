@@ -14,15 +14,50 @@
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
 		<Author>Arlo Godfrey</Author>
-		<Version>0.7.1</Version>
+		<Version>0.8.0</Version>
 		<Product>OwlCore</Product>
-		<Description>Coordinated, high-latency IPoAC == A bad hard drive comprised entirely of Owls (see rfc6214)
+		<Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
-		This package enables early adoption of CommunityToolkit.Storage, a proposed package in Toolkit Labs, eventually to end up in CommunityToolkit/dotnet on GitHub. 
+      This package enables early adoption of CommunityToolkit.Storage, a proposed package in Toolkit Labs, eventually to end up in CommunityToolkit/dotnet on GitHub. 
     </Description>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>logo.png</PackageIcon>
 		<PackageReleaseNotes>
+--- 0.8.0 ---
+THIS IS A BREAKING RELEASE
+Update asap, and do not use older versions or implementations.
+
+[Breaking]
+Path was removed from IAddressableStorable. This was not spec'd or standardized, and simply exposed the "path" used by the underlying implementation, so we removed it. Additional tooling has been added to substitute any functionality gaps that removing this has caused.
+Renamed IStorageProperties{T} to IStorageProperty{T}.
+Renamed IAddressableStorable to IStorableChild, as the only thing on the interface is now GetParentAsync.
+Renamed IAddressableFolder to IChildFolder.
+Renamed IAddressableFile to IChildFile.
+Renamed IFolderCanFastGetItem to IFastGetItem.
+Renamed IFolderCanFastGetFirstItemByName to IFastGetFirstByName.
+Renamed the extension method GetFirstItemByNameAsync to GetFirstByNameAsync.
+IModifiableFolder no longer requires implementing copy/move operations. Please remove from your implementations, and implement the fastpath interfaces where appropriate.
+Refactored HttpFile constructors. Only 1 parameter is required: either a Uri or a string.
+HttpFile.Name now has an init-only setter.
+HttpFile.MessageHandler now has an init-only setter.
+HttpFile.Id is no longer customizable, and is always created from the provided Uri instead.
+
+[New]
+Added IFastGetRoot interface.
+Added IFastFileCopy{T} interface.
+Added IFastFileMove{T} interface.
+Added IFastGetItemRecursive interface.
+Added GetRootAsync extension method.
+Added ModifiableFolderExtensions.CreateCopyOfAsync{T} extension method.
+Added ModifiableFolderExtensions.MoveFromAsync{T} extension method.
+Added FolderExtensions.GetItemRecursiveAsync extension method.
+Added FolderExtensions.GetRelativePathToAsync extension method, to generate a relative path from one item to another.
+Added FolderExtensions.GetItemByRelativePathAsync extension method, to traverse a relative path from one item to another.
+Added FolderExtensions.GetItemRecursiveAsync extension method, to recursively search a folder for an item with the provided ID.
+SystemFolder now implements IFastGetRoot.
+ZipArchiveFolder now implements IFastGetRoot.
+ReadOnlyZipArchiveFolder now implements IFastGetRoot.
+
 --- 0.7.1 ---
 [Fix]
 Fixed an issue where providing only a Uri for HttpFile would yield an incorrect file name.
@@ -157,6 +192,10 @@ Initial release of OwlCore.Storage.
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+		<PackageReference Include="PolySharp" Version="1.12.1">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	</ItemGroup>
 

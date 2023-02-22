@@ -14,7 +14,7 @@ namespace OwlCore.Storage.Archive;
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
 /// mode <see cref="ZipArchiveMode.Read"/> or <see cref="ZipArchiveMode.Update"/>.
 /// </summary>
-public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
+public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem, IFastGetFirstByName, IDisposable
 {
     /// <summary>
     /// The directory separator as defined by the ZIP standard.
@@ -24,7 +24,7 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
     internal const char ZIP_DIRECTORY_SEPARATOR = '/';
 
     private readonly IFolder? _parent;
-    private protected Dictionary<string, IAddressableFolder>? _virtualFolders;
+    private protected Dictionary<string, ReadOnlyZipArchiveFolder>? _virtualFolders;
 
     /// <summary>
     /// Creates a new instance of <see cref="ReadOnlyZipArchiveFolder"/>.
@@ -108,7 +108,7 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
     public ZipArchive? Archive { get; protected set; }
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<IAddressableStorable> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         Archive ??= await OpenArchiveAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
@@ -141,11 +141,45 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
     }
 
     /// <inheritdoc/>
+    public async Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        IStorableChild item;
+
+        Archive ??= await OpenArchiveAsync(cancellationToken);
+
+        // Id can act as a Path (matches entry names) if we remove the prepended root folder Id.
+        // Make sure the entire Id is removed, including the trailing separator.
+        if (id.StartsWith(RootFolder.Id))
+            id = id.Substring(RootFolder.Id.Length);
+
+        var entry = TryGetEntry(id);
+        if (entry is not null)
+        {
+            // Get file
+            item = new ZipArchiveEntryFile(entry, this);
+        }
+        else
+        {
+            // Get folder
+            item = GetVirtualFolders()[id];
+        }
+
+        return item;
+    }
+    
+    /// <inheritdoc/>
+    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default) => await GetItemAsync(Id + name, cancellationToken);
+
+    /// <inheritdoc/>
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(_parent);
     }
+
+    /// <inheritdoc/>
+    public Task<IFolder?> GetRootAsync() => Task.FromResult<IFolder?>(RootFolder);
 
     /// <summary>
     /// Attempts to get the entry, without throwing if the archive does not support reading entries. 
@@ -169,7 +203,7 @@ public class ReadOnlyZipArchiveFolder : IAddressableFolder, IDisposable
     /// <summary>
     /// Gets the list of virtual folders.
     /// </summary>
-    protected Dictionary<string, IAddressableFolder> GetVirtualFolders()
+    protected Dictionary<string, ReadOnlyZipArchiveFolder> GetVirtualFolders()
     {
         if (Archive is null)
             throw new ArgumentNullException(nameof(Archive));

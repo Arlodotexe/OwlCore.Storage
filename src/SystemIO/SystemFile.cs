@@ -7,7 +7,7 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFile : IAddressableFile
+public class SystemFile : IChildFile, IFastGetRoot
 {
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
@@ -45,5 +45,11 @@ public class SystemFile : IAddressableFile
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
+    }
+
+    /// <inheritdoc />
+    public Task<IFolder?> GetRootAsync()
+    {
+        return Task.FromResult<IFolder?>(new SystemFolder(new DirectoryInfo(Path).Root));
     }
 }

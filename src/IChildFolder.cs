@@ -3,6 +3,6 @@
 /// <summary>
 /// Represents a folder that resides within a traversable folder structure.
 /// </summary>
-public interface IAddressableFolder : IFolder, IAddressableStorable
+public interface IChildFolder : IFolder, IStorableChild
 {
 }

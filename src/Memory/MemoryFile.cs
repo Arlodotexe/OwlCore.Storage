@@ -8,7 +8,7 @@ namespace OwlCore.Storage.Memory
     /// <summary>
     /// A file implementation that resides in memory.
     /// </summary>
-    public class MemoryFile : IFile
+    public class MemoryFile : IChildFile
     {
         private readonly MemoryStream _memoryStream;
 
@@ -39,6 +39,14 @@ namespace OwlCore.Storage.Memory
 
         /// <inheritdoc />
         public string Name { get; }
+
+        /// <summary>
+        /// The parent folder, if any.
+        /// </summary>
+        public MemoryFolder? Parent { get; internal set; }
+
+        /// <inheritdoc />
+        public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default) => Task.FromResult<IFolder?>(Parent);
 
         /// <inheritdoc />
         public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
