@@ -162,14 +162,21 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem
         else
         {
             // Get folder
-            item = GetVirtualFolders()[id];
+            string subfolderId = NormalizeEnding(id);
+            var virtualFolders = GetVirtualFolders();
+            
+            if (!virtualFolders.TryGetValue(subfolderId, out var subfolder))
+                throw new FileNotFoundException($"No item with ID '{id}' or '{subfolderId}' exists in '{Id}'.");
+            
+            item = subfolder;
         }
 
         return item;
     }
     
     /// <inheritdoc/>
-    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default) => await GetItemAsync(Id + name, cancellationToken);
+    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
+        => await GetItemAsync(Id + name, cancellationToken);
 
     /// <inheritdoc/>
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
