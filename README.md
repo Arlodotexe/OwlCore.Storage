@@ -299,7 +299,7 @@ This gives us 2 options:
 After some brainstorming, we have a basic skeleton that serves as a guide for any property set.
 ```cs
 // The recommended pattern for file properties. 
-public interface IStorageProperties<T> : IDisposable
+public interface IStorageProperty<T> : IDisposable
 {
     public T Value { get; }
 
@@ -315,7 +315,7 @@ public class MusicData
 public interface IMusicProperties
 {
     // Must be behind an async method
-    public Task<IStorageProperties<MusicData>> GetMusicPropertiesAsync();
+    public Task<IStorageProperty<MusicData>> GetMusicPropertiesAsync();
 }
 
 // If the implementor is capable, they can implement modifying props as well.
