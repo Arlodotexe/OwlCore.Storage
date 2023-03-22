@@ -1,5 +1,7 @@
 # OwlCore.Storage
 
+The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
+
 [![Version](https://img.shields.io/nuget/v/OwlCore.Storage.svg)](https://www.nuget.org/packages/OwlCore.Storage)
 
 #### This package enables early adoption of CommunityToolkit.Storage, a package in the [proposal](https://github.com/CommunityToolkit/Labs-Windows/discussions/229) stage in [Toolkit Labs](https://github.com/CommunityToolkit/Labs-Windows). 
