@@ -236,11 +236,10 @@ Even when there's no folder structure built around it, a file can exist standalo
 For full compatibility, we need to address this.
 
 ### Proposed solution
+
+> **Note** These interfaces were renamed and finalized in https://github.com/Arlodotexe/OwlCore.Storage/pull/19.
+
 Any APIs meant to be used in the context of an _identifiable_ folder structure should be abstracted to a new interface:
-
-> **Note** `IAddressableFile` and `IAddressableFolder` are included out of the box to avoid requiring a generic check when implementing/consuming.
-
-> **Warning** These interfaces were renamed and finalized in https://github.com/Arlodotexe/OwlCore.Storage/pull/19.
 
 ```csharp
 /// <summary>
@@ -275,7 +274,11 @@ public interface IAddressableFolder  : IFolder, IAddressableStorable
 }
 ```
 
+> **Note** `IAddressableFile` and `IAddressableFolder` are included out of the box to avoid requiring a generic check when implementing/consuming.
+
 ## Storage properties
+
+> **Note** A standard for basic file properties is being discussed in the UWP Community [on Discord](https://discord.com/channels/372137812037730304/1087750145950625823)
 
 "Storage properties" are the additional information about a resource provided by most file systems. It's everything from the name to the "Last modified" date to the Thumbnail, and the majority of them can change / be changed.
 
