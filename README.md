@@ -236,14 +236,11 @@ Even when there's no folder structure built around it, a file can exist standalo
 For full compatibility, we need to address this.
 
 ### Proposed solution
-_These interface names are not final, please offer suggestions!_
-Current name candidates
-- `IAddressableFile`
-- `ILocatableFile`
-
 Any APIs meant to be used in the context of an _identifiable_ folder structure should be abstracted to a new interface:
 
 > **Note** `IAddressableFile` and `IAddressableFolder` are included out of the box to avoid requiring a generic check when implementing/consuming.
+
+> **Warning** These interfaces were renamed and finalized in https://github.com/Arlodotexe/OwlCore.Storage/pull/19.
 
 ```csharp
 /// <summary>
