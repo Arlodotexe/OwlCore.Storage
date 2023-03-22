@@ -33,7 +33,7 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 
 ### Planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
-- Archives (7z, tar, etc)
+- Archives (7z, tar, etc) via a separate, well-maintained library.
 - Google Drive
 
 # Proposal
