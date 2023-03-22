@@ -31,7 +31,7 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 - [IPFS / IPNS / MFS](https://github.com/Arlodotexe/OwlCore.Kubo/blob/main/docs/storageproviders.md)
 - [OneDrive](https://github.com/Arlodotexe/OwlCore.Storage.OneDrive)
 
-## Planned implementations
+### Planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
 - Archives (7z, tar, etc)
 - Google Drive
