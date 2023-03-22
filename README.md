@@ -24,7 +24,7 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 - [System.IO](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/SystemIO)
 - [HttpFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/HttpFile.cs)
 - [StreamFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/StreamFile.cs)
-- [Archives](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Archive) (via System.IO.Compression)
+- [Zip archives](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Archive) (via System.IO.Compression)
 
 ### Separate packages
 - [Windows.Storage](https://github.com/Arlodotexe/OwlCore.Storage.Uwp)
