@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.8.3</Version>
+    <Version>0.8.4</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,9 +23,13 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
---- 0.8.3 ---
+--- 0.8.4 ---
 [Fixes]
 Removed an old implementation of CreateCopyOfAsync from SystemFolder. Existing code referencing this symbol should now point to the extension method instead. Fixes several bugs.
+
+--- 0.8.3 ---
+[Fixes]
+Fixed an issue where ReadOnlyZipArchiveFolder's GetFirstByName extension would fail to find folders.
 
 --- 0.8.2 ---
 [Fixes]

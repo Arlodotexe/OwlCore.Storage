@@ -1,5 +1,7 @@
 # OwlCore.Storage
 
+The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
+
 [![Version](https://img.shields.io/nuget/v/OwlCore.Storage.svg)](https://www.nuget.org/packages/OwlCore.Storage)
 
 #### This package enables early adoption of CommunityToolkit.Storage, a package in the [proposal](https://github.com/CommunityToolkit/Labs-Windows/discussions/229) stage in [Toolkit Labs](https://github.com/CommunityToolkit/Labs-Windows). 
@@ -17,18 +19,21 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
     > dotnet add package OwlCore.Storage
 
 ## Available implementations
+### Provided inbox
 - [In memory](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Memory)
 - [System.IO](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/SystemIO)
+- [HttpFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/HttpFile.cs)
+- [StreamFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/StreamFile.cs)
+- [Zip archives](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Archive) (via System.IO.Compression)
+
+### Separate packages
 - [Windows.Storage](https://github.com/Arlodotexe/OwlCore.Storage.Uwp)
 - [IPFS / IPNS / MFS](https://github.com/Arlodotexe/OwlCore.Kubo/blob/main/docs/storageproviders.md)
 - [OneDrive](https://github.com/Arlodotexe/OwlCore.Storage.OneDrive)
-- [HttpFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/HttpFile.cs)
-- [StreamFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/StreamFile.cs)
-- [Archives](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Archive) (Zip only for now)
 
-## Planned implementations
+### Planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
-- Archives (7z, tar, etc)
+- Archives (7z, tar, etc) via a separate, well-maintained library.
 - Google Drive
 
 # Proposal
@@ -236,14 +241,10 @@ Even when there's no folder structure built around it, a file can exist standalo
 For full compatibility, we need to address this.
 
 ### Proposed solution
-_These interface names are not final, please offer suggestions!_
-Current name candidates
-- `IAddressableFile`
-- `ILocatableFile`
+
+> **Note** These interfaces were renamed and finalized in https://github.com/Arlodotexe/OwlCore.Storage/pull/19.
 
 Any APIs meant to be used in the context of an _identifiable_ folder structure should be abstracted to a new interface:
-
-> **Note** `IAddressableFile` and `IAddressableFolder` are included out of the box to avoid requiring a generic check when implementing/consuming.
 
 ```csharp
 /// <summary>
@@ -278,7 +279,11 @@ public interface IAddressableFolder  : IFolder, IAddressableStorable
 }
 ```
 
+> **Note** `IAddressableFile` and `IAddressableFolder` are included out of the box to avoid requiring a generic check when implementing/consuming.
+
 ## Storage properties
+
+> **Note** A standard for basic file properties is being discussed in the UWP Community [on Discord](https://discord.com/channels/372137812037730304/1087750145950625823)
 
 "Storage properties" are the additional information about a resource provided by most file systems. It's everything from the name to the "Last modified" date to the Thumbnail, and the majority of them can change / be changed.
 
@@ -299,7 +304,7 @@ This gives us 2 options:
 After some brainstorming, we have a basic skeleton that serves as a guide for any property set.
 ```cs
 // The recommended pattern for file properties. 
-public interface IStorageProperties<T> : IDisposable
+public interface IStorageProperty<T> : IDisposable
 {
     public T Value { get; }
 
@@ -315,7 +320,7 @@ public class MusicData
 public interface IMusicProperties
 {
     // Must be behind an async method
-    public Task<IStorageProperties<MusicData>> GetMusicPropertiesAsync();
+    public Task<IStorageProperty<MusicData>> GetMusicPropertiesAsync();
 }
 
 // If the implementor is capable, they can implement modifying props as well.
