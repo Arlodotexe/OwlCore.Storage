@@ -221,28 +221,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
     }
 
     /// <inheritdoc />
-    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = false, CancellationToken cancellationToken = default)
-    {
-        var newPath = System.IO.Path.Combine(Path, fileToCopy.Name);
-
-        // Use provided system methods where possible.
-        if (fileToCopy is SystemFile sysFile)
-        {
-        }
-
-        // Manual file copy. Slower, but covers all other scenarios.
-        using var sourceStream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
-
-        if (sourceStream.CanSeek)
-            sourceStream.Seek(0, SeekOrigin.Begin);
-
-        using var destinationStream = File.Create(newPath);
-        await sourceStream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
-
-        return new SystemFile(newPath);
-    }
-
-    /// <inheritdoc />
     public Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = System.IO.Path.Combine(Path, name);
