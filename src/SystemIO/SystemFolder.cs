@@ -151,7 +151,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
             return Task.FromResult<IStorableChild>(new SystemFolder(id));
         }
 
-        throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
+        throw new FileNotFoundException($"Could not determine if the provided path exists, or whether it's a file or folder. Path: {id}");
     }
 
     /// <inheritdoc/>
