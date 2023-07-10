@@ -225,8 +225,15 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
     {
         var newPath = System.IO.Path.Combine(Path, name);
 
-        if (overwrite)
-            Directory.Delete(newPath, recursive: true);
+        try
+        {
+            if (overwrite)
+                Directory.Delete(newPath, recursive: true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Ignored
+        }
 
         Directory.CreateDirectory(newPath);
         return Task.FromResult<IChildFolder>(new SystemFolder(newPath));
