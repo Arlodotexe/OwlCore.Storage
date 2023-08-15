@@ -64,26 +64,14 @@ public class SystemFile : IChildFile, IFastGetRoot
     /// <inheritdoc />
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
-        DirectoryInfo parent;
-
-        if (_info != null)
-            parent = _info.Directory;
-        else
-            parent = Directory.GetParent(Path);
-
+        DirectoryInfo parent = _info != null ? _info.Directory : Directory.GetParent(Path);
         return Task.FromResult<IFolder?>(parent is { } di ? new SystemFolder(di) : null);
     }
 
     /// <inheritdoc />
     public Task<IFolder?> GetRootAsync()
     {
-        DirectoryInfo root;
-
-        if (_info != null)
-            root = _info.Directory.Root;
-        else
-            root = new DirectoryInfo(Path).Root;
-
+        DirectoryInfo root = _info != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
         return Task.FromResult<IFolder?>(new SystemFolder(root));
     }
 }
