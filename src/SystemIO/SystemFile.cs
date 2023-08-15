@@ -9,6 +9,8 @@ namespace OwlCore.Storage.SystemIO;
 /// </summary>
 public class SystemFile : IChildFile, IFastGetRoot
 {
+    private string? _name;
+
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
     /// </summary>
@@ -19,7 +21,6 @@ public class SystemFile : IChildFile, IFastGetRoot
             throw new FileNotFoundException($"File not found at path {path}");
 
         Id = path;
-        Name = System.IO.Path.GetFileName(path);
         Path = path;
     }
 
@@ -27,7 +28,7 @@ public class SystemFile : IChildFile, IFastGetRoot
     public string Id { get; }
 
     /// <inheritdoc />
-    public string Name { get; }
+    public string Name => _name ??= System.IO.Path.GetFileName(Path);
 
     /// <inheritdoc />
     public string Path { get; }
