@@ -31,6 +31,9 @@ public class SystemFile : IChildFile, IFastGetRoot
     /// <param name="info">The file info.</param>
     public SystemFile(FileInfo info)
     {
+        if (!info.Exists)
+            throw new FileNotFoundException($"File not found at path {path}");
+
         _info = info;
 
         Name = _info.Name;
