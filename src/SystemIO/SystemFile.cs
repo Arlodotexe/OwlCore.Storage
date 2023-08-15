@@ -32,7 +32,7 @@ public class SystemFile : IChildFile, IFastGetRoot
     public SystemFile(FileInfo info)
     {
         if (!info.Exists)
-            throw new FileNotFoundException($"File not found at path {path}");
+            throw new FileNotFoundException($"File not found at path {info.FullName}");
 
         _info = info;
 
