@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,11 +10,12 @@ namespace OwlCore.Storage.SystemIO;
 public class SystemFile : IChildFile, IFastGetRoot
 {
     private string? _name;
+    private FileInfo? _info;
 
     /// <summary>
-    /// Creates a new instance of <see cref="SystemFolder"/>.
+    /// Creates a new instance of <see cref="SystemFile"/>.
     /// </summary>
-    /// <param name="path">The path to the folder.</param>
+    /// <param name="path">The path to the file.</param>
     public SystemFile(string path)
     {
         if (!File.Exists(path))
@@ -22,6 +23,22 @@ public class SystemFile : IChildFile, IFastGetRoot
 
         Id = path;
         Path = path;
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="SystemFile"/>.
+    /// </summary>
+    /// <param name="info">The file info.</param>
+    public SystemFile(FileInfo info)
+    {
+        if (!info.Exists)
+            throw new FileNotFoundException($"File not found at path {info.FullName}");
+
+        _info = info;
+
+        Name = _info.Name;
+        Id = _info.FullName;
+        Path = _info.FullName;
     }
 
     /// <inheritdoc />
@@ -32,6 +49,11 @@ public class SystemFile : IChildFile, IFastGetRoot
 
     /// <inheritdoc />
     public string Path { get; }
+
+    /// <summary>
+    /// The file info for the <see cref="SystemFile"/>.
+    /// </summary>
+    public FileInfo Info => _info ??= new(Path);
 
     /// <inheritdoc />
     public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
@@ -45,12 +67,14 @@ public class SystemFile : IChildFile, IFastGetRoot
     /// <inheritdoc />
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
+        DirectoryInfo parent = _info != null ? _info.Directory : Directory.GetParent(Path);
+        return Task.FromResult<IFolder?>(parent is { } di ? new SystemFolder(di) : null);
     }
 
     /// <inheritdoc />
     public Task<IFolder?> GetRootAsync()
     {
-        return Task.FromResult<IFolder?>(new SystemFolder(new DirectoryInfo(Path).Root));
+        DirectoryInfo root = _info != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
+        return Task.FromResult<IFolder?>(new SystemFolder(root));
     }
 }
