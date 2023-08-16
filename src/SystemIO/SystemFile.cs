@@ -36,7 +36,7 @@ public class SystemFile : IChildFile, IFastGetRoot
 
         _info = info;
 
-        Name = _info.Name;
+        _name = _info.Name;
         Id = _info.FullName;
         Path = _info.FullName;
     }

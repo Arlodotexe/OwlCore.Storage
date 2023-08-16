@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.8.6</Version>
+    <Version>0.8.7</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,11 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.8.7 ---
+[Improvements]
+In SystemFile, the Name is now evaluated on first access instead of in the constructor.
+SystemFile now has constructor taking an instance of FileInfo.  
+
 --- 0.8.6 ---
 [Fixes]
 Fixed an issue where SystemFolder.GetItemAsync wasn't properly throwing a FileNotFoundException when the requested item doesn't exist. Fixes usage with CreateCopyOfAsync.
