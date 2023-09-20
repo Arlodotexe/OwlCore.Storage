@@ -30,7 +30,7 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 - [Windows.Storage](https://github.com/Arlodotexe/OwlCore.Storage.Uwp)
 - [IPFS / IPNS / MFS](https://github.com/Arlodotexe/OwlCore.Kubo/blob/main/docs/storageproviders.md)
 - [OneDrive](https://github.com/Arlodotexe/OwlCore.Storage.OneDrive)
-- [Archives (7z, tar, etc)](https://github.com/Arlodotexe/OwlCore.Storage.SharpCompress) (via SharpCompress, third-party)
+- [Archives (7z, tar, etc)](https://github.com/yoshiask/OwlCore.Storage.SharpCompress) (via SharpCompress, third-party)
 
 ### Planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
