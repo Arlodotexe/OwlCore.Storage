@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.8.7</Version>
+    <Version>0.9.0</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,14 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.9.0 ---
+[Breaking]
+The HttpFile.HttpMessageHandler property has been removed.
+
+[New]
+The HttpFile.Client property was added.
+A new constructor accepting an HttpClient was added to HttpFile.
+
 --- 0.8.7 ---
 [Improvements]
 In SystemFile, the Name is now evaluated on first access instead of in the constructor.

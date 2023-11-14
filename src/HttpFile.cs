@@ -11,17 +11,27 @@ namespace OwlCore.Storage;
 /// </summary>
 public class HttpFile : IFile
 {
-    private HttpClient? _client;
-
     /// <summary>
     /// Creates a new instance of <see cref="HttpFile"/>.
     /// </summary>
     /// <param name="uri">The http address to GET for the file content.</param>
     public HttpFile(Uri uri)
+        : this(uri, new HttpClient(new HttpClientHandler()))
+    {
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="HttpFile"/>.
+    /// </summary>
+    /// <param name="uri">The http address to GET for the file content.</param>
+    /// <param name="httpClient">The client to use for requests.</param>
+    public HttpFile(Uri uri, HttpClient httpClient)
     {
         Uri = uri;
         Name = Path.GetFileName(uri.AbsolutePath);
         Id = uri.OriginalString;
+
+        Client = httpClient;
     }
 
     /// <summary>
@@ -36,7 +46,7 @@ public class HttpFile : IFile
     /// <summary>
     /// The message handler to use for making HTTP requests.
     /// </summary>
-    public HttpMessageHandler MessageHandler { get; init; } = new HttpClientHandler();
+    public HttpClient Client { get; init; }
 
     /// <summary>
     /// The http address to GET for the file content.
@@ -60,8 +70,6 @@ public class HttpFile : IFile
         if (accessMode == FileAccess.Write)
             throw new NotSupportedException($"{nameof(FileAccess)}.{accessMode} is not supported over Http.");
 
-        _client ??= new HttpClient(MessageHandler);
-
-        return _client.GetStreamAsync(Uri);
+        return Client.GetStreamAsync(Uri);
     }
 }
