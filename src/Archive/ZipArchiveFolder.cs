@@ -97,7 +97,9 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
 
         if (item is ZipArchiveFolder folder)
         {
-            if (!GetVirtualFolders().ContainsKey(folder.Id))
+            var itemEntryId = folder.Id.Replace(Id, "");
+
+            if (!GetVirtualFolders().ContainsKey(itemEntryId))
                 throw new FileNotFoundException("The item was not found in the folder.");
 
             // Recursively remove any sub-entries
@@ -109,7 +111,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
             foreach (var entry in childEntries)
                 entry.Delete();
 
-            GetVirtualFolders().Remove(folder.Id);
+            GetVirtualFolders().Remove(itemEntryId);
         }
         else if (item is ReadOnlyZipArchiveFolder readOnlyFolder)
         {

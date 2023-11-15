@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.9.1</Version>
+    <Version>0.9.2</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,14 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.9.2 ---
+[Improvements]
+The stream returned by HttpFile.OpenStreamAsync() now includes the value of the Content-Length header as the stream Length.
+The stream returned by HttpFile.OpenStreamAsync() is now wrapped in a LazySeekStream, allowing for seeking and only advancing the underlying stream when strictly needed.
+
+[Fixes]
+Fixed an issue where ZipArchiveFolder.DeleteAsync wasn't correctly identifying the zip entry given the storage id.
+
 --- 0.9.1 ---
 [New]
 HttpFile was given a new constructor accepting an HttpClient: HttpFile(string uri, HttpClient httpClient).

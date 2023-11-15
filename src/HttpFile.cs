@@ -70,7 +70,7 @@ public class HttpFile : IFile
     public string Name { get; init; }
 
     /// <inheritdoc />
-    public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
+    public async Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -80,6 +80,19 @@ public class HttpFile : IFile
         if (accessMode == FileAccess.Write)
             throw new NotSupportedException($"{nameof(FileAccess)}.{accessMode} is not supported over Http.");
 
-        return Client.GetStreamAsync(Uri);
+        var request = new HttpRequestMessage(HttpMethod.Get, Uri);
+        var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var contentStream = await response.Content.ReadAsStreamAsync();
+
+        // Extract the content length if available
+        long? length = response.Content.Headers.ContentLength;
+
+        if (length is long notNullLength)
+            contentStream = new LengthOverrideStream(contentStream, notNullLength);
+
+        // Return in a lazy seek-able wrapper.
+        return new LazySeekStream(contentStream);
     }
 }
