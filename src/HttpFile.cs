@@ -24,6 +24,15 @@ public class HttpFile : IFile
     /// Creates a new instance of <see cref="HttpFile"/>.
     /// </summary>
     /// <param name="uri">The http address to GET for the file content.</param>
+    public HttpFile(string uri)
+        : this(uri, new HttpClient(new HttpClientHandler()))
+    {
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="HttpFile"/>.
+    /// </summary>
+    /// <param name="uri">The http address to GET for the file content.</param>
     /// <param name="httpClient">The client to use for requests.</param>
     public HttpFile(Uri uri, HttpClient httpClient)
     {
@@ -38,8 +47,9 @@ public class HttpFile : IFile
     /// Creates a new instance of <see cref="HttpFile"/>.
     /// </summary>
     /// <param name="uri">The http address to GET for the file content.</param>
-    public HttpFile(string uri)
-        : this(new Uri(uri))
+    /// <param name="httpClient">The client to use for requests.</param>
+    public HttpFile(string uri, HttpClient httpClient)
+        : this(new Uri(uri), httpClient)
     {
     }
 
