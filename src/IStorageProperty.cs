@@ -19,5 +19,5 @@ public interface IStorageProperty<T> : IDisposable
     /// <summary>
     /// Raised when the <see cref="Value"/> is updated.
     /// </summary>
-    event EventHandler<T> ValueUpdated;
+    event EventHandler<T>? ValueUpdated;
 }
