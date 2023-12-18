@@ -11,5 +11,5 @@ public interface IStorableChild : IStorable
     /// <summary>
     /// Gets the containing folder for this item, if any.
     /// </summary>
-    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default); 
+    Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default); 
 }

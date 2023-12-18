@@ -15,7 +15,7 @@ public interface IModifiableFolder : IMutableFolder
     /// <param name="item">The item to be removed from this folder.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
     /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
-    public Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default);
+    Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new folder with the desired name inside this folder.
@@ -23,7 +23,7 @@ public interface IModifiableFolder : IMutableFolder
     /// <param name="name">The name of the new folder.</param>
     /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
-    public Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default);
+    Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Creates a new file with the desired name inside this folder.
@@ -31,5 +31,5 @@ public interface IModifiableFolder : IMutableFolder
     /// <param name="name">The name of the new file.</param>
     /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
-    public Task<IChildFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default);
+    Task<IChildFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default);
 }

@@ -16,5 +16,5 @@ public interface IFastGetFirstByName : IFolder
     /// <param name="name">The <see cref="IStorable.Name"/> of the storable item to retrieve.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
     /// <returns></returns>
-    public Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default);
+    Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default);
 }

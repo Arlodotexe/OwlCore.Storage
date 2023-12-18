@@ -15,10 +15,10 @@ public interface IStorable
     /// <para />
     /// Instead, since the underlying implementation knows the requirements, it can supply what data it has as long as it uniquely and consistently identifies the content.
     /// </remarks>
-    public string Id { get; }
+    string Id { get; }
 
     /// <summary>
     /// The name of the file or folder, with the extension (if any).
     /// </summary>
-    public string Name { get; } 
+    string Name { get; } 
 }

@@ -11,5 +11,5 @@ public interface IFolderWatcher : INotifyCollectionChanged, IDisposable, IAsyncD
     /// <summary>
     /// The folder being watched for changes.
     /// </summary>
-    public IMutableFolder Folder { get; }
+    IMutableFolder Folder { get; }
 }

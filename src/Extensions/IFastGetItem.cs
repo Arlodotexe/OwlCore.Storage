@@ -16,5 +16,5 @@ public interface IFastGetItem : IFolder
     /// <param name="id">The <see cref="IStorable.Id"/> of the storable item to retrieve.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
     /// <returns></returns>
-    public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default);
+    Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default);
 }

@@ -11,5 +11,5 @@ public interface IFolder : IStorable
     /// <summary>
     /// Retrieves the folders in this directory.
     /// </summary>
-    public IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default);
 }

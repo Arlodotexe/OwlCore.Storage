@@ -18,5 +18,5 @@ public interface IFastFileMove<in T> : IModifiableFolder
     /// <param name="source">The folder that <paramref name="fileToMove"/> is being moved from.</param>
     /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
-    public Task<IChildFile> MoveFromAsync(T fileToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default);
+    Task<IChildFile> MoveFromAsync(T fileToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default);
 }

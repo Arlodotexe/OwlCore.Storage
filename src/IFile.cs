@@ -12,5 +12,5 @@ public interface IFile : IStorable
     /// <summary>
     /// Opens a new stream to the file.
     /// </summary>
-    public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default);
+    Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default);
 }
