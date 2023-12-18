@@ -14,7 +14,7 @@ public interface IFastGetFirstByName : IFolder
     /// Retrieves the first <see cref="IStorable"/> item which has the provided <paramref name="name"/>.
     /// </summary>
     /// <param name="name">The <see cref="IStorable.Name"/> of the storable item to retrieve.</param>
-    /// <param name="cancellationToken">The cancellation token to observe.</param>
-    /// <returns></returns>
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
+    /// <returns>The first <see cref="IStorable"/> with the requested <paramref name="name"/>.</returns>
     Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default);
 }

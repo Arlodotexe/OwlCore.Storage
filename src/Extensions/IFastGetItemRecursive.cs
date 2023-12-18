@@ -15,6 +15,6 @@ public interface IFastGetItemRecursive : IFolder
     /// <param name="id">The <see cref="IStorable.Id"/> of the item to crawl.</param>
     /// <param name="cancellationToken">A token to cancel the ongoing operation.</param>
     /// <exception cref="FileNotFoundException">A named item was specified in a folder, but the item wasn't found.</exception>
-    /// <returns></returns>
+    /// <returns>An instance of <see cref="IStorableChild"/> with the requested <paramref name="id"/>.</returns>
     Task<IStorableChild> GetItemRecursiveAsync(string id, CancellationToken cancellationToken = default);
 }

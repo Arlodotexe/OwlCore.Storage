@@ -15,7 +15,8 @@ public interface IFastFileCopy<in T> : IModifiableFolder
     /// Creates a copy of the provided file within this folder.
     /// </summary>
     /// <param name="fileToCopy">The file to be copied into this folder.</param>
-    /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
-    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <param name="overwrite">If there is an existing destination file, <c>true</c> will overwrite it; otherwise <c>false</c> and the existing file is opened.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
+    /// <returns>The newly created (or opened if existing) file.</returns>
     Task<IChildFile> CreateCopyOfAsync(T fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default);
 }
