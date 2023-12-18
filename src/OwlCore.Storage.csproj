@@ -26,6 +26,7 @@
 --- 0.9.3 ---
 [Improvements]
 The DirectoryInfo for SystemFolder is now exposed as a public Info property.
+General pass adding missing xmldoc comments to interfaces.
 
 --- 0.9.2 ---
 [Improvements]
