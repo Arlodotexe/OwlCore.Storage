@@ -44,7 +44,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
     }
 
     /// <summary>
-    /// The underlying <see cref="DirectoryInfo"/> for this folder.
+    /// Gets the underlying <see cref="DirectoryInfo"/> for this folder.
     /// </summary>
     public DirectoryInfo Info => _info ??= new DirectoryInfo(Path);
 

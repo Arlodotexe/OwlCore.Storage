@@ -89,21 +89,23 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem
     /// <inheritdoc/>
     public string Name { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the relative path from the root of the archive.
+    /// </summary>
     public string Path { get; }
 
     /// <summary>
-    /// A folder that represents the root of the archive.
+    /// Gets the folder that represents the root of the archive.
     /// </summary>
     public IFolder RootFolder { get; }
 
     /// <summary>
-    /// The file that this archive originated from.
+    /// Gets the file that this archive originated from.
     /// </summary>
     public IFile? SourceFile { get; }
 
     /// <summary>
-    /// The instance used to explore the archive.
+    /// Gets the instance used to explore the archive.
     /// </summary>
     public ZipArchive? Archive { get; protected set; }
 

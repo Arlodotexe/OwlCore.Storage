@@ -12,7 +12,7 @@ namespace OwlCore.Storage;
 public class StreamFile : IFile
 {
     /// <summary>
-    /// The stream being accessed for this file.
+    /// Gets the stream being accessed for this file.
     /// </summary>
     public Stream Stream { get; }
 

@@ -48,12 +48,12 @@ public class SystemFile : IChildFile, IFastGetRoot
     public string Name => _name ??= System.IO.Path.GetFileName(Path);
 
     /// <summary>
-    /// The path of the file on disk.
+    /// Gets the path of the file on disk.
     /// </summary>
     public string Path { get; }
 
     /// <summary>
-    /// The underlying <see cref="FileInfo"/> for this folder.
+    /// Gets the underlying <see cref="FileInfo"/> for this folder.
     /// </summary>
     public FileInfo Info => _info ??= new(Path);
 
