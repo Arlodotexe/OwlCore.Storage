@@ -15,7 +15,7 @@ public static partial class ModifiableFolderExtensions
     /// <param name="destinationFolder">The folder where the copy is created.</param>
     /// <param name="fileToCopy">The file to be copied into this folder.</param>
     /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
-    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     public static async Task<IChildFile> CreateCopyOfAsync<T>(this IModifiableFolder destinationFolder, T fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
         where T : IFile
     {
@@ -68,7 +68,7 @@ public static partial class ModifiableFolderExtensions
     /// <param name="fileToMove">The file being moved into this folder.</param>
     /// <param name="source">The folder that <paramref name="fileToMove"/> is being moved from.</param>
     /// <param name="overwrite"><code>true</code> if the destination file can be overwritten; otherwise, <c>false</c>.</param>
-    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     public static async Task<IChildFile> MoveFromAsync<T>(this IModifiableFolder destinationFolder, T fileToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default)
         where T : IFile, IStorableChild
     {

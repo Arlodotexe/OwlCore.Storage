@@ -1,24 +1,26 @@
 ﻿namespace OwlCore.Storage;
 
 /// <summary>
-/// The absolute minimum requirements for all storable items.
+/// Represents an item that can be stored or retrieved from a storage source.
 /// </summary>
 public interface IStorable
 {
     /// <summary>
-    /// A unique and consistent identifier for this file or folder. This dedicated resource identifier is used to identify the exact file you're pointing to.
+    /// Gets a unique identifier for this item that is consistent across reruns.
     /// </summary>
     /// <remarks>
-    /// Uri paths, especially those from cloud storage, can change regularly (e.g. when re-authenticating), and some files/folders aren't even addressable, meaning paths can't be used as a reliable content identifier.
-    /// Also, custom and especially cloud file systems often use a predictable or custom ID as the primary-key in a flat or near-flat database table of files and folders. This also means that names aren't guaranteed to be unique within a folder.
+    /// <para/> Custom and (especially cloud) file systems often use a flat or near-flat database and a predictable or custom ID as the primary-key, which can be used as an Id.
+    /// <para/> Paths that are unique to the local file system can be used as an Id.
+    /// <para/> Uri-based resource paths that change (e.g. when re-authenticating) should not be used as an Id.
+    /// <para/> Names aren't guaranteed to be non-empty or unique within or across folders, and should not be used as an Id.
     ///
     /// <para />
-    /// Instead, since the underlying implementation knows the requirements, it can supply what data it has as long as it uniquely and consistently identifies the content.
+    /// The implementation can use any string data available to produce this ID, so long as it identifies this specific resource across runs.
     /// </remarks>
-    public string Id { get; }
+    string Id { get; }
 
     /// <summary>
-    /// The name of the file or folder, with the extension (if any).
+    /// Gets the name of the item, with the extension (if any).
     /// </summary>
-    public string Name { get; } 
+    string Name { get; } 
 }

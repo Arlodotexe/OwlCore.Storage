@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.9.2</Version>
+    <Version>0.9.3</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,11 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.9.3 ---
+[Improvements]
+The DirectoryInfo for SystemFolder is now exposed as a public Info property.
+General pass adding missing xmldoc comments to interfaces.
+
 --- 0.9.2 ---
 [Improvements]
 The stream returned by HttpFile.OpenStreamAsync() now includes the value of the Content-Length header as the stream Length.

@@ -8,8 +8,8 @@ namespace OwlCore.Storage;
 /// </summary>
 internal class LazySeekStream : Stream
 {
-    private Stream _originalStream;
-    private MemoryStream _memoryStream;
+    private readonly Stream _originalStream;
+    private readonly MemoryStream _memoryStream;
 
     /// <summary>
     /// Creates a new instance of <see cref="LazySeekStream"/>.

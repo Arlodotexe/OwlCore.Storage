@@ -1,5 +1,4 @@
-﻿using OwlCore.Storage.Memory;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -15,7 +14,7 @@ namespace OwlCore.Storage.SystemIO;
 /// </summary>
 public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<SystemFile>, IFastFileMove<SystemFile>, IFastGetItem, IFastGetItemRecursive, IFastGetFirstByName, IFastGetRoot
 {
-    private readonly DirectoryInfo _directoryInfo;
+    private DirectoryInfo? _info;
 
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
@@ -29,13 +28,13 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
     /// </summary>
-    /// <param name="directoryInfo">The directory to use.</param>
-    public SystemFolder(DirectoryInfo directoryInfo)
+    /// <param name="info">The directory to use.</param>
+    public SystemFolder(DirectoryInfo info)
     {
-        _directoryInfo = directoryInfo;
+        _info = info;
 
         // For consistency, always remove the trailing directory separator.
-        Path = directoryInfo.FullName.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+        Path = info.FullName.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
 
         if (!Directory.Exists(Path))
             throw new FileNotFoundException($"Directory not found at path {Path}");
@@ -44,13 +43,20 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
         Name = System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path {Path}");
     }
 
+    /// <summary>
+    /// Gets the underlying <see cref="DirectoryInfo"/> for this folder.
+    /// </summary>
+    public DirectoryInfo Info => _info ??= new DirectoryInfo(Path);
+
     /// <inheritdoc />
     public string Id { get; }
 
     /// <inheritdoc />
     public string Name { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the path of the folder on disk.
+    /// </summary>
     public string Path { get; }
 
     /// <inheritdoc />
@@ -259,7 +265,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
     /// <inheritdoc />
     public Task<IFolder?> GetRootAsync()
     {
-        return Task.FromResult<IFolder?>(new SystemFolder(_directoryInfo.Root));
+        return Task.FromResult<IFolder?>(new SystemFolder(Info.Root));
     }
 
     private static bool IsFile(string path) => System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);

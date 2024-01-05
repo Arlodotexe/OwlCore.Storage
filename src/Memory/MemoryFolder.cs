@@ -35,7 +35,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IFastGetItem
     public string Name { get; }
 
     /// <summary>
-    /// The parent folder, if any.
+    /// Gets the parent folder, if any.
     /// </summary>
     public MemoryFolder? Parent { get; internal set; }
 

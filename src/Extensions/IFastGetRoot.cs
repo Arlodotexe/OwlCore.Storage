@@ -10,6 +10,6 @@ public interface IFastGetRoot : IStorableChild
     /// <summary>
     /// Retrieves the root of this storable item. If this item IS the root, null will be returned instead.
     /// </summary>
-    /// <returns>The root of this storable item</returns>
-    public Task<IFolder?> GetRootAsync();
+    /// <returns>The root parent folder for this storage instance. if any.</returns>
+    Task<IFolder?> GetRootAsync();
 }

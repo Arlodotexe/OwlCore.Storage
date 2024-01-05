@@ -14,10 +14,10 @@ public interface IStorageProperty<T> : IDisposable
     /// <summary>
     /// Gets the current property value.
     /// </summary>
-    public T Value { get; }
+    T Value { get; }
 
     /// <summary>
     /// Raised when the <see cref="Value"/> is updated.
     /// </summary>
-    public event EventHandler<T> ValueUpdated;
+    event EventHandler<T>? ValueUpdated;
 }

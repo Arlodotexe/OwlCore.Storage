@@ -47,11 +47,13 @@ public class SystemFile : IChildFile, IFastGetRoot
     /// <inheritdoc />
     public string Name => _name ??= System.IO.Path.GetFileName(Path);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the path of the file on disk.
+    /// </summary>
     public string Path { get; }
 
     /// <summary>
-    /// The file info for the <see cref="SystemFile"/>.
+    /// Gets the underlying <see cref="FileInfo"/> for this folder.
     /// </summary>
     public FileInfo Info => _info ??= new(Path);
 

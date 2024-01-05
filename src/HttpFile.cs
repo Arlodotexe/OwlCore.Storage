@@ -54,12 +54,12 @@ public class HttpFile : IFile
     }
 
     /// <summary>
-    /// The message handler to use for making HTTP requests.
+    /// Gets the message handler to use for making HTTP requests.
     /// </summary>
     public HttpClient Client { get; init; }
 
     /// <summary>
-    /// The http address to GET for the file content.
+    /// Gets the http address to GET for the file content.
     /// </summary>
     public Uri Uri { get; }
 
