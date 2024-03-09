@@ -23,6 +23,16 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.10.0 ---
+THIS IS A BREAKING RELEASE
+Update asap, and do not use older versions or implementations.
+
+[Breaking]
+The default FileAccess.Read parameter for IFile.OpenStreamAsync has been removed. This is primarily to avoid confusion about why the default returned stream can't be written to, but follows the concept that simply opening a stream implies nothing about read/write preferences for that resource, so no default value should be used.
+
+[New]
+Extensions methods for IFile.OpenReadAsync, IFile.OpenWriteAsync and IFile.OpenReadWriteAsync have been added.
+
 --- 0.9.3 ---
 [Improvements]
 The DirectoryInfo for SystemFolder is now exposed as a public Info property.

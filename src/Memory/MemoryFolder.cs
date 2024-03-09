@@ -93,7 +93,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IFastGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var stream = await fileToCopy.OpenStreamAsync(cancellationToken: cancellationToken);
+        using var stream = await fileToCopy.OpenStreamAsync(FileAccess.Read, cancellationToken: cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         if (stream.CanSeek)
