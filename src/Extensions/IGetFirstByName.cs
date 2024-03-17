@@ -8,7 +8,7 @@ namespace OwlCore.Storage;
 /// Provides a fast-path for the <see cref="FolderExtensions.GetFirstByNameAsync"/> extension method.
 /// </summary>
 /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
-public interface IFastGetFirstByName : IFolder
+public interface IGetFirstByName : IFolder
 {
     /// <summary>
     /// Retrieves the first <see cref="IStorable"/> item which has the provided <paramref name="name"/>.

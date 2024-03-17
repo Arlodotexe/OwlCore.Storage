@@ -9,7 +9,7 @@ namespace OwlCore.Storage;
 /// Provides a fast-path for the <see cref="ModifiableFolderExtensions.MoveFromAsync"/> extension method.
 /// </summary>
 /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
-public interface IFastFileMove : IModifiableFolder
+public interface IMoveFrom : IModifiableFolder
 {
     /// <summary>
     /// Moves a storable item out of the provided folder, and into this folder. Returns the new item that resides in this folder.
@@ -24,6 +24,6 @@ public interface IFastFileMove : IModifiableFolder
 }
 
 /// <summary>
-/// A delegate that provides a fallback for the <see cref="IFastFileMove.MoveFromAsync"/> method.
+/// A delegate that provides a fallback for the <see cref="IMoveFrom.MoveFromAsync"/> method.
 /// </summary>
 public delegate Task<IChildFile> MoveFromDelegate(IModifiableFolder modifiableFolder, IChildFile file, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken);

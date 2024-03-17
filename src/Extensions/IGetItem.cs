@@ -8,7 +8,7 @@ namespace OwlCore.Storage;
 /// Provides a fast-path for the <see cref="FolderExtensions.GetItemAsync"/> extension method.
 /// </summary>
 /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
-public interface IFastGetItem : IFolder
+public interface IGetItem : IFolder
 {
     /// <summary>
     /// Retrieves the <see cref="IStorable"/> item which has the provided <paramref name="id"/>.

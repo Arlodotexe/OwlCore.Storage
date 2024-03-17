@@ -10,7 +10,7 @@ namespace OwlCore.Storage.Memory;
 /// <summary>
 /// A folder implementation that resides in memory.
 /// </summary>
-public class MemoryFolder : IModifiableFolder, IChildFolder, IFastGetItem
+public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 {
     private readonly Dictionary<string, IStorableChild> _folderContents = new();
     private readonly MemoryFolderWatcher _folderWatcher;

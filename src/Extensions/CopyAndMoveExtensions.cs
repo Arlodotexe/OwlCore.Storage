@@ -62,7 +62,7 @@ public static partial class ModifiableFolderExtensions
 
         // If the destination folder declares a non-fallback copy path, try that.
         // Provide fallback in case this file is not a handled type.
-        if (destinationFolder is IFastFileCopy fastPath)
+        if (destinationFolder is ICreateCopyOf fastPath)
             return await fastPath.CreateCopyOfAsync(fileToCopy, overwrite, cancellationToken, fallback: CreateCopyOfFallbackAsync);
 
         // Manual copy. Slower, but covers all scenarios.
@@ -105,7 +105,7 @@ public static partial class ModifiableFolderExtensions
 
         // If the destination folder declares a non-fallback move path, try that.
         // Provide fallback in case this file is not a handled type.
-        if (destinationFolder is IFastFileMove fastPath)
+        if (destinationFolder is IMoveFrom fastPath)
             return await fastPath.MoveFromAsync(fileToMove, source, overwrite, cancellationToken, fallback: MoveFromFallbackAsync);
 
         // Manual move. Slower, but covers all scenarios.

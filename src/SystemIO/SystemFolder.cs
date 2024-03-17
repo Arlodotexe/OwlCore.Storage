@@ -12,7 +12,7 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy, IFastFileMove, IFastGetItem, IFastGetItemRecursive, IFastGetFirstByName, IFastGetRoot
+public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMoveFrom, IGetItem, IGetItemRecursive, IGetFirstByName, IGetRoot
 {
     private DirectoryInfo? _info;
 
@@ -272,7 +272,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy, IFas
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetRootAsync()
+    public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(new SystemFolder(Info.Root));
     }

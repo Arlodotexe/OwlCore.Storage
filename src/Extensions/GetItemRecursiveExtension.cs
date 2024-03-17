@@ -17,12 +17,12 @@ public static partial class FolderExtensions
     /// <returns>The item</returns>
     public static async Task<IStorableChild> GetItemRecursiveAsync(this IFolder folder, string id, CancellationToken cancellationToken = default)
     {
-        if (folder is IFastGetItemRecursive fastPath)
+        if (folder is IGetItemRecursive fastPath)
         {
             var item = await fastPath.GetItemRecursiveAsync(id, cancellationToken);
             if (item.Id != id)
             {
-                throw new ArgumentException(@$"The item returned by the interface ""{nameof(IFastGetItemRecursive)}"" implemented in ""{folder.GetType()}"" does not have the requested Id ""{id}"". Actual value: ""{item.Id}"".", nameof(item));
+                throw new ArgumentException(@$"The item returned by the interface ""{nameof(IGetItemRecursive)}"" implemented in ""{folder.GetType()}"" does not have the requested Id ""{id}"". Actual value: ""{item.Id}"".", nameof(item));
             }
 
             return item;

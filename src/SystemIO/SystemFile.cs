@@ -7,7 +7,7 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFile : IChildFile, IFastGetRoot
+public class SystemFile : IChildFile, IGetRoot
 {
     private string? _name;
     private FileInfo? _info;
@@ -69,14 +69,14 @@ public class SystemFile : IChildFile, IFastGetRoot
     /// <inheritdoc />
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
-        DirectoryInfo parent = _info != null ? _info.Directory : Directory.GetParent(Path);
-        return Task.FromResult<IFolder?>(parent is { } di ? new SystemFolder(di) : null);
+        DirectoryInfo? parent = _info != null ? _info.Directory : Directory.GetParent(Path);
+        return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent) : null);
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetRootAsync()
+    public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
     {
-        DirectoryInfo root = _info != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
+        DirectoryInfo root = _info?.Directory != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
         return Task.FromResult<IFolder?>(new SystemFolder(root));
     }
 }

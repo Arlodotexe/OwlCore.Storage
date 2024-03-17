@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +8,7 @@ namespace OwlCore.Storage;
 /// Provides a way for implementations to override behavior of the <see cref="ModifiableFolderExtensions.CreateCopyOfAsync"/> extension method.
 /// </summary>
 /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
-public interface IFastFileCopy : IModifiableFolder
+public interface ICreateCopyOf : IModifiableFolder
 {
     /// <summary>
     /// Creates a copy of the provided file within this folder.
@@ -23,7 +22,7 @@ public interface IFastFileCopy : IModifiableFolder
 }
 
 /// <summary>
-/// A delegate that provides a fallback for the <see cref="IFastFileMove.MoveFromAsync"/> method.
+/// A delegate that provides a fallback for the <see cref="IMoveFrom.MoveFromAsync"/> method.
 /// </summary>
 /// <returns></returns>
 public delegate Task<IChildFile> CreateCopyOfDelegate(IModifiableFolder destination, IFile fileToCopy, bool overwrite, CancellationToken cancellationToken);

@@ -17,7 +17,7 @@ public static partial class StorableChildExtensions
     public static async Task<IFolder?> GetRootAsync(this IStorableChild item, CancellationToken cancellationToken = default)
     {
         // If the item knows how to find the root quickly.
-        if (item is IFastGetRoot fastRoot)
+        if (item is IGetRoot fastRoot)
             return await fastRoot.GetRootAsync(cancellationToken);
 
         // Otherwise, manually recurse to the root.
