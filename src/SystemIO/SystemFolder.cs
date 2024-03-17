@@ -12,7 +12,7 @@ namespace OwlCore.Storage.SystemIO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<SystemFile>, IFastFileMove<SystemFile>, IFastGetItem, IFastGetItemRecursive, IFastGetFirstByName, IFastGetRoot
+public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy, IFastFileMove, IFastGetItem, IFastGetItemRecursive, IFastGetFirstByName, IFastGetRoot
 {
     private DirectoryInfo? _info;
 
@@ -189,12 +189,17 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
     }
 
     /// <inheritdoc />
-    public async Task<IChildFile> CreateCopyOfAsync(SystemFile fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
+    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite, CancellationToken cancellationToken, CreateCopyOfDelegate fallback)
     {
-        var newPath = System.IO.Path.Combine(Path, fileToCopy.Name);
+        // Check if the file is a SystemFile. If not, use the fallback.
+        if (fileToCopy is not SystemFile systemFile)
+            return await fallback(this, fileToCopy, overwrite, cancellationToken);
 
-        // If the target and destination are the same, there's no need to copy.
-        if (fileToCopy.Path == newPath)
+        // Handle using System.IO
+        var newPath = System.IO.Path.Combine(Path, systemFile.Name);
+
+        // If the source and destination are the same, there's no need to copy.
+        if (systemFile.Path == newPath)
             return new SystemFile(newPath);
 
         if (File.Exists(newPath))
@@ -205,23 +210,27 @@ public class SystemFolder : IModifiableFolder, IChildFolder, IFastFileCopy<Syste
             File.Delete(newPath);
         }
 
-        File.Copy(fileToCopy.Path, newPath, overwrite);
+        File.Copy(systemFile.Path, newPath, overwrite);
 
         return new SystemFile(newPath);
     }
 
     /// <inheritdoc />
-    public async Task<IChildFile> MoveFromAsync(SystemFile fileToMove, IModifiableFolder source, bool overwrite = default,
-        CancellationToken cancellationToken = default)
+    public async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken, MoveFromDelegate fallback)
     {
-        var newPath = System.IO.Path.Combine(Path, fileToMove.Name);
+        // Check if the file is a SystemFile. If not, use the fallback.
+        if (fileToMove is not SystemFile systemFile)
+            return await fallback(this, fileToMove, source, overwrite, cancellationToken);
+
+        // Handle using System.IO
+        var newPath = System.IO.Path.Combine(Path, systemFile.Name);
         if (File.Exists(newPath) && !overwrite)
             return new SystemFile(newPath);
 
         if (overwrite)
             File.Delete(newPath);
 
-        File.Move(fileToMove.Path, newPath);
+        File.Move(systemFile.Path, newPath);
 
         return new SystemFile(newPath);
     }
