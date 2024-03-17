@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OwlCore.Storage;
@@ -10,7 +11,7 @@ public static partial class FolderExtensions
     /// <summary>
     /// Crawls the ancestors of <paramref name="to" /> until <paramref name="from"/> is found, then returns the constructed relative path.
     /// </summary>
-    public static async Task<string> GetRelativePathToAsync(this IFolder from, IStorableChild to)
+    public static async Task<string> GetRelativePathToAsync(this IFolder from, IStorableChild to, CancellationToken cancellationToken = default)
     {
         if (Equals(from, to) || from.Id == to.Id)
             return @"/";
@@ -19,7 +20,8 @@ public static partial class FolderExtensions
         {
             to.Name,
         };
-
+        
+        cancellationToken.ThrowIfCancellationRequested();
         await RecursiveAddParentToPathAsync(to);
 
         // Relative path to a folder should end with a directory separator '/'
@@ -33,7 +35,7 @@ public static partial class FolderExtensions
 
         async Task RecursiveAddParentToPathAsync(IStorableChild item)
         {
-            var parent = await item.GetParentAsync();
+            var parent = await item.GetParentAsync(cancellationToken);
             if (parent is IStorableChild child && parent.Id != from.Id)
             {
                 pathComponents.Insert(0, parent.Name);

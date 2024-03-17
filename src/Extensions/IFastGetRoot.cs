@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace OwlCore.Storage;
 
@@ -11,5 +12,5 @@ public interface IFastGetRoot : IStorableChild
     /// Retrieves the root of this storable item. If this item IS the root, null will be returned instead.
     /// </summary>
     /// <returns>The root parent folder for this storage instance. if any.</returns>
-    Task<IFolder?> GetRootAsync();
+    Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default);
 }
