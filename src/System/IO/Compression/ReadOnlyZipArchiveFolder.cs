@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOPath = System.IO.Path;
 
-namespace OwlCore.Storage.Archive;
+namespace OwlCore.Storage.System.IO.Compression;
 
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
@@ -166,16 +166,16 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IGetRoot, IGetItem, IGetFi
             // Get folder
             string subfolderId = NormalizeEnding(id);
             var virtualFolders = GetVirtualFolders();
-            
+
             if (!virtualFolders.TryGetValue(subfolderId, out var subfolder))
                 throw new FileNotFoundException($"No item with ID '{id}' or '{subfolderId}' exists in '{Id}'.");
-            
+
             item = subfolder;
         }
 
         return item;
     }
-    
+
     /// <inheritdoc/>
     public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
         => await GetItemAsync(Id + name, cancellationToken);
@@ -205,7 +205,7 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IGetRoot, IGetItem, IGetFi
             throw new ArgumentNullException(nameof(Archive));
 
         return Archive.Mode != ZipArchiveMode.Create
-            ? (Archive.GetEntry(entryName) ?? Archive.GetEntry(entryName.TrimEnd(ZIP_DIRECTORY_SEPARATOR)))
+            ? Archive.GetEntry(entryName) ?? Archive.GetEntry(entryName.TrimEnd(ZIP_DIRECTORY_SEPARATOR))
             : null;
     }
 

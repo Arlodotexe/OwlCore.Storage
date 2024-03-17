@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage;
 
 /// <summary>
-/// Provides a fast-path for the <see cref="StorableChildExtensions.GetRootAsync(IStorableChild)"/> extension method.
+/// Provides a fast-path for the <see cref="StorableChildExtensions.GetRootAsync(IStorableChild, CancellationToken)"/> extension method.
 /// </summary>
 public interface IGetRoot : IStorableChild
 {

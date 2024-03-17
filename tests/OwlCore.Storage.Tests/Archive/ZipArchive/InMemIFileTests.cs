@@ -1,7 +1,7 @@
 ﻿using OwlCore.Storage.CommonTests;
-using OwlCore.Storage.Archive;
-using System.IO.Compression;
 using OwlCore.Storage.Memory;
+using OwlCore.Storage.System.IO.Compression;
+using System.IO.Compression;
 
 namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 
@@ -16,7 +16,7 @@ public class InMemIFileTests : CommonIFileTests
     {
         var archiveStream = new MemoryStream();
         var sourceFile = new MemoryFile($"{Guid.NewGuid()}", $"{Guid.NewGuid()}", archiveStream);
-        var archive = new System.IO.Compression.ZipArchive(archiveStream, ZipArchiveMode.Update);
+        var archive = new global::System.IO.Compression.ZipArchive(archiveStream, ZipArchiveMode.Update);
         var entry = archive.CreateEntry($"{Guid.NewGuid()}");
 
         using (var entryStream = entry.Open())

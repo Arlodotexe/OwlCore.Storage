@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using OwlCore.Storage.Memory;
 
-namespace OwlCore.Storage;
+namespace OwlCore.Storage.System.IO;
 
 /// <summary>
-/// A file implementation which holds a reference to the provided <see cref="StreamFile.Stream"/> and returns it in a non-disposable wrapper for <see cref="OpenStreamAsync"/>.
+/// A file implementation which holds a reference to the provided <see cref="Stream"/> and returns it in a non-disposable wrapper for <see cref="OpenStreamAsync"/>.
 /// </summary>
 public class StreamFile : IFile
 {

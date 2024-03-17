@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 #pragma warning disable CS1998
 
-namespace OwlCore.Storage.SystemIO;
+namespace OwlCore.Storage.System.IO;
 
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
@@ -24,7 +24,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public SystemFolder(string path)
         : this(new DirectoryInfo(path))
     {
-        foreach (var c in System.IO.Path.GetInvalidPathChars())
+        foreach (var c in global::System.IO.Path.GetInvalidPathChars())
         {
             if (path.Contains(c))
                 throw new FormatException($"Provided path contains invalid character: {c}");
@@ -40,13 +40,13 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         _info = info;
 
         // For consistency, always remove the trailing directory separator.
-        Path = info.FullName.TrimEnd(System.IO.Path.PathSeparator, System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+        Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
 
         if (!Directory.Exists(Path))
             throw new FileNotFoundException($"Directory not found at path {Path}");
 
         Id = Path;
-        Name = System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path {Path}");
+        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path {Path}");
     }
 
     /// <summary>
@@ -145,8 +145,8 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         if (IsFile(id))
         {
             // Capture file name, combine with known path. Forces reading from current folder only.
-            var fileName = System.IO.Path.GetFileName(id) ?? throw new ArgumentException($"Could not determine file name from id: {id}");
-            var fullPath = System.IO.Path.Combine(Path, fileName);
+            var fileName = global::System.IO.Path.GetFileName(id) ?? throw new ArgumentException($"Could not determine file name from id: {id}");
+            var fullPath = global::System.IO.Path.Combine(Path, fileName);
 
             if (!File.Exists(fullPath))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
@@ -157,7 +157,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         if (IsFolder(id))
         {
             // Ensure containing directory matches current folder.
-            if (System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
+            if (global::System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
                 throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
 
             return Task.FromResult<IStorableChild>(new SystemFolder(id));
@@ -169,7 +169,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// <inheritdoc/>
     public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        return await GetItemAsync(System.IO.Path.Combine(Path, name), cancellationToken);
+        return await GetItemAsync(global::System.IO.Path.Combine(Path, name), cancellationToken);
     }
 
     /// <inheritdoc />
@@ -182,7 +182,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         // Ensure containing directory matches current folder.
-        if (GetParentPath(item.Id).TrimEnd(System.IO.Path.DirectorySeparatorChar) != Path)
+        if (GetParentPath(item.Id).TrimEnd(global::System.IO.Path.DirectorySeparatorChar) != Path)
             throw new FileNotFoundException($"The provided item does not exist in this folder.");
 
         if (IsFolder(item.Id))
@@ -202,7 +202,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
             return await fallback(this, fileToCopy, overwrite, cancellationToken);
 
         // Handle using System.IO
-        var newPath = System.IO.Path.Combine(Path, systemFile.Name);
+        var newPath = global::System.IO.Path.Combine(Path, systemFile.Name);
 
         // If the source and destination are the same, there's no need to copy.
         if (systemFile.Path == newPath)
@@ -229,7 +229,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
             return await fallback(this, fileToMove, source, overwrite, cancellationToken);
 
         // Handle using System.IO
-        var newPath = System.IO.Path.Combine(Path, systemFile.Name);
+        var newPath = global::System.IO.Path.Combine(Path, systemFile.Name);
         if (File.Exists(newPath) && !overwrite)
             return new SystemFile(newPath);
 
@@ -244,7 +244,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// <inheritdoc />
     public Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
-        var newPath = System.IO.Path.Combine(Path, name);
+        var newPath = global::System.IO.Path.Combine(Path, name);
 
         try
         {
@@ -263,7 +263,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// <inheritdoc />
     public Task<IChildFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
-        var newPath = System.IO.Path.Combine(Path, name);
+        var newPath = global::System.IO.Path.Combine(Path, name);
 
         if (overwrite || !File.Exists(newPath))
             File.Create(newPath).Dispose();
@@ -283,17 +283,17 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         return Task.FromResult<IFolder?>(new SystemFolder(Info.Root));
     }
 
-    private static bool IsFile(string path) => System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);
+    private static bool IsFile(string path) => global::System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);
     private static bool IsFolder(string path) => Directory.Exists(path);
 
     string GetParentPath(string relativePath)
     {
         // Path.GetDirectoryName() treats strings that end with a directory separator as a directory. If there's no trailing slash, it's treated as a file.
         // Run it twice for folders. The first time only shaves off the trailing directory separator.
-        var parentDirectoryName = relativePath.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()) ? System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(relativePath)) : System.IO.Path.GetDirectoryName(relativePath);
+        var parentDirectoryName = relativePath.EndsWith(global::System.IO.Path.DirectorySeparatorChar.ToString()) ? global::System.IO.Path.GetDirectoryName(global::System.IO.Path.GetDirectoryName(relativePath)) : global::System.IO.Path.GetDirectoryName(relativePath);
 
         // It also doesn't return a string that has a path separator at the end.
-        return parentDirectoryName + System.IO.Path.DirectorySeparatorChar;
+        return parentDirectoryName + global::System.IO.Path.DirectorySeparatorChar;
     }
 
     string GetParentDirectoryName(string relativePath)
@@ -301,6 +301,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         var parentPath = GetParentPath(relativePath);
         var parentParentPath = GetParentPath(parentPath);
 
-        return parentPath.Replace(parentParentPath, "").TrimEnd(System.IO.Path.DirectorySeparatorChar);
+        return parentPath.Replace(parentParentPath, "").TrimEnd(global::System.IO.Path.DirectorySeparatorChar);
     }
 }

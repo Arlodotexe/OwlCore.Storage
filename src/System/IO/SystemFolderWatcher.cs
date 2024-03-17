@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.SystemIO
+namespace OwlCore.Storage.System.IO
 {
     /// <summary>
     /// Watches for changes in a System.IO folder.
@@ -85,7 +85,7 @@ namespace OwlCore.Storage.SystemIO
         /// Creates an System.IO based instance of <see cref="IStorable"/> given the provided <paramref name="path"/>.
         /// </summary>
         /// <param name="path">The path to use for the new item.</param>
-        /// <param name="minimalImplementation">Indicates whether or not to use a fully functional file/folder implementation, or a minimal implementation of <see cref="IStorable"/>. The latter is needed when an item is removed, since you can't interact with a deleted resource.</param>
+        /// <param name="minimalImplementation">Indicates whether to use a fully functional file/folder implementation, or a minimal implementation of <see cref="IStorable"/>. The latter is needed when an item is removed, since you can't interact with a deleted resource.</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException">Could not determine if the provided path is a file or folder.</exception>
         private static IStorable CreateStorableFromPath(string path, bool minimalImplementation = false)

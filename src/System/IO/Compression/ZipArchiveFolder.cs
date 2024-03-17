@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.Archive;
+namespace OwlCore.Storage.System.IO.Compression;
 
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/>.
@@ -133,7 +133,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
     }
 
     /// <summary>
-    /// Manually opens the <see cref="Archive"/>.
+    /// Manually opens the archive for this folder.
     /// </summary>
     /// <returns>The opened archive.</returns>
     public override async Task<ZipArchive> OpenArchiveAsync(CancellationToken cancellationToken = default)

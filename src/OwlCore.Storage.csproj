@@ -28,6 +28,7 @@ THIS IS A BREAKING RELEASE
 Update asap, and do not use older versions or implementations.
 
 [Breaking]
+All inbox implementations that rely on .NET itself have been moved to the OwlCore.Storage.System.* namespace, making room for future inbox implementations (System.Formats.Tar, System.Data.Common, System.Resources, etc).
 The default FileAccess.Read parameter for IFile.OpenStreamAsync has been removed. This is primarily to avoid confusion about why the default returned stream can't be written to, but follows the concept that simply opening a stream implies nothing about read/write preferences for that resource, so no default value should be used.
 Generics for the Move and Copy interfaces and methods have been removed. This fixes an issue where only the fallback path was being used unless the most derived type was specified, and generally allows for more flexible implementations.
 When "overwrite" in the Move and Copy interfaces / extension methods is set to false, the operation will fail if the destination already exists. Previously if overwrite was false, any existing destination file would be returned untouched with no data copied over.

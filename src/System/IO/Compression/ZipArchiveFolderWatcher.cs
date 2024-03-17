@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.Archive;
+namespace OwlCore.Storage.System.IO.Compression;
 
 /// <summary>
 /// An empty implementation of an <see cref="IFolderWatcher"/> for <see cref="ZipArchiveFolder"/>.

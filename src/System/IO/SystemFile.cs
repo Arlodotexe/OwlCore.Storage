@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.SystemIO;
+namespace OwlCore.Storage.System.IO;
 
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
@@ -20,7 +20,7 @@ public class SystemFile : IChildFile, IGetRoot
     /// <param name="path">The path to the file.</param>
     public SystemFile(string path)
     {
-        foreach (var c in System.IO.Path.GetInvalidPathChars())
+        foreach (var c in global::System.IO.Path.GetInvalidPathChars())
         {
             if (path.Contains(c))
                 throw new FormatException($"Provided path contains invalid character: {c}");
@@ -53,7 +53,7 @@ public class SystemFile : IChildFile, IGetRoot
     public string Id { get; }
 
     /// <inheritdoc />
-    public string Name => _name ??= System.IO.Path.GetFileName(Path);
+    public string Name => _name ??= global::System.IO.Path.GetFileName(Path);
 
     /// <summary>
     /// Gets the path of the file on disk.
