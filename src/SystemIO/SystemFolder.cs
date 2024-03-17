@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,11 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public SystemFolder(string path)
         : this(new DirectoryInfo(path))
     {
+        foreach (var c in System.IO.Path.GetInvalidPathChars())
+        {
+            if (path.Contains(c))
+                throw new FormatException($"Provided path contains invalid character: {c}");
+        }
     }
 
     /// <summary>

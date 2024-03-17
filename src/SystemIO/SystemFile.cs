@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +20,12 @@ public class SystemFile : IChildFile, IGetRoot
     /// <param name="path">The path to the file.</param>
     public SystemFile(string path)
     {
+        foreach (var c in System.IO.Path.GetInvalidPathChars())
+        {
+            if (path.Contains(c))
+                throw new FormatException($"Provided path contains invalid character: {c}");
+        }
+
         if (!File.Exists(path))
             throw new FileNotFoundException($"File not found at path {path}");
 
