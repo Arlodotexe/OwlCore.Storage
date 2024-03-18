@@ -21,10 +21,10 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 ## Available implementations
 ### Provided inbox
 - [In memory](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Memory)
-- [System.IO](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/SystemIO)
-- [HttpFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/HttpFile.cs)
-- [StreamFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/StreamFile.cs)
-- [Zip archives](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Archive) (via System.IO.Compression)
+- [System.IO](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/System/IO/)
+- [HttpFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/System/Net/Http/HttpFile.cs)
+- [StreamFile](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/System/IO/StreamFile.cs)
+- [Zip archives](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/System/IO/Compression) (via System.IO.Compression)
 
 ### Separate packages
 - [Windows.Storage](https://github.com/Arlodotexe/OwlCore.Storage.Uwp)
