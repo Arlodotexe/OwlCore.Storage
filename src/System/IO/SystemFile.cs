@@ -23,7 +23,7 @@ public class SystemFile : IChildFile, IGetRoot
         foreach (var c in global::System.IO.Path.GetInvalidPathChars())
         {
             if (path.Contains(c))
-                throw new FormatException($"Provided path contains invalid character: {c}");
+                throw new FormatException($"Provided path contains invalid character '{c}'.");
         }
 
         if (!File.Exists(path))
