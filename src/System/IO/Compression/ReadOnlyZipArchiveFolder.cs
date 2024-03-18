@@ -286,7 +286,7 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IGetRoot, IGetItem, IGetFi
     public virtual async Task<ZipArchive> OpenArchiveAsync(CancellationToken cancellationToken = default)
     {
         if (Archive is not null)
-            throw new ArgumentException(nameof(Archive), $"Argument was expected to be null, got {Archive}");
+            throw new ArgumentException(nameof(Archive), $"Argument was expected to be null, got {Archive}.");
 
         if (SourceFile is null)
             throw new ArgumentNullException(nameof(SourceFile));

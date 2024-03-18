@@ -22,7 +22,7 @@ public static partial class FolderExtensions
 
         var targetItem = await folder.GetItemsAsync(cancellationToken: cancellationToken).FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
         if (targetItem is null)
-            throw new FileNotFoundException($"No storage item with the ID \"{id}\" could be found.");
+            throw new FileNotFoundException($"No storage item with the Id '{id}' could be found.");
 
         return targetItem;
     }

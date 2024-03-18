@@ -24,7 +24,7 @@ public static partial class FolderExtensions
         var targetItem = await folder.GetItemsAsync(cancellationToken: cancellationToken).FirstOrDefaultAsync(x => name.Equals(x.Name, StringComparison.Ordinal), cancellationToken);
         if (targetItem is null)
         {
-            throw new FileNotFoundException($"No storage item with the name \"{name}\" could be found.");
+            throw new FileNotFoundException($"No storage item with the name '{name}' could be found.");
         }
 
         return targetItem;

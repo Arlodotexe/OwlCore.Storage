@@ -27,7 +27,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         foreach (var c in global::System.IO.Path.GetInvalidPathChars())
         {
             if (path.Contains(c))
-                throw new FormatException($"Provided path contains invalid character: {c}");
+                throw new FormatException($"Provided path contains invalid character '{c}'.");
         }
     }
 
@@ -43,10 +43,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
 
         if (!Directory.Exists(Path))
-            throw new FileNotFoundException($"Directory not found at path {Path}");
+            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
 
         Id = Path;
-        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path {Path}");
+        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public Task<IStorableChild> GetItemRecursiveAsync(string id, CancellationToken cancellationToken = default)
     {
         if (!id.Contains(Path))
-            throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+            throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
         // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
         if (IsFile(id))
@@ -132,24 +132,24 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         if (IsFolder(id))
             return Task.FromResult<IStorableChild>(new SystemFolder(id));
 
-        throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {id}");
+        throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path '{id}'.");
     }
 
     /// <inheritdoc />
     public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         if (!id.Contains(Path))
-            throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+            throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
         // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
         if (IsFile(id))
         {
             // Capture file name, combine with known path. Forces reading from current folder only.
-            var fileName = global::System.IO.Path.GetFileName(id) ?? throw new ArgumentException($"Could not determine file name from id: {id}");
+            var fileName = global::System.IO.Path.GetFileName(id) ?? throw new ArgumentException($"Could not determine file name from Id '{id}'.");
             var fullPath = global::System.IO.Path.Combine(Path, fileName);
 
             if (!File.Exists(fullPath))
-                throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+                throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
             return Task.FromResult<IStorableChild>(new SystemFile(fullPath));
         }
@@ -158,12 +158,12 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         {
             // Ensure containing directory matches current folder.
             if (global::System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
-                throw new FileNotFoundException($"The provided ID does not belong to an item in this folder.");
+                throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
             return Task.FromResult<IStorableChild>(new SystemFolder(id));
         }
 
-        throw new FileNotFoundException($"Could not determine if the provided path exists, or whether it's a file or folder. Path: {id}");
+        throw new FileNotFoundException($"Could not determine if the provided path exists, or whether it's a file or folder. Id '{id}'.");
     }
 
     /// <inheritdoc/>

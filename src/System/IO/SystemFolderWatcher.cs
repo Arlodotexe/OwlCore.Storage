@@ -93,7 +93,7 @@ namespace OwlCore.Storage.System.IO
             if (IsFolder(path))
             {
                 if (minimalImplementation)
-                    return new SimpleStorableItem(id: path, name: Path.GetDirectoryName(path) ?? throw new ArgumentException($"Could not determine directory name from path {path}"));
+                    return new SimpleStorableItem(id: path, name: Path.GetDirectoryName(path) ?? throw new ArgumentException($"Could not determine directory name from path '{path}'."));
 
                 return new SystemFolder(path);
             }
@@ -106,7 +106,7 @@ namespace OwlCore.Storage.System.IO
                 return new SystemFile(path);
             }
 
-            throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path: {path}");
+            throw new ArgumentException($"Could not determine if the path '{path}' is a file or folder.");
         }
 
         private static bool IsFile(string path) => Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);

@@ -46,7 +46,7 @@ public static partial class StorableExtensions
         if (nextPathPart == "..")
         {
             if (from is not IStorableChild child)
-                throw new ArgumentException($"A parent folder was requested, but the storable item named {from.Name} is not the child of a directory.", nameof(relativePath));
+                throw new ArgumentException($"A parent folder was requested, but the storable item named '{from.Name}' is not the child of a directory.", nameof(relativePath));
 
             var parent = await child.GetParentAsync(cancellationToken);
 
@@ -63,11 +63,11 @@ public static partial class StorableExtensions
 
         // Get item by name.
         if (from is not IFolder folder)
-            throw new ArgumentException($"An item named {nextPathPart} was requested from the folder named {from.Name}, but {from.Name} is not a folder.");
+            throw new ArgumentException($"An item named '{nextPathPart}' was requested from the folder named '{from.Name}', but '{from.Name}' is not a folder.");
 
         var item = await folder.GetFirstByNameAsync(nextPathPart, cancellationToken);
         if (item is null)
-            throw new FileNotFoundException($"An item named {nextPathPart} was requested from the folder named {from.Name}, but {nextPathPart} wasn't found in the folder.");
+            throw new FileNotFoundException($"An item named '{nextPathPart}' was requested from the folder named '{from.Name}', but '{nextPathPart}' wasn't found in the folder.");
 
         return await GetItemByRelativePathAsync(item, string.Join(ourPathSeparator, pathParts.Skip(1)));
     }

@@ -27,7 +27,7 @@ public class SystemFile : IChildFile, IGetRoot
         }
 
         if (!File.Exists(path))
-            throw new FileNotFoundException($"File not found at path {path}");
+            throw new FileNotFoundException($"File not found at path {path}.");
 
         Id = path;
         Path = path;
@@ -40,7 +40,7 @@ public class SystemFile : IChildFile, IGetRoot
     public SystemFile(FileInfo info)
     {
         if (!info.Exists)
-            throw new FileNotFoundException($"File not found at path {info.FullName}");
+            throw new FileNotFoundException($"File not found at path '{info.FullName}'.");
 
         _info = info;
 

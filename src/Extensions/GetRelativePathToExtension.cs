@@ -30,7 +30,7 @@ public static partial class FolderExtensions
         {
             IFolder => $"/{string.Join(@"/", pathComponents)}/",
             IFile => $"/{string.Join(@"/", pathComponents)}",
-            _ => throw new NotSupportedException($"{to.GetType()} is not an {nameof(IFile)} or an {nameof(IFolder)}. Unable to generate a path."),
+            _ => throw new NotSupportedException($"{to.GetType()} is not an implementation of {nameof(IFile)} or {nameof(IFolder)}. Unable to generate a path."),
         };
 
         async Task RecursiveAddParentToPathAsync(IStorableChild item)

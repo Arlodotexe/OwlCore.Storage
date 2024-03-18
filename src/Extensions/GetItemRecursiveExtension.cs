@@ -22,7 +22,7 @@ public static partial class FolderExtensions
             var item = await fastPath.GetItemRecursiveAsync(id, cancellationToken);
             if (item.Id != id)
             {
-                throw new ArgumentException(@$"The item returned by the interface ""{nameof(IGetItemRecursive)}"" implemented in ""{folder.GetType()}"" does not have the requested Id ""{id}"". Actual value: ""{item.Id}"".", nameof(item));
+                throw new ArgumentException($"The item returned by {nameof(IGetItemRecursive)}.{nameof(IGetItemRecursive.GetItemRecursiveAsync)} implemented in {folder.GetType()} does not have an Id that matches the requested '{id}'. Actual value: '{item.Id}'.", nameof(item));
             }
 
             return item;
@@ -50,6 +50,6 @@ public static partial class FolderExtensions
             }
         }
 
-        throw new FileNotFoundException($"No storage item with the ID \"{id}\" could be found.");
+        throw new FileNotFoundException($"No storage item with the Id '{id}' could be found.");
     }
 }
