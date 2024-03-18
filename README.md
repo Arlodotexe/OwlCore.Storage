@@ -18,6 +18,9 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 
     > dotnet add package OwlCore.Storage
 
+## Updating to version 0.10.0
+If you're updating from a previous version, please see the [release notes](https://github.com/Arlodotexe/OwlCore.Storage/blob/fdee4fe7c4509679c6e6e6a96137d069376c96d9/src/OwlCore.Storage.csproj#L26-L37) for breaking changes.
+
 ## Available implementations
 ### Provided inbox
 - [In memory](https://github.com/Arlodotexe/OwlCore.Storage/tree/main/src/Memory)
