@@ -176,7 +176,7 @@ internal class LazySeekStream : Stream
     }
 
     /// <inheritdoc />
-    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException($"Writing not supported by {nameof(LazySeekStream)}");
+    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException($"Writing not supported by {nameof(LazySeekStream)}.");
 
     /// <inheritdoc />
     protected override void Dispose(bool disposing)

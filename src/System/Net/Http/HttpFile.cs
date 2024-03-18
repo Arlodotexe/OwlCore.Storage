@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage;
+namespace OwlCore.Storage.System.Net.Http;
 
 /// <summary>
 /// A file implementation which calls GET on a provided HTTP URL and returns it for <see cref="OpenStreamAsync"/>.

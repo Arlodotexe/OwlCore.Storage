@@ -10,7 +10,7 @@ namespace OwlCore.Storage.Memory;
 /// <summary>
 /// A folder implementation that resides in memory.
 /// </summary>
-public class MemoryFolder : IModifiableFolder, IChildFolder, IFastGetItem
+public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 {
     private readonly Dictionary<string, IStorableChild> _folderContents = new();
     private readonly MemoryFolderWatcher _folderWatcher;
@@ -86,58 +86,6 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IFastGetItem
         _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(item.Id, item.Name));
 
         return Task.CompletedTask;
-    }
-
-    /// <inheritdoc />
-    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite = default, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        using var stream = await fileToCopy.OpenStreamAsync(FileAccess.Read, cancellationToken: cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (stream.CanSeek)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-        }
-        else if (stream.Position == 0)
-        {
-            throw new InvalidOperationException("The opened file stream is not at position 0 and cannot be seeked. Unable to copy.");
-        }
-
-        var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        memoryStream.Position = 0;
-
-        var file = new MemoryFile(fileToCopy.Id, fileToCopy.Name, memoryStream)
-        {
-            Parent = this,
-        };
-
-        if (!overwrite && _folderContents.TryGetValue(file.Id, out var existingStorable) && existingStorable is IChildFile existingFile)
-            return existingFile;
-
-        if (!_folderContents.ContainsKey(file.Id))
-            _folderContents.Add(file.Id, file);
-        else
-            _folderContents[file.Id] = file;
-
-        _folderWatcher.NotifyItemAdded(file);
-
-        return file;
-    }
-
-    /// <inheritdoc />
-    public async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite = default, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // Manual move. Slower, but covers all scenarios.
-        var file = await CreateCopyOfAsync(fileToMove, overwrite, cancellationToken);
-        await source.DeleteAsync(fileToMove, cancellationToken);
-        _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(fileToMove.Id, fileToMove.Name));
-
-        return file;
     }
 
     /// <inheritdoc />

@@ -1,4 +1,5 @@
 using OwlCore.Storage.CommonTests;
+using OwlCore.Storage.System.Net.Http;
 
 namespace OwlCore.Storage.Tests;
 

@@ -4,7 +4,7 @@ using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.Archive;
+namespace OwlCore.Storage.System.IO.Compression;
 
 /// <summary>
 /// A file implementation wrapping a <see cref="ZipArchiveEntry"/>.

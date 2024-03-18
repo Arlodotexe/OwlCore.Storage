@@ -1,7 +1,7 @@
 ﻿using OwlCore.Storage.CommonTests;
-using OwlCore.Storage.Archive;
+using OwlCore.Storage.System.IO;
+using OwlCore.Storage.System.IO.Compression;
 using System.IO.Compression;
-using OwlCore.Storage.SystemIO;
 
 namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 

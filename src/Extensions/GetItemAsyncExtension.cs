@@ -17,12 +17,12 @@ public static partial class FolderExtensions
     /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
     public static async Task<IStorableChild> GetItemAsync(this IFolder folder, string id, CancellationToken cancellationToken = default)
     {
-        if (folder is IFastGetItem fastPath)
+        if (folder is IGetItem fastPath)
             return await fastPath.GetItemAsync(id, cancellationToken);
 
         var targetItem = await folder.GetItemsAsync(cancellationToken: cancellationToken).FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
         if (targetItem is null)
-            throw new FileNotFoundException($"No storage item with the ID \"{id}\" could be found.");
+            throw new FileNotFoundException($"No storage item with the Id '{id}' could be found.");
 
         return targetItem;
     }

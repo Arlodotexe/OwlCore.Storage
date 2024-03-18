@@ -8,13 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOPath = System.IO.Path;
 
-namespace OwlCore.Storage.Archive;
+namespace OwlCore.Storage.System.IO.Compression;
 
 /// <summary>
 /// A folder implementation wrapping a <see cref="ZipArchive"/> with
 /// mode <see cref="ZipArchiveMode.Read"/> or <see cref="ZipArchiveMode.Update"/>.
 /// </summary>
-public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem, IFastGetFirstByName, IDisposable
+public class ReadOnlyZipArchiveFolder : IChildFolder, IGetRoot, IGetItem, IGetFirstByName, IDisposable
 {
     /// <summary>
     /// The directory separator as defined by the ZIP standard.
@@ -166,16 +166,16 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem
             // Get folder
             string subfolderId = NormalizeEnding(id);
             var virtualFolders = GetVirtualFolders();
-            
+
             if (!virtualFolders.TryGetValue(subfolderId, out var subfolder))
                 throw new FileNotFoundException($"No item with ID '{id}' or '{subfolderId}' exists in '{Id}'.");
-            
+
             item = subfolder;
         }
 
         return item;
     }
-    
+
     /// <inheritdoc/>
     public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
         => await GetItemAsync(Id + name, cancellationToken);
@@ -188,7 +188,7 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem
     }
 
     /// <inheritdoc/>
-    public Task<IFolder?> GetRootAsync() => Task.FromResult<IFolder?>(RootFolder);
+    public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default) => Task.FromResult<IFolder?>(RootFolder);
 
     /// <summary>
     /// Attempts to get the entry, without throwing if the archive does not support reading entries. 
@@ -205,7 +205,7 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem
             throw new ArgumentNullException(nameof(Archive));
 
         return Archive.Mode != ZipArchiveMode.Create
-            ? (Archive.GetEntry(entryName) ?? Archive.GetEntry(entryName.TrimEnd(ZIP_DIRECTORY_SEPARATOR)))
+            ? Archive.GetEntry(entryName) ?? Archive.GetEntry(entryName.TrimEnd(ZIP_DIRECTORY_SEPARATOR))
             : null;
     }
 
@@ -286,7 +286,7 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IFastGetRoot, IFastGetItem
     public virtual async Task<ZipArchive> OpenArchiveAsync(CancellationToken cancellationToken = default)
     {
         if (Archive is not null)
-            throw new ArgumentException(nameof(Archive), $"Argument was expected to be null, got {Archive}");
+            throw new ArgumentException(nameof(Archive), $"Argument was expected to be null, got {Archive}.");
 
         if (SourceFile is null)
             throw new ArgumentNullException(nameof(SourceFile));

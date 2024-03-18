@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.Extensions;
+namespace OwlCore.Storage;
 
 /// <summary>
 /// Extension methods for <see cref="IFile"/>.

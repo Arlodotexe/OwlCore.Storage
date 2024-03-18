@@ -7,7 +7,7 @@ namespace OwlCore.Storage;
 /// <summary>
 /// Provides a fast-path for the <see cref="FolderExtensions.GetItemRecursiveAsync"/> extension method.
 /// </summary>
-public interface IFastGetItemRecursive : IFolder
+public interface IGetItemRecursive : IFolder
 {
     /// <summary>
     /// Crawls this folder and all subfolders for an item with the provided <paramref name="id"/>.
