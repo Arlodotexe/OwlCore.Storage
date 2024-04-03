@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.10.1</Version>
+    <Version>0.11.0</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,10 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.11.0 ---
+[New]
+Added new FileReadExtensions and FileWriteExtensions for reading and writing IFile as text content or byte arrays.
+
 --- 0.10.1 ---
 [Fixes]
 Fixed an issue where ZipArchiveFolder.DeleteAsync wasn't handling files correctly.
