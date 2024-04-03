@@ -119,8 +119,20 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
 
             if (entry is null)
                 throw new FileNotFoundException("The item was not found in the folder.");
+
+            entry.Delete();
+        }
+        else if (item is ZipArchiveEntryFile file)
+        {
+            var entry = TryGetEntry(file.Name);
+            if (entry is null)
+                throw new FileNotFoundException("The item was not found in the folder.");
             else
                 entry.Delete();
+        }
+        else
+        {
+            throw new ArgumentException("The item is not a valid child of this folder.", nameof(item));
         }
     }
 
