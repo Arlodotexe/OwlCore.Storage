@@ -24,7 +24,7 @@
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
 --- 0.11.1 ---
-[Fixes
+[Fixes]
 Fixed an issue where SystemFolderWatcher would not capture any file system events.
 		
 --- 0.11.0 ---
