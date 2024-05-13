@@ -12,6 +12,7 @@ namespace OwlCore.Storage.System.IO
     public class SystemFolderWatcher : IFolderWatcher
     {
         private readonly FileSystemWatcher _watcher;
+        private event NotifyCollectionChangedEventHandler? _collectionChanged;
 
         /// <summary>
         /// Creates a new instance of <see cref="SystemFolderWatcher"/>.
@@ -43,26 +44,38 @@ namespace OwlCore.Storage.System.IO
         private void OnCreated(object sender, FileSystemEventArgs e)
         {
             var newItem = CreateStorableFromPath(e.FullPath);
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<IStorable> { newItem }));
+            _collectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<IStorable> { newItem }));
         }
 
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
             var oldItem = CreateStorableFromPath(e.FullPath, minimalImplementation: true);
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new List<IStorable> { oldItem }));
+            _collectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new List<IStorable> { oldItem }));
         }
 
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
             var newItem = CreateStorableFromPath(e.FullPath);
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<IStorable> { newItem }));
+            _collectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<IStorable> { newItem }));
 
             var oldItem = CreateStorableFromPath(e.OldFullPath, minimalImplementation: true);
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new List<IStorable> { oldItem }));
+            _collectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new List<IStorable> { oldItem }));
         }
 
         /// <inheritdoc />
-        public event NotifyCollectionChangedEventHandler? CollectionChanged;
+        public event NotifyCollectionChangedEventHandler? CollectionChanged
+        {
+            add
+            {
+                _collectionChanged += value;
+                _watcher.EnableRaisingEvents = _collectionChanged is not null;
+            }
+            remove
+            {
+                _collectionChanged -= value;
+                _watcher.EnableRaisingEvents = _collectionChanged is not null;
+            }
+        }
 
         /// <inheritdoc />
         public IMutableFolder Folder { get; }
