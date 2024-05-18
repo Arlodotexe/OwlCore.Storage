@@ -43,30 +43,27 @@ public class IFolderTests : CommonIModifiableFolderTests
         var folder = await CreateModifiableFolderAsync();
 
         await using var watcher = await folder.GetFolderWatcherAsync();
-        bool collectionChanged = false;
-        watcher.CollectionChanged += (sender, args) => collectionChanged = true;
+        var collectionChangedTaskCompletionSource = new TaskCompletionSource();
+        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.SetResult();
         
         await folder.CreateFileAsync(GetHashCode().ToString(), overwrite: true);
-
-        // Await a small delay before asserting
-        await Task.Delay(2000);
-        Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on file create");
+        
+        await collectionChangedTaskCompletionSource.Task;
     }
 
     [TestMethod]
+    [Timeout(2000)]
     public async Task FolderWatcherOnFolderCreate()
     {
         var folder = await CreateModifiableFolderAsync();
 
         await using var watcher = await folder.GetFolderWatcherAsync();
-        bool collectionChanged = false;
-        watcher.CollectionChanged += (sender, args) => collectionChanged = true;
+        var collectionChangedTaskCompletionSource = new TaskCompletionSource();
+        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.SetResult();
 
         await folder.CreateFolderAsync(GetHashCode().ToString(), overwrite: true);
         
-        // Await a small delay before asserting
-        await Task.Delay(2000);
-        Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on folder create");
+        await collectionChangedTaskCompletionSource.Task;
     }
 
     [TestMethod]
@@ -76,13 +73,11 @@ public class IFolderTests : CommonIModifiableFolderTests
         var existingItem = await folder.GetItemsAsync(StorableType.File).FirstAsync();
 
         await using var watcher = await folder.GetFolderWatcherAsync();
-        bool collectionChanged = false;
-        watcher.CollectionChanged += (sender, args) => collectionChanged = true;
+        var collectionChangedTaskCompletionSource = new TaskCompletionSource();
+        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.SetResult();
 
         await folder.DeleteAsync(existingItem);
-
-        // Await a small delay before asserting
-        await Task.Delay(2000);
-        Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on delete");
+        
+        await collectionChangedTaskCompletionSource.Task;
     }
 }
