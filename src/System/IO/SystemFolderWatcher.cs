@@ -119,7 +119,8 @@ namespace OwlCore.Storage.System.IO
                 return new SystemFile(path);
             }
 
-            throw new ArgumentException($"Could not determine if the path '{path}' is a file or folder.");
+            // The item is most likely deleted. Return all available information through SimpleStorableItem
+            return new SimpleStorableItem(id: path, name: Path.GetFileName(path));
         }
 
         private static bool IsFile(string path) => Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);

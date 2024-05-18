@@ -16,7 +16,7 @@ public class IFolderTests : CommonIModifiableFolderTests
     public override Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
     {
         var tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var dir = Directory.CreateDirectory(tempFolder);
+        _ = Directory.CreateDirectory(tempFolder);
 
         for (var i = 0; i < fileCount; i++)
         {
