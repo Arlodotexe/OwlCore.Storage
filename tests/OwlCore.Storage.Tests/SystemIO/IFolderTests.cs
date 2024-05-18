@@ -48,6 +48,8 @@ public class IFolderTests : CommonIModifiableFolderTests
         
         await folder.CreateFileAsync(GetHashCode().ToString(), overwrite: true);
 
+        // Await a small delay before asserting
+        await Task.Delay(2000);
         Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on file create");
     }
 
@@ -61,7 +63,9 @@ public class IFolderTests : CommonIModifiableFolderTests
         watcher.CollectionChanged += (sender, args) => collectionChanged = true;
 
         await folder.CreateFolderAsync(GetHashCode().ToString(), overwrite: true);
-
+        
+        // Await a small delay before asserting
+        await Task.Delay(2000);
         Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on folder create");
     }
 
@@ -77,6 +81,8 @@ public class IFolderTests : CommonIModifiableFolderTests
 
         await folder.DeleteAsync(existingItem);
 
+        // Await a small delay before asserting
+        await Task.Delay(2000);
         Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on delete");
     }
 }
