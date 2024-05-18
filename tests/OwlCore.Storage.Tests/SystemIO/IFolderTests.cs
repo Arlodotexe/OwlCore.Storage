@@ -33,4 +33,50 @@ public class IFolderTests : CommonIModifiableFolderTests
 
         return Task.FromResult<IModifiableFolder>(new SystemFolder(tempFolder));
     }
+
+    // Folder Watcher tests
+    // TODO: Move these to CommonTests.
+
+    [TestMethod]
+    public async Task FolderWatcherOnFileCreate()
+    {
+        var folder = await CreateModifiableFolderAsync();
+
+        await using var watcher = await folder.GetFolderWatcherAsync();
+        bool collectionChanged = false;
+        watcher.CollectionChanged += (sender, args) => collectionChanged = true;
+        
+        await folder.CreateFileAsync(GetHashCode().ToString(), overwrite: true);
+
+        Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on file create");
+    }
+
+    [TestMethod]
+    public async Task FolderWatcherOnFolderCreate()
+    {
+        var folder = await CreateModifiableFolderAsync();
+
+        await using var watcher = await folder.GetFolderWatcherAsync();
+        bool collectionChanged = false;
+        watcher.CollectionChanged += (sender, args) => collectionChanged = true;
+
+        await folder.CreateFolderAsync(GetHashCode().ToString(), overwrite: true);
+
+        Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on folder create");
+    }
+
+    [TestMethod]
+    public async Task FolderWatcherOnDelete()
+    {
+        var folder = await CreateModifiableFolderWithItems(1, 0);
+        var existingItem = await folder.GetItemsAsync(StorableType.File).FirstAsync();
+
+        await using var watcher = await folder.GetFolderWatcherAsync();
+        bool collectionChanged = false;
+        watcher.CollectionChanged += (sender, args) => collectionChanged = true;
+
+        await folder.DeleteAsync(existingItem);
+
+        Assert.IsTrue(collectionChanged, "CollectionChanged was not raised on delete");
+    }
 }
