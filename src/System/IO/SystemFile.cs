@@ -49,6 +49,30 @@ public class SystemFile : IChildFile, IGetRoot
         Path = _info.FullName;
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="SystemFile"/>
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This constructor does not verify whether the file
+    /// actually exists beforehand. Do not use outside of enumeration
+    /// or when it's known that the file exists.
+    /// </remarks>
+    /// <param name="path">The path to the file.</param>
+    /// <param name="isInternal">
+    /// Dummy parameter to differiate from the public constructors.
+    /// </param>
+    internal SystemFile(string path, bool isInternal)
+    {
+        foreach (var c in global::System.IO.Path.GetInvalidPathChars())
+        {
+            if (path.Contains(c))
+                throw new FormatException($"Provided path contains invalid character '{c}'.");
+        }
+
+        Id = path;
+        Path = path;
+    }
+
     /// <inheritdoc />
     public string Id { get; }
 
@@ -78,13 +102,13 @@ public class SystemFile : IChildFile, IGetRoot
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo? parent = _info != null ? _info.Directory : Directory.GetParent(Path);
-        return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent) : null);
+        return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent, isInternal: true) : null);
     }
 
     /// <inheritdoc />
     public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo root = _info?.Directory != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
-        return Task.FromResult<IFolder?>(new SystemFolder(root));
+        return Task.FromResult<IFolder?>(new SystemFolder(root, isInternal: true));
     }
 }
