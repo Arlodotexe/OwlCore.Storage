@@ -68,7 +68,7 @@ public class SystemFile : IChildFile, IGetRoot
     /// <inheritdoc />
     public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
-        var stream = File.Open(Path, FileMode.Open, accessMode);
+        var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare.None, 4096, FileOptions.Asynchronous);
         cancellationToken.ThrowIfCancellationRequested();
 
         return Task.FromResult<Stream>(stream);
