@@ -22,13 +22,21 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// </summary>
     /// <param name="path">The path to the folder.</param>
     public SystemFolder(string path)
-        : this(new DirectoryInfo(path))
     {
         foreach (var c in global::System.IO.Path.GetInvalidPathChars())
         {
             if (path.Contains(c))
                 throw new FormatException($"Provided path contains invalid character '{c}'.");
         }
+
+        // For consistency, always remove the trailing directory separator.
+        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+
+        if (!Directory.Exists(path))
+            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
+
+        Id = Path;
+        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
     /// <summary>
@@ -42,7 +50,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         // For consistency, always remove the trailing directory separator.
         Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
 
-        if (!Directory.Exists(Path))
+        if (!info.Exists)
             throw new FileNotFoundException($"Directory not found at path '{Path}'.");
 
         Id = Path;
