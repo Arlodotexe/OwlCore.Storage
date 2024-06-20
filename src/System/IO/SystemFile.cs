@@ -58,10 +58,10 @@ public class SystemFile : IChildFile, IGetRoot
     /// or when it's known that the file exists.
     /// </remarks>
     /// <param name="path">The path to the file.</param>
-    /// <param name="isInternal">
-    /// Dummy parameter to differiate from the public constructors.
+    /// <param name="noValidation">
+    /// A required value for this overload. No functional difference between provided values.
     /// </param>
-    internal SystemFile(string path, bool isInternal)
+    internal SystemFile(string path, bool noValidation)
     {
         foreach (var c in global::System.IO.Path.GetInvalidPathChars())
         {
@@ -102,13 +102,13 @@ public class SystemFile : IChildFile, IGetRoot
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo? parent = _info != null ? _info.Directory : Directory.GetParent(Path);
-        return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent, isInternal: true) : null);
+        return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent, noValidation: true) : null);
     }
 
     /// <inheritdoc />
     public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo root = _info?.Directory != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
-        return Task.FromResult<IFolder?>(new SystemFolder(root, isInternal: true));
+        return Task.FromResult<IFolder?>(new SystemFolder(root, noValidation: true));
     }
 }
