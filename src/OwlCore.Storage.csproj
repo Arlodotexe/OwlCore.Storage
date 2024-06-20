@@ -26,6 +26,7 @@
 --- 0.11.2 ---
 [Fixes]
 Fixed an issue where the stream returned from `File.Open` does synchronous operations on the file and didn't support cancellation during read/write. The underlying operating system now gives us an asynchronous file stream to do true async reads/writes.
+Fixed an issue where SystemFolder is not properly making use of lazy-loading for DirectoryInfo (`Info` property) when we only have the path. In some use cases having the directory info pre-loaded can be unnecessary and slows down performance especially when enumerating large folders.
 
 --- 0.11.1 ---
 [Fixes]
