@@ -63,12 +63,6 @@ public class SystemFile : IChildFile, IGetRoot
     /// </param>
     internal SystemFile(string path, bool noValidation)
     {
-        foreach (var c in global::System.IO.Path.GetInvalidPathChars())
-        {
-            if (path.Contains(c))
-                throw new FormatException($"Provided path contains invalid character '{c}'.");
-        }
-
         Id = path;
         Path = path;
     }
