@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -66,10 +66,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// or when it's known that the folder exists.
     /// </remarks>
     /// <param name="path">The path to the folder.</param>
-    /// <param name="isInternal">
-    /// Dummy parameter to differiate from the public constructors.
+    /// <param name="noValidation">
+    /// A required value for this overload. No functional difference between provided values.
     /// </param>
-    internal SystemFolder(string path, bool isInternal)
+    internal SystemFolder(string path, bool noValidation)
     {
         // For consistency, always remove the trailing directory separator.
         Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
@@ -88,10 +88,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// or when it's known that the folder exists.
     /// </remarks>
     /// <param name="info">The directory to use.</param>
-    /// <param name="isInternal">
+    /// <param name="noValidation">
     /// Dummy parameter to differiate from the public constructors.
     /// </param>
-    internal SystemFolder(DirectoryInfo info, bool isInternal)
+    internal SystemFolder(DirectoryInfo info, bool noValidation)
     {
         _info = info;
 
@@ -136,10 +136,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                     continue;
 
                 if (IsFolder(item))
-                    yield return new SystemFolder(item, isInternal: true);
+                    yield return new SystemFolder(item, noValidation: true);
 
                 else if (IsFile(item))
-                    yield return new SystemFile(item, isInternal: true);
+                    yield return new SystemFile(item, noValidation: true);
             }
 
             yield break;
@@ -154,7 +154,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                 if (file is null)
                     continue;
 
-                yield return new SystemFile(file, isInternal: true);
+                yield return new SystemFile(file, noValidation: true);
             }
         }
 
@@ -167,7 +167,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                 if (folder is null)
                     continue;
 
-                yield return new SystemFolder(folder, isInternal: true);
+                yield return new SystemFolder(folder, noValidation: true);
             }
         }
     }
@@ -180,10 +180,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
         if (IsFile(id))
-            return Task.FromResult<IStorableChild>(new SystemFile(id, isInternal: true));
+            return Task.FromResult<IStorableChild>(new SystemFile(id, noValidation: true));
 
         if (IsFolder(id))
-            return Task.FromResult<IStorableChild>(new SystemFolder(id, isInternal: true));
+            return Task.FromResult<IStorableChild>(new SystemFolder(id, noValidation: true));
 
         throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path '{id}'.");
     }
@@ -204,7 +204,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
             if (!File.Exists(fullPath))
                 throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
-            return Task.FromResult<IStorableChild>(new SystemFile(fullPath, isInternal: true));
+            return Task.FromResult<IStorableChild>(new SystemFile(fullPath, noValidation: true));
         }
 
         if (IsFolder(id))
@@ -213,7 +213,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
             if (global::System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
                 throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
-            return Task.FromResult<IStorableChild>(new SystemFolder(id, isInternal: true));
+            return Task.FromResult<IStorableChild>(new SystemFolder(id, noValidation: true));
         }
 
         throw new FileNotFoundException($"Could not determine if the provided path exists, or whether it's a file or folder. Id '{id}'.");
@@ -264,14 +264,14 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         if (File.Exists(newPath))
         {
             if (!overwrite)
-                return new SystemFile(newPath, isInternal: true);
+                return new SystemFile(newPath, noValidation: true);
 
             File.Delete(newPath);
         }
 
         File.Copy(systemFile.Path, newPath, overwrite);
 
-        return new SystemFile(newPath, isInternal: true);
+        return new SystemFile(newPath, noValidation: true);
     }
 
     /// <inheritdoc />
@@ -284,14 +284,14 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         // Handle using System.IO
         var newPath = global::System.IO.Path.Combine(Path, systemFile.Name);
         if (File.Exists(newPath) && !overwrite)
-            return new SystemFile(newPath, isInternal: true);
+            return new SystemFile(newPath, noValidation: true);
 
         if (overwrite)
             File.Delete(newPath);
 
         File.Move(systemFile.Path, newPath);
 
-        return new SystemFile(newPath, isInternal: true);
+        return new SystemFile(newPath, noValidation: true);
     }
 
     /// <inheritdoc />
@@ -321,7 +321,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         if (overwrite || !File.Exists(newPath))
             File.Create(newPath).Dispose();
 
-        return Task.FromResult<IChildFile>(new SystemFile(newPath, isInternal: true));
+        return Task.FromResult<IChildFile>(new SystemFile(newPath, noValidation: true));
     }
 
     /// <inheritdoc />
