@@ -15,6 +15,7 @@ namespace OwlCore.Storage.System.IO;
 /// </summary>
 public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMoveFrom, IGetItem, IGetItemRecursive, IGetFirstByName, IGetRoot
 {
+    private string? _name;
     private DirectoryInfo? _info;
 
     /// <summary>
@@ -34,7 +35,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         // For consistency, always remove the trailing directory separator.
         Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         // For consistency, always remove the trailing directory separator.
         Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
+        _name = info.Name;
     }
 
     /// <summary>
@@ -69,7 +69,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     {
         // For consistency, always remove the trailing directory separator.
         Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
 
@@ -91,7 +90,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         // For consistency, always remove the trailing directory separator.
         Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
+        _name = info.Name;
     }
 
     /// <summary>
@@ -103,7 +102,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public string Id => Path;
 
     /// <inheritdoc />
-    public string Name { get; }
+    public string Name => _name ??= global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
 
     /// <summary>
     /// Gets the path of the folder on disk.
