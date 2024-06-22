@@ -26,5 +26,5 @@ public enum StorableType : byte
     /// <summary>
     /// Indicates all storable types.
     /// </summary>
-    All = byte.MaxValue,
+    All = File | Folder,
 }
