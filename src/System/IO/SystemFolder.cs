@@ -231,8 +231,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         if (IsFolder(item.Id))
             Directory.Delete(item.Id, recursive: true);
-
-        if (IsFile(item.Id))
+        else if (IsFile(item.Id))
             File.Delete(item.Id);
 
         return Task.CompletedTask;
@@ -318,7 +317,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// <inheritdoc />
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
+        return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di, noValidation: true) : null);
     }
 
     /// <inheritdoc />
