@@ -130,7 +130,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                 if (item.Attributes.HasFlag(FileAttributes.Directory))
                     yield return new SystemFolder((DirectoryInfo)item, noValidation: true);
                 else
-                    yield return new SystemFile(item.FullName, noValidation: true);
+                    yield return new SystemFile((FileInfo)item, noValidation: true);
             }
 
             yield break;

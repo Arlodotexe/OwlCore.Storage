@@ -29,7 +29,6 @@ public class SystemFile : IChildFile, IGetRoot
         if (!File.Exists(path))
             throw new FileNotFoundException($"File not found at path {path}.");
 
-        Id = path;
         Path = path;
     }
 
@@ -45,7 +44,6 @@ public class SystemFile : IChildFile, IGetRoot
         _info = info;
 
         _name = _info.Name;
-        Id = _info.FullName;
         Path = _info.FullName;
     }
 
@@ -63,12 +61,31 @@ public class SystemFile : IChildFile, IGetRoot
     /// </param>
     internal SystemFile(string path, bool noValidation)
     {
-        Id = path;
         Path = path;
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="SystemFile"/>
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This constructor does not verify whether the file
+    /// actually exists beforehand. Do not use outside of enumeration
+    /// or when it's known that the file exists.
+    /// </remarks>
+    /// <param name="info">The file info.</param>
+    /// <param name="noValidation">
+    /// A required value for this overload. No functional difference between provided values.
+    /// </param>
+    internal SystemFile(FileInfo info, bool noValidation)
+    {
+        _info = info;
+
+        _name = _info.Name;
+        Path = _info.FullName;
+    }
+
     /// <inheritdoc />
-    public string Id { get; }
+    public string Id => Path;
 
     /// <inheritdoc />
     public string Name => _name ??= global::System.IO.Path.GetFileName(Path);
