@@ -29,13 +29,11 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                 throw new FormatException($"Provided path contains invalid character '{c}'.");
         }
 
-        // For consistency, always remove the trailing directory separator.
-        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-
         if (!Directory.Exists(path))
             throw new FileNotFoundException($"Directory not found at path '{Path}'.");
 
-        Id = Path;
+        // For consistency, always remove the trailing directory separator.
+        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
         Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
@@ -45,15 +43,13 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// <param name="info">The directory to use.</param>
     public SystemFolder(DirectoryInfo info)
     {
+        if (!info.Exists)
+            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
+
         _info = info;
 
         // For consistency, always remove the trailing directory separator.
         Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-
-        if (!info.Exists)
-            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
-
-        Id = Path;
         Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
@@ -73,8 +69,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     {
         // For consistency, always remove the trailing directory separator.
         Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-
-        Id = Path;
         Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
@@ -89,7 +83,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// </remarks>
     /// <param name="info">The directory to use.</param>
     /// <param name="noValidation">
-    /// Dummy parameter to differiate from the public constructors.
+    /// A required value for this overload. No functional difference between provided values.
     /// </param>
     internal SystemFolder(DirectoryInfo info, bool noValidation)
     {
@@ -97,8 +91,6 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         // For consistency, always remove the trailing directory separator.
         Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-
-        Id = Path;
         Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
     }
 
@@ -108,7 +100,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public DirectoryInfo Info => _info ??= new DirectoryInfo(Path);
 
     /// <inheritdoc />
-    public string Id { get; }
+    public string Id => Path;
 
     /// <inheritdoc />
     public string Name { get; }
@@ -128,18 +120,17 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         if (type.HasFlag(StorableType.All))
         {
-            foreach (var item in Directory.EnumerateFileSystemEntries(Path))
+            foreach (var item in Info.EnumerateFileSystemInfos())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (item is null)
                     continue;
 
-                if (IsFolder(item))
-                    yield return new SystemFolder(item, noValidation: true);
-
-                else if (IsFile(item))
-                    yield return new SystemFile(item, noValidation: true);
+                if (item.Attributes.HasFlag(FileAttributes.Directory))
+                    yield return new SystemFolder((DirectoryInfo)item, noValidation: true);
+                else
+                    yield return new SystemFile(item.FullName, noValidation: true);
             }
 
             yield break;
