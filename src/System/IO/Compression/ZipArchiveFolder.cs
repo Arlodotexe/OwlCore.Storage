@@ -97,7 +97,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
 
         if (item is ZipArchiveFolder folder)
         {
-            var itemEntryId = folder.Id.Replace(Id, "");
+            var itemEntryId = folder.Id.Replace(Id, string.Empty);
 
             if (!GetVirtualFolders().ContainsKey(itemEntryId))
                 throw new FileNotFoundException("The item was not found in the folder.");
@@ -115,11 +115,7 @@ public class ZipArchiveFolder : ReadOnlyZipArchiveFolder, IModifiableFolder
         }
         else if (item is ReadOnlyZipArchiveFolder readOnlyFolder)
         {
-            var entry = TryGetEntry(readOnlyFolder.Path);
-
-            if (entry is null)
-                throw new FileNotFoundException("The item was not found in the folder.");
-
+            var entry = TryGetEntry(readOnlyFolder.Path) ?? throw new FileNotFoundException("The item was not found in the folder.");
             entry.Delete();
         }
         else if (item is ZipArchiveEntryFile file)

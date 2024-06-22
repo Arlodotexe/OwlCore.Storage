@@ -112,15 +112,14 @@ public class ReadOnlyZipArchiveFolder : IChildFolder, IGetRoot, IGetItem, IGetFi
     /// <inheritdoc/>
     public async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        Archive ??= await OpenArchiveAsync(cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
-
         if (type == StorableType.None)
             throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
 
+        Archive ??= await OpenArchiveAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (type.HasFlag(StorableType.File))
         {
-            Archive ??= await OpenArchiveAsync(cancellationToken);
             foreach (var entry in Archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
