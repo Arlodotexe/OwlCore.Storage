@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OwlCore.Storage.Memory;
 
@@ -37,6 +39,14 @@ internal sealed class NonDisposableStreamWrapper : Stream
 
     /// <inheritdoc />
     public override void Write(byte[] buffer, int offset, int count) => _stream.Write(buffer, offset, count);
+
+    /// <inheritdoc />
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        => _stream.ReadAsync(buffer, offset, count, cancellationToken);
+
+    /// <inheritdoc />
+    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        => _stream.WriteAsync(buffer, offset, count, cancellationToken);
 
     /// <inheritdoc />
     public override bool CanRead => _stream.CanRead;
