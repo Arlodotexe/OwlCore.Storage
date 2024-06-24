@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.11.2</Version>
+    <Version>0.11.3</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,10 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.11.3 ---
+[Improvement]
+Removed redundant validation when enumerating files and folders to improve performance in SystemFile and SystemFolder.
+
 --- 0.11.2 ---
 [Fixes]
 Fixed an issue where the stream returned from `File.Open` does synchronous operations on the file and didn't support cancellation during read/write. The underlying operating system now gives us an asynchronous file stream to do true async reads/writes.
