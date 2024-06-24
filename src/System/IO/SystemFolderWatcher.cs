@@ -108,7 +108,7 @@ namespace OwlCore.Storage.System.IO
                 if (minimalImplementation)
                     return new SimpleStorableItem(id: path, name: Path.GetDirectoryName(path) ?? throw new ArgumentException($"Could not determine directory name from path '{path}'."));
 
-                return new SystemFolder(path);
+                return new SystemFolder(path, noValidation: true);
             }
 
             if (IsFile(path))
@@ -116,7 +116,7 @@ namespace OwlCore.Storage.System.IO
                 if (minimalImplementation)
                     return new SimpleStorableItem(id: path, name: Path.GetFileName(path));
 
-                return new SystemFile(path);
+                return new SystemFile(path, noValidation: true);
             }
 
             // The item is most likely deleted. Return all available information through SimpleStorableItem

@@ -29,7 +29,6 @@ public class SystemFile : IChildFile, IGetRoot
         if (!File.Exists(path))
             throw new FileNotFoundException($"File not found at path {path}.");
 
-        Id = path;
         Path = path;
     }
 
@@ -45,12 +44,48 @@ public class SystemFile : IChildFile, IGetRoot
         _info = info;
 
         _name = _info.Name;
-        Id = _info.FullName;
+        Path = _info.FullName;
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="SystemFile"/>
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This constructor does not verify whether the file
+    /// actually exists beforehand. Do not use outside of enumeration
+    /// or when it's known that the file exists.
+    /// </remarks>
+    /// <param name="path">The path to the file.</param>
+    /// <param name="noValidation">
+    /// A required value for this overload. No functional difference between provided values.
+    /// </param>
+    internal SystemFile(string path, bool noValidation)
+    {
+        Path = path;
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="SystemFile"/>
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This constructor does not verify whether the file
+    /// actually exists beforehand. Do not use outside of enumeration
+    /// or when it's known that the file exists.
+    /// </remarks>
+    /// <param name="info">The file info.</param>
+    /// <param name="noValidation">
+    /// A required value for this overload. No functional difference between provided values.
+    /// </param>
+    internal SystemFile(FileInfo info, bool noValidation)
+    {
+        _info = info;
+
+        _name = _info.Name;
         Path = _info.FullName;
     }
 
     /// <inheritdoc />
-    public string Id { get; }
+    public string Id => Path;
 
     /// <inheritdoc />
     public string Name => _name ??= global::System.IO.Path.GetFileName(Path);
@@ -78,13 +113,13 @@ public class SystemFile : IChildFile, IGetRoot
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo? parent = _info != null ? _info.Directory : Directory.GetParent(Path);
-        return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent) : null);
+        return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent, noValidation: true) : null);
     }
 
     /// <inheritdoc />
     public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo root = _info?.Directory != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
-        return Task.FromResult<IFolder?>(new SystemFolder(root));
+        return Task.FromResult<IFolder?>(new SystemFolder(root, noValidation: true));
     }
 }

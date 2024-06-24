@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +15,7 @@ namespace OwlCore.Storage.System.IO;
 /// </summary>
 public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMoveFrom, IGetItem, IGetItemRecursive, IGetFirstByName, IGetRoot
 {
+    private string? _name;
     private DirectoryInfo? _info;
 
     /// <summary>
@@ -29,14 +30,11 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                 throw new FormatException($"Provided path contains invalid character '{c}'.");
         }
 
-        // For consistency, always remove the trailing directory separator.
-        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-
         if (!Directory.Exists(path))
             throw new FileNotFoundException($"Directory not found at path '{Path}'.");
 
-        Id = Path;
-        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
+        // For consistency, always remove the trailing directory separator.
+        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
     }
 
     /// <summary>
@@ -45,16 +43,54 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     /// <param name="info">The directory to use.</param>
     public SystemFolder(DirectoryInfo info)
     {
+        if (!info.Exists)
+            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
+
         _info = info;
 
         // For consistency, always remove the trailing directory separator.
         Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+        _name = info.Name;
+    }
 
-        if (!info.Exists)
-            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
+    /// <summary>
+    /// Creates a new instance of <see cref="SystemFolder"/>
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This constructor does not verify whether the directory
+    /// actually exists beforehand. Do not use outside of enumeration
+    /// or when it's known that the folder exists.
+    /// </remarks>
+    /// <param name="path">The path to the folder.</param>
+    /// <param name="noValidation">
+    /// A required value for this overload. No functional difference between provided values.
+    /// </param>
+    internal SystemFolder(string path, bool noValidation)
+    {
+        // For consistency, always remove the trailing directory separator.
+        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+    }
 
-        Id = Path;
-        Name = global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
+
+    /// <summary>
+    /// Creates a new instance of <see cref="SystemFolder"/>.
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This constructor does not verify whether the directory
+    /// actually exists beforehand. Do not use outside of enumeration
+    /// or when it's known that the folder exists.
+    /// </remarks>
+    /// <param name="info">The directory to use.</param>
+    /// <param name="noValidation">
+    /// A required value for this overload. No functional difference between provided values.
+    /// </param>
+    internal SystemFolder(DirectoryInfo info, bool noValidation)
+    {
+        _info = info;
+
+        // For consistency, always remove the trailing directory separator.
+        Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+        _name = info.Name;
     }
 
     /// <summary>
@@ -63,10 +99,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public DirectoryInfo Info => _info ??= new DirectoryInfo(Path);
 
     /// <inheritdoc />
-    public string Id { get; }
+    public string Id => Path;
 
     /// <inheritdoc />
-    public string Name { get; }
+    public string Name => _name ??= global::System.IO.Path.GetFileName(Path) ?? throw new ArgumentException($"Could not determine directory name from path '{Path}'.");
 
     /// <summary>
     /// Gets the path of the folder on disk.
@@ -83,18 +119,17 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         if (type.HasFlag(StorableType.All))
         {
-            foreach (var item in Directory.EnumerateFileSystemEntries(Path))
+            foreach (var item in Info.EnumerateFileSystemInfos())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (item is null)
                     continue;
 
-                if (IsFolder(item))
-                    yield return new SystemFolder(item);
-
-                else if (IsFile(item))
-                    yield return new SystemFile(item);
+                if (item.Attributes.HasFlag(FileAttributes.Directory))
+                    yield return new SystemFolder((DirectoryInfo)item, noValidation: true);
+                else
+                    yield return new SystemFile((FileInfo)item, noValidation: true);
             }
 
             yield break;
@@ -109,7 +144,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                 if (file is null)
                     continue;
 
-                yield return new SystemFile(file);
+                yield return new SystemFile(file, noValidation: true);
             }
         }
 
@@ -122,7 +157,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
                 if (folder is null)
                     continue;
 
-                yield return new SystemFolder(folder);
+                yield return new SystemFolder(folder, noValidation: true);
             }
         }
     }
@@ -135,10 +170,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         // Since the path is used as the id, we can provide a fast method of getting a single item, without iterating.
         if (IsFile(id))
-            return Task.FromResult<IStorableChild>(new SystemFile(id));
+            return Task.FromResult<IStorableChild>(new SystemFile(id, noValidation: true));
 
         if (IsFolder(id))
-            return Task.FromResult<IStorableChild>(new SystemFolder(id));
+            return Task.FromResult<IStorableChild>(new SystemFolder(id, noValidation: true));
 
         throw new ArgumentException($"Could not determine if the provided path is a file or folder. Path '{id}'.");
     }
@@ -159,7 +194,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
             if (!File.Exists(fullPath))
                 throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
-            return Task.FromResult<IStorableChild>(new SystemFile(fullPath));
+            return Task.FromResult<IStorableChild>(new SystemFile(fullPath, noValidation: true));
         }
 
         if (IsFolder(id))
@@ -168,16 +203,16 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
             if (global::System.IO.Path.GetDirectoryName(id) != Path || !Directory.Exists(id))
                 throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
 
-            return Task.FromResult<IStorableChild>(new SystemFolder(id));
+            return Task.FromResult<IStorableChild>(new SystemFolder(id, noValidation: true));
         }
 
         throw new FileNotFoundException($"Could not determine if the provided path exists, or whether it's a file or folder. Id '{id}'.");
     }
 
     /// <inheritdoc/>
-    public async Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
+    public Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        return await GetItemAsync(global::System.IO.Path.Combine(Path, name), cancellationToken);
+        return GetItemAsync(global::System.IO.Path.Combine(Path, name), cancellationToken);
     }
 
     /// <inheritdoc />
@@ -195,8 +230,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
 
         if (IsFolder(item.Id))
             Directory.Delete(item.Id, recursive: true);
-
-        if (IsFile(item.Id))
+        else if (IsFile(item.Id))
             File.Delete(item.Id);
 
         return Task.CompletedTask;
@@ -219,14 +253,14 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         if (File.Exists(newPath))
         {
             if (!overwrite)
-                return new SystemFile(newPath);
+                return new SystemFile(newPath, noValidation: true);
 
             File.Delete(newPath);
         }
 
         File.Copy(systemFile.Path, newPath, overwrite);
 
-        return new SystemFile(newPath);
+        return new SystemFile(newPath, noValidation: true);
     }
 
     /// <inheritdoc />
@@ -239,14 +273,14 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         // Handle using System.IO
         var newPath = global::System.IO.Path.Combine(Path, systemFile.Name);
         if (File.Exists(newPath) && !overwrite)
-            return new SystemFile(newPath);
+            return new SystemFile(newPath, noValidation: true);
 
         if (overwrite)
             File.Delete(newPath);
 
         File.Move(systemFile.Path, newPath);
 
-        return new SystemFile(newPath);
+        return new SystemFile(newPath, noValidation: true);
     }
 
     /// <inheritdoc />
@@ -276,13 +310,13 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         if (overwrite || !File.Exists(newPath))
             File.Create(newPath).Dispose();
 
-        return Task.FromResult<IChildFile>(new SystemFile(newPath));
+        return Task.FromResult<IChildFile>(new SystemFile(newPath, noValidation: true));
     }
 
     /// <inheritdoc />
     public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di) : null);
+        return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di, noValidation: true) : null);
     }
 
     /// <inheritdoc />
