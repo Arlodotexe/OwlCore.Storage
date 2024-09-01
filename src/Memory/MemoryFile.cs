@@ -56,6 +56,7 @@ namespace OwlCore.Storage.Memory
             if (accessMode == 0)
                 throw new ArgumentOutOfRangeException(nameof(accessMode), $"{nameof(FileAccess)}.{accessMode} is not valid here.");
 
+            _memoryStream.Position = 0;
             return Task.FromResult<Stream>(new NonDisposableStreamWrapper(_memoryStream));
         }
     }
