@@ -23,6 +23,13 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.12.0 ---
+[Breaking]
+The Stream opened from HttpFile is no longer seekablem, as the internal LazySeekStream and all usages have been removed.
+
+[Fixes]
+Fixes an issue where files larger than 2GB couldn't be fully read via HttpFile.
+
 --- 0.11.3 ---
 [Improvement]
 Removed redundant validation when enumerating files and folders to improve performance in SystemFile and SystemFolder.
