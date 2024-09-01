@@ -9,7 +9,7 @@ namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 /// A test suite for <see cref="ZipArchiveEntryFile"/>s created entirely in memory.
 /// </summary>
 [TestClass]
-public class InMemIFileTests : CommonIFileTests
+public class ZipArchiveEntryFile_FileInMemory_Tests : CommonIFileTests
 {
     // Required for base class to perform common tests.
     public override Task<IFile> CreateFileAsync()

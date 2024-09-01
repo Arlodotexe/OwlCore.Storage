@@ -6,7 +6,7 @@ using System.IO.Compression;
 namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 
 [TestClass]
-public class IFileTests : CommonIFileTests
+public class ZipArchiveEntryFile_FileOnDisk_Tests : CommonIFileTests
 {
     // Required for base class to perform common tests.
     public override async Task<IFile> CreateFileAsync()

@@ -6,13 +6,13 @@ using System.IO.Compression;
 namespace OwlCore.Storage.Tests.Archive.ZipArchive;
 
 [TestClass]
-public class IFolderTests : CommonIModifiableFolderTests
+public class ZipArchiveFolder_FileOnDisk_Tests : CommonIModifiableFolderTests
 {
     // Required for base class to perform common tests.
-    public override async Task<IModifiableFolder> CreateModifiableFolderAsync()
+    public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
         var sourceFile = new SystemFile(CreateEmptyArchiveOnDisk());
-        return new ZipArchiveFolder(sourceFile);
+        return Task.FromResult<IModifiableFolder>(new ZipArchiveFolder(sourceFile));
     }
 
     public override async Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
