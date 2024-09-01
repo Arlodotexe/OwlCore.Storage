@@ -4,7 +4,7 @@ using OwlCore.Storage.Memory;
 namespace OwlCore.Storage.Tests.Memory;
 
 [TestClass]
-public class IFolderTests : CommonIModifiableFolderTests
+public class MemoryFolderTests : CommonIModifiableFolderTests
 {
     // Required for base class to perform common tests.
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()
