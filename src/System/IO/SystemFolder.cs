@@ -246,17 +246,17 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         // Handle using System.IO
         var newPath = global::System.IO.Path.Combine(Path, systemFile.Name);
 
-        // If the source and destination are the same, there's no need to copy.
-        if (systemFile.Path == newPath)
-            return new SystemFile(newPath);
-
         if (File.Exists(newPath))
         {
             if (!overwrite)
-                return new SystemFile(newPath, noValidation: true);
+                throw new FileAlreadyExistsException(fileToCopy.Name);
 
             File.Delete(newPath);
         }
+
+        // If the source and destination are the same, there's no need to copy.
+        if (systemFile.Path == newPath)
+            return systemFile;
 
         File.Copy(systemFile.Path, newPath, overwrite);
 
