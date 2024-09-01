@@ -89,10 +89,9 @@ public class HttpFile : IFile
         // Extract the content length if available
         long? length = response.Content.Headers.ContentLength;
 
-        if (length is long notNullLength)
+        if (length is { } notNullLength)
             contentStream = new LengthOverrideStream(contentStream, notNullLength);
 
-        // Return in a lazy seek-able wrapper.
-        return new LazySeekStream(contentStream);
+        return contentStream;
     }
 }
