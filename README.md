@@ -37,7 +37,9 @@ If you're updating from a previous version, please see the [release notes](https
 
 ### Planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
-- Google Drive
+- [SSH, SCP and SFTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/55)
+- [BitTorrent](https://github.com/Arlodotexe/OwlCore.Storage/issues/68)
+- [WebDAV](https://github.com/Arlodotexe/OwlCore.Storage/issues/69)
 
 # Proposal
 ---
