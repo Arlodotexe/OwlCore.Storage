@@ -33,7 +33,8 @@ If you're updating from a previous version, please see the [release notes](https
 - [Windows.Storage](https://github.com/Arlodotexe/OwlCore.Storage.Uwp)
 - [IPFS / IPNS / MFS](https://github.com/Arlodotexe/OwlCore.Kubo/blob/main/docs/storageproviders.md)
 - [OneDrive](https://github.com/Arlodotexe/OwlCore.Storage.OneDrive)
-- [Archives (7z, tar, etc)](https://github.com/yoshiask/OwlCore.Storage.SharpCompress) (via SharpCompress, third-party)
+- [Archives (7z, tar, etc)](https://github.com/yoshiask/OwlCore.Storage.SharpCompress) (via [SharpCompress](https://github.com/adamhathcock/sharpcompress/), third-party)
+- [NTFS](https://github.com/itsWindows11/OwlCore.Storage.Ntfs/) (via [NtfsReader](https://github.com/itsWindows11/NtfsReader), third-party)
 
 ### Planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
