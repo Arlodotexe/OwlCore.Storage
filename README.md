@@ -36,7 +36,7 @@ If you're updating from a previous version, please see the [release notes](https
 - [Archives (7z, tar, etc)](https://github.com/yoshiask/OwlCore.Storage.SharpCompress) (via [SharpCompress](https://github.com/adamhathcock/sharpcompress/), third-party)
 - [NTFS](https://github.com/itsWindows11/OwlCore.Storage.Ntfs/) (via [NtfsReader](https://github.com/itsWindows11/NtfsReader), third-party)
 
-### Planned
+### Requested or planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
 - [SSH, SCP and SFTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/55)
 - [BitTorrent](https://github.com/Arlodotexe/OwlCore.Storage/issues/68)
