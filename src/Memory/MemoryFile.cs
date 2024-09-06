@@ -56,6 +56,9 @@ namespace OwlCore.Storage.Memory
             if (accessMode == 0)
                 throw new ArgumentOutOfRangeException(nameof(accessMode), $"{nameof(FileAccess)}.{accessMode} is not valid here.");
 
+            // The consumer expects that whenever opening a Stream instance the Position is set to the beginning of the stream.
+            _memoryStream.Position = 0L;
+
             return Task.FromResult<Stream>(new NonDisposableStreamWrapper(_memoryStream));
         }
     }
