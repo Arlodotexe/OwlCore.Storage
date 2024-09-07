@@ -28,7 +28,11 @@
 The Stream opened from HttpFile is no longer seekable, as the internal LazySeekStream and all usages have been removed.
 
 [Fixes]
+Fixed an issue where CreateCopyOfAsync and MoveFromAsync slowpaths would throw when given a stream that couldn't set length.
 Fixes an issue where files larger than 2GB couldn't be fully read via HttpFile.
+Fixed inconsistent behavior when calling CreateCopyOfAsync from interface instead of extension method. The overwrite: false throw check now happens inside of CreateCopyOfFallbackAsync.
+Fix inconsistent CreateCopyOfAsync behavior in SystemFolder when a file exist and overwrite: false is given.
+Fixed an issue where calling MemoryFile.OpenStreamAsync wouldn't return a stream with a 0 position, and would keep position the same even after outer disposal by other callers.
 
 --- 0.11.3 ---
 [Improvement]
