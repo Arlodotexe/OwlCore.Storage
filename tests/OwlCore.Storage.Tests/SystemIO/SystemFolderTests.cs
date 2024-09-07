@@ -4,7 +4,7 @@ using OwlCore.Storage.System.IO;
 namespace OwlCore.Storage.Tests.SystemIO;
 
 [TestClass]
-public class IFolderTests : CommonIModifiableFolderTests
+public class SystemFolderTests : CommonIModifiableFolderTests
 {
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {

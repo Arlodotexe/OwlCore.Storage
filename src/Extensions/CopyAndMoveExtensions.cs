@@ -21,24 +21,28 @@ public static partial class ModifiableFolderExtensions
     {
         static async Task<IChildFile> CreateCopyOfFallbackAsync(IModifiableFolder destinationFolder, IFile fileToCopy, bool overwrite, CancellationToken cancellationToken = default)
         {
-            // Open the source file
-            using var sourceStream = await fileToCopy.OpenStreamAsync(FileAccess.Read, cancellationToken: cancellationToken);
-
-            // Create the destination file
-            var newFile = await destinationFolder.CreateFileAsync(fileToCopy.Name, overwrite, cancellationToken);
-            using var destinationStream = await newFile.OpenStreamAsync(FileAccess.ReadWrite, cancellationToken: cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Align stream positions (if possible)
-            if (destinationStream.CanSeek && destinationStream.Position != 0)
-                destinationStream.Seek(0, SeekOrigin.Begin);
+            // If the destination file exists and overwrite is false, it shouldn't be overwritten or returned as-is. Throw an exception instead.
+            if (!overwrite)
+            {
+                try
+                {
+                    var existing = await destinationFolder.GetFirstByNameAsync(fileToCopy.Name, cancellationToken);
+                    if (existing is not null)
+                        throw new FileAlreadyExistsException(fileToCopy.Name);
+                }
+                catch (FileNotFoundException) { }
+            }
 
-            if (sourceStream.CanSeek && sourceStream.Position != 0)
-                sourceStream.Seek(0, SeekOrigin.Begin);
+            // Create the destination file.
+            // 'overwrite: false' would have thrown above if the file exists, so either overwrite is already true or the file doesn't exist yet.
+            // Always overwrite here so the file is empty. 
+            var newFile = await destinationFolder.CreateFileAsync(fileToCopy.Name, overwrite: true, cancellationToken);
+            using var destinationStream = await newFile.OpenStreamAsync(FileAccess.Write, cancellationToken: cancellationToken);
 
-            // Set stream length to zero to clear any existing data.
-            // Otherwise, writing less bytes than already exists would leave extra bytes at the end.
-            destinationStream.SetLength(0);
+            // Open the source file
+            using var sourceStream = await fileToCopy.OpenStreamAsync(FileAccess.Read, cancellationToken: cancellationToken);
 
             // Copy the src into the dest file
             await sourceStream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
@@ -47,18 +51,6 @@ public static partial class ModifiableFolderExtensions
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        
-        // If the destination file exists and overwrite is false, it shouldn't be overwritten or returned as-is. Throw an exception instead.
-        if (!overwrite)
-        {
-            try
-            {
-                var existing = await destinationFolder.GetFirstByNameAsync(fileToCopy.Name, cancellationToken);
-                if (existing is not null)
-                    throw new FileAlreadyExistsException(fileToCopy.Name);
-            }
-            catch (FileNotFoundException) { }
-        }
 
         // If the destination folder declares a non-fallback copy path, try that.
         // Provide fallback in case this file is not a handled type.

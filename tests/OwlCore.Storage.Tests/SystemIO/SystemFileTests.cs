@@ -4,7 +4,7 @@ using OwlCore.Storage.System.IO;
 namespace OwlCore.Storage.Tests.SystemIO;
 
 [TestClass]
-public class IFileTests : CommonIFileTests
+public class SystemFileTests : CommonIFileTests
 {
     // Required for base class to perform common tests.
     public override async Task<IFile> CreateFileAsync()
