@@ -110,7 +110,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     public string Path { get; }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public virtual async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -163,7 +163,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public Task<IStorableChild> GetItemRecursiveAsync(string id, CancellationToken cancellationToken = default)
+    public virtual Task<IStorableChild> GetItemRecursiveAsync(string id, CancellationToken cancellationToken = default)
     {
         if (!id.Contains(Path))
             throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
@@ -179,7 +179,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public virtual Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         if (!id.Contains(Path))
             throw new FileNotFoundException($"The provided Id does not belong to an item in this folder.");
@@ -210,19 +210,19 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc/>
-    public Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
+    public virtual Task<IStorableChild> GetFirstByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return GetItemAsync(global::System.IO.Path.Combine(Path, name), cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<IFolderWatcher> GetFolderWatcherAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolderWatcher> GetFolderWatcherAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolderWatcher>(new SystemFolderWatcher(this));
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
+    public virtual Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         // Ensure containing directory matches current folder.
         if (GetParentPath(item.Id).TrimEnd(global::System.IO.Path.DirectorySeparatorChar) != Path)
@@ -237,7 +237,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite, CancellationToken cancellationToken, CreateCopyOfDelegate fallback)
+    public virtual async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite, CancellationToken cancellationToken, CreateCopyOfDelegate fallback)
     {
         // Check if the file is a SystemFile. If not, use the fallback.
         if (fileToCopy is not SystemFile systemFile)
@@ -264,7 +264,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken, MoveFromDelegate fallback)
+    public virtual async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken, MoveFromDelegate fallback)
     {
         // Check if the file is a SystemFile. If not, use the fallback.
         if (fileToMove is not SystemFile systemFile)
@@ -284,7 +284,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public virtual Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = global::System.IO.Path.Combine(Path, name);
 
@@ -303,7 +303,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public Task<IChildFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
+    public virtual Task<IChildFile> CreateFileAsync(string name, bool overwrite = false, CancellationToken cancellationToken = default)
     {
         var newPath = global::System.IO.Path.Combine(Path, name);
 
@@ -314,13 +314,13 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(Directory.GetParent(Path) is { } di ? new SystemFolder(di, noValidation: true) : null);
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(new SystemFolder(Info.Root));
     }
