@@ -96,6 +96,19 @@ public class SystemFile : IChildFile, IGetRoot
     public string Path { get; }
 
     /// <summary>
+    /// Contains constants for controlling the kind of access other operations can have to the same file.
+    /// </summary>
+    /// <remarks>
+    /// This enumeration supports a bitwise combination of its member values. A typical use of this enumeration is to define whether two processes can simultaneously read from the same file. For example, if a file is opened and Read is specified, other users can open the file for reading but not for writing.
+    /// </remarks>
+    public FileShare FileShare { get; set; } = FileShare.None;
+
+    /// <summary>
+    /// A positive Int32 value greater than 0 indicating the buffer size. The default buffer size is 4096.
+    /// </summary>
+    public int BufferSize { get; set; } = 4096;
+
+    /// <summary>
     /// Gets the underlying <see cref="FileInfo"/> for this folder.
     /// </summary>
     public FileInfo Info => _info ??= new(Path);
@@ -103,7 +116,7 @@ public class SystemFile : IChildFile, IGetRoot
     /// <inheritdoc />
     public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
-        var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare.None, 4096, FileOptions.Asynchronous);
+        var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
         cancellationToken.ThrowIfCancellationRequested();
 
         return Task.FromResult<Stream>(stream);
