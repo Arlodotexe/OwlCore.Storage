@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.12.0</Version>
+    <Version>0.12.1</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
 		
@@ -23,6 +23,11 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.12.1 ---
+[Improvements]
+Added the `virtual` keyword to all methods in `SystemFile` and `SystemFolder`, allowing consumers to extend these or adjust these methods in a custom derived implementation. 8d176f915ba2adb525f6aae4e40fa3f06944f0b9
+SystemFile.FileShare and SystemFile.BufferSize properties for `FileStream` constructor parameters that were previously hardcoded. fe2205fe308df185411243b1c77bffa09e876f76
+
 --- 0.12.0 ---
 [Breaking]
 The Stream opened from HttpFile is no longer seekable, as the internal LazySeekStream and all usages have been removed.
