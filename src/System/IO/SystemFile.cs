@@ -101,7 +101,7 @@ public class SystemFile : IChildFile, IGetRoot
     public FileInfo Info => _info ??= new(Path);
 
     /// <inheritdoc />
-    public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
+    public virtual Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
         var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare.None, 4096, FileOptions.Asynchronous);
         cancellationToken.ThrowIfCancellationRequested();
@@ -110,14 +110,14 @@ public class SystemFile : IChildFile, IGetRoot
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo? parent = _info != null ? _info.Directory : Directory.GetParent(Path);
         return Task.FromResult<IFolder?>(parent != null ? new SystemFolder(parent, noValidation: true) : null);
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolder?> GetRootAsync(CancellationToken cancellationToken = default)
     {
         DirectoryInfo root = _info?.Directory != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
         return Task.FromResult<IFolder?>(new SystemFolder(root, noValidation: true));
