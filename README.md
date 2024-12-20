@@ -35,6 +35,8 @@ If you're updating from a previous version, please see the [release notes](https
 - [OneDrive](https://github.com/Arlodotexe/OwlCore.Storage.OneDrive)
 - [Archives (7z, tar, etc)](https://github.com/yoshiask/OwlCore.Storage.SharpCompress) (via [SharpCompress](https://github.com/adamhathcock/sharpcompress/), third-party)
 - [NTFS](https://github.com/itsWindows11/OwlCore.Storage.Ntfs/) (via [NtfsReader](https://github.com/itsWindows11/NtfsReader), third-party)
+- [Audio Devices](https://github.com/Arlodotexe/OwlCore.Storage.OpenAL) via [Silk.NET OpenAL](https://github.com/dotnet/Silk.NET)
+
 
 ### Requested or planned
 - [FTP](https://github.com/Arlodotexe/OwlCore.Storage/issues/12)
