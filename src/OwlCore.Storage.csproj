@@ -1,4 +1,3 @@
-<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -23,6 +22,10 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.12.2 ---
+[Improvements]
+Added the `virtual` keyword to all methods in `MemoryFile` and `MemoryFolder`, allowing consumers to extend these or adjust these methods in a custom derived implementation.
+
 --- 0.12.1 ---
 [Improvements]
 Added the `virtual` keyword to all methods in `SystemFile` and `SystemFolder`, allowing consumers to extend these or adjust these methods in a custom derived implementation. 8d176f915ba2adb525f6aae4e40fa3f06944f0b9
