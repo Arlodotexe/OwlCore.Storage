@@ -12,7 +12,7 @@ namespace OwlCore.Storage.Memory;
 /// </summary>
 public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 {
-    private readonly Dictionary<string, IStorableChild> _folderContents = new();
+    protected readonly Dictionary<string, IStorableChild> folderContents = new();
     private readonly MemoryFolderWatcher _folderWatcher;
 
     /// <summary>
@@ -47,7 +47,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
         if (type == StorableType.None)
             throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
 
-        return _folderContents.Values.Where(x =>
+        return folderContents.Values.Where(x =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -68,7 +68,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_folderContents.TryGetValue(id, out var content))
+        if (!folderContents.TryGetValue(id, out var content))
             throw new FileNotFoundException();
 
         return Task.FromResult(content);
@@ -79,10 +79,10 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_folderContents.ContainsKey(item.Id))
+        if (!folderContents.ContainsKey(item.Id))
             throw new FileNotFoundException();
 
-        _folderContents.Remove(item.Id);
+        folderContents.Remove(item.Id);
         _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(item.Id, item.Name));
 
         return Task.CompletedTask;
@@ -93,7 +93,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFolderKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
+        var existingFolderKvp = folderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
         var existingFolder = existingFolderKvp.Value as IChildFolder;
 
         if (overwrite && existingFolder is not null)
@@ -108,13 +108,13 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 
         IChildFolder folder = overwrite ? emptyMemoryFolder : (existingFolder ?? emptyMemoryFolder);
 
-        if (!_folderContents.ContainsKey(folder.Id))
+        if (!folderContents.ContainsKey(folder.Id))
         {
-            _folderContents.Add(folder.Id, folder);
+            folderContents.Add(folder.Id, folder);
             _folderWatcher.NotifyItemAdded(folder);
         }
         else
-            _folderContents[folder.Id] = folder;
+            folderContents[folder.Id] = folder;
 
         return folder;
     }
@@ -124,7 +124,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFileKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name);
+        var existingFileKvp = folderContents.FirstOrDefault(x => x.Value.Name == name);
         IChildFile? existingFile = (IChildFile?)existingFileKvp.Value;
 
         if (overwrite && existingFile is not null)
@@ -139,10 +139,10 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 
         var file = overwrite ? emptyMemoryFolder : (existingFile ?? emptyMemoryFolder);
 
-        if (!_folderContents.ContainsKey(file.Id))
-            _folderContents.Add(file.Id, file);
+        if (!folderContents.ContainsKey(file.Id))
+            folderContents.Add(file.Id, file);
         else
-            _folderContents[file.Id] = file;
+            folderContents[file.Id] = file;
 
         _folderWatcher.NotifyItemAdded(file);
 
