@@ -12,7 +12,6 @@ namespace OwlCore.Storage.Memory;
 /// </summary>
 public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 {
-    private readonly Dictionary<string, IStorableChild> _folderContents = new();
     private readonly MemoryFolderWatcher _folderWatcher;
 
     /// <summary>
@@ -37,17 +36,22 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     /// <summary>
     /// Gets the parent folder, if any.
     /// </summary>
-    public MemoryFolder? Parent { get; internal set; }
+    public MemoryFolder? Parent { get; protected internal set; }
+
+    /// <summary>
+    /// Gets the contents of the folder as a dictionary with <see cref="IStorableChild"/> items associated with unique item IDs.
+    /// </summary>
+    protected Dictionary<string, IStorableChild> FolderContents { get; } = new();
 
     /// <inheritdoc />
-    public IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
+    public virtual IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (type == StorableType.None)
             throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
 
-        return _folderContents.Values.Where(x =>
+        return FolderContents.Values.Where(x =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -57,43 +61,43 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     }
 
     /// <inheritdoc />
-    public Task<IFolderWatcher> GetFolderWatcherAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolderWatcher> GetFolderWatcherAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult<IFolderWatcher>(_folderWatcher);
     }
 
     /// <inheritdoc />
-    public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public virtual Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_folderContents.ContainsKey(id))
+        if (!FolderContents.TryGetValue(id, out var content))
             throw new FileNotFoundException();
 
-        return Task.FromResult(_folderContents[id]);
+        return Task.FromResult(content);
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
+    public virtual Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_folderContents.ContainsKey(item.Id))
+        if (!FolderContents.ContainsKey(item.Id))
             throw new FileNotFoundException();
 
-        _folderContents.Remove(item.Id);
+        FolderContents.Remove(item.Id);
         _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(item.Id, item.Name));
 
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public virtual async Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFolderKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
+        var existingFolderKvp = FolderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
         var existingFolder = existingFolderKvp.Value as IChildFolder;
 
         if (overwrite && existingFolder is not null)
@@ -108,23 +112,23 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 
         IChildFolder folder = overwrite ? emptyMemoryFolder : (existingFolder ?? emptyMemoryFolder);
 
-        if (!_folderContents.ContainsKey(folder.Id))
+        if (!FolderContents.ContainsKey(folder.Id))
         {
-            _folderContents.Add(folder.Id, folder);
+            FolderContents.Add(folder.Id, folder);
             _folderWatcher.NotifyItemAdded(folder);
         }
         else
-            _folderContents[folder.Id] = folder;
+            FolderContents[folder.Id] = folder;
 
         return folder;
     }
 
     /// <inheritdoc />
-    public async Task<IChildFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public virtual async Task<IChildFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFileKvp = _folderContents.FirstOrDefault(x => x.Value.Name == name);
+        var existingFileKvp = FolderContents.FirstOrDefault(x => x.Value.Name == name);
         IChildFile? existingFile = (IChildFile?)existingFileKvp.Value;
 
         if (overwrite && existingFile is not null)
@@ -139,10 +143,10 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 
         var file = overwrite ? emptyMemoryFolder : (existingFile ?? emptyMemoryFolder);
 
-        if (!_folderContents.ContainsKey(file.Id))
-            _folderContents.Add(file.Id, file);
+        if (!FolderContents.ContainsKey(file.Id))
+            FolderContents.Add(file.Id, file);
         else
-            _folderContents[file.Id] = file;
+            FolderContents[file.Id] = file;
 
         _folderWatcher.NotifyItemAdded(file);
 
@@ -150,7 +154,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(Parent);
     }
