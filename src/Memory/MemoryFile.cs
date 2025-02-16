@@ -43,13 +43,13 @@ namespace OwlCore.Storage.Memory
         /// <summary>
         /// The parent folder, if any.
         /// </summary>
-        public MemoryFolder? Parent { get; internal set; }
+        public MemoryFolder? Parent { get; protected internal set; }
 
         /// <inheritdoc />
-        public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default) => Task.FromResult<IFolder?>(Parent);
+        public virtual Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default) => Task.FromResult<IFolder?>(Parent);
 
         /// <inheritdoc />
-        public Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
+        public virtual Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

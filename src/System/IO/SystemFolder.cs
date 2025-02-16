@@ -325,8 +325,19 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
         return Task.FromResult<IFolder?>(new SystemFolder(Info.Root));
     }
 
-    private static bool IsFile(string path) => global::System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);
-    private static bool IsFolder(string path) => Directory.Exists(path);
+    /// <summary>
+    /// Determines if the specified path is a file.
+    /// </summary>
+    /// <param name="path">The path to check.</param>
+    /// <returns><c>true</c> if the path is a file; otherwise, <c>false</c>.</returns>
+    protected static bool IsFile(string path) => global::System.IO.Path.GetFileName(path) is { } str && str != string.Empty && File.Exists(path);
+
+    /// <summary>
+    /// Determines if the specified path is a folder.
+    /// </summary>
+    /// <param name="path">The path to check.</param>
+    /// <returns><c>true</c> if the path is a folder; otherwise, <c>false</c>.</returns>
+    protected static bool IsFolder(string path) => Directory.Exists(path);
 
     string GetParentPath(string relativePath)
     {

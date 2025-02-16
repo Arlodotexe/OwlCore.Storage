@@ -37,10 +37,10 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     /// <summary>
     /// Gets the parent folder, if any.
     /// </summary>
-    public MemoryFolder? Parent { get; internal set; }
+    public MemoryFolder? Parent { get; protected internal set; }
 
     /// <inheritdoc />
-    public IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
+    public virtual IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -57,25 +57,25 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     }
 
     /// <inheritdoc />
-    public Task<IFolderWatcher> GetFolderWatcherAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolderWatcher> GetFolderWatcherAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult<IFolderWatcher>(_folderWatcher);
     }
 
     /// <inheritdoc />
-    public Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public virtual Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_folderContents.ContainsKey(id))
+        if (!_folderContents.TryGetValue(id, out var content))
             throw new FileNotFoundException();
 
-        return Task.FromResult(_folderContents[id]);
+        return Task.FromResult(content);
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
+    public virtual Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -89,7 +89,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     }
 
     /// <inheritdoc />
-    public async Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public virtual async Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -120,7 +120,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     }
 
     /// <inheritdoc />
-    public async Task<IChildFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
+    public virtual async Task<IChildFile> CreateFileAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -150,7 +150,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     }
 
     /// <inheritdoc />
-    public Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(Parent);
     }
