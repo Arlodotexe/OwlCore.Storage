@@ -12,7 +12,6 @@ namespace OwlCore.Storage.Memory;
 /// </summary>
 public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 {
-    protected readonly Dictionary<string, IStorableChild> folderContents = new();
     private readonly MemoryFolderWatcher _folderWatcher;
 
     /// <summary>
@@ -39,6 +38,11 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     /// </summary>
     public MemoryFolder? Parent { get; protected internal set; }
 
+    /// <summary>
+    /// Gets the contents of the folder as a dictionary with <see cref="IStorableChild"/> items associated with unique item IDs.
+    /// </summary>
+    protected Dictionary<string, IStorableChild> FolderContents { get; } = new();
+
     /// <inheritdoc />
     public virtual IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
     {
@@ -47,7 +51,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
         if (type == StorableType.None)
             throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
 
-        return folderContents.Values.Where(x =>
+        return FolderContents.Values.Where(x =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -68,7 +72,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!folderContents.TryGetValue(id, out var content))
+        if (!FolderContents.TryGetValue(id, out var content))
             throw new FileNotFoundException();
 
         return Task.FromResult(content);
@@ -79,10 +83,10 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!folderContents.ContainsKey(item.Id))
+        if (!FolderContents.ContainsKey(item.Id))
             throw new FileNotFoundException();
 
-        folderContents.Remove(item.Id);
+        FolderContents.Remove(item.Id);
         _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(item.Id, item.Name));
 
         return Task.CompletedTask;
@@ -93,7 +97,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFolderKvp = folderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
+        var existingFolderKvp = FolderContents.FirstOrDefault(x => x.Value.Name == name && x.Value is IFolder);
         var existingFolder = existingFolderKvp.Value as IChildFolder;
 
         if (overwrite && existingFolder is not null)
@@ -108,13 +112,13 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 
         IChildFolder folder = overwrite ? emptyMemoryFolder : (existingFolder ?? emptyMemoryFolder);
 
-        if (!folderContents.ContainsKey(folder.Id))
+        if (!FolderContents.ContainsKey(folder.Id))
         {
-            folderContents.Add(folder.Id, folder);
+            FolderContents.Add(folder.Id, folder);
             _folderWatcher.NotifyItemAdded(folder);
         }
         else
-            folderContents[folder.Id] = folder;
+            FolderContents[folder.Id] = folder;
 
         return folder;
     }
@@ -124,7 +128,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existingFileKvp = folderContents.FirstOrDefault(x => x.Value.Name == name);
+        var existingFileKvp = FolderContents.FirstOrDefault(x => x.Value.Name == name);
         IChildFile? existingFile = (IChildFile?)existingFileKvp.Value;
 
         if (overwrite && existingFile is not null)
@@ -139,10 +143,10 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
 
         var file = overwrite ? emptyMemoryFolder : (existingFile ?? emptyMemoryFolder);
 
-        if (!folderContents.ContainsKey(file.Id))
-            folderContents.Add(file.Id, file);
+        if (!FolderContents.ContainsKey(file.Id))
+            FolderContents.Add(file.Id, file);
         else
-            folderContents[file.Id] = file;
+            FolderContents[file.Id] = file;
 
         _folderWatcher.NotifyItemAdded(file);
 
