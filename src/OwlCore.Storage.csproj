@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <WarningsAsErrors>nullable</WarningsAsErrors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -14,7 +14,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.12.2</Version>
+    <Version>0.12.3</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the Windows App Community.
 		
@@ -23,6 +23,10 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.12.3 ---
+[Fixes]
+Fixed an issue with GetItemByRelativePathAsync not recognizing Windows-style path separators when running on WASM on Windows.
+
 --- 0.12.2 ---
 [Improvements]
 Added the `virtual` keyword to all methods in `MemoryFile` and `MemoryFolder`, allowing consumers to extend these or adjust these methods in a custom derived implementation.
