@@ -27,12 +27,17 @@ public static partial class StorableExtensions
     /// <exception cref="FileNotFoundException">A named item was specified in a folder, but the item wasn't found.</exception>
     public static async Task<IStorable> GetItemByRelativePathAsync(this IStorable from, string relativePath, CancellationToken cancellationToken = default)
     {
-        var inputPathChars = new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, Path.PathSeparator, Path.VolumeSeparatorChar };
+        // Input path separators should include all possible separators that can be used in a path.
+        // This includes the directory separator, alternate directory separator, path separator, and volume separator.
+        // In some scenarios, such as dotnet running on WASM on Windows, a path separator may be used that is not given by dotnet via these properties.
+        // Therefore, we also include '/' and '\' as valid path separators. 
+        // See also https://github.com/Arlodotexe/OwlCore.Storage/issues/86
+        char[] inputPathSepChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, Path.PathSeparator, Path.VolumeSeparatorChar, '/', '\\'];
         var ourPathSeparator = @"/";
 
         // Traverse only one level at a time
         // But recursively, until the target has been reached.
-        var pathParts = relativePath.Split(inputPathChars).Where(x => !string.IsNullOrWhiteSpace(x) && x != ".").ToArray();
+        var pathParts = relativePath.Split([..inputPathSepChars.Distinct()]).Where(x => !string.IsNullOrWhiteSpace(x) && x != ".").ToArray();
 
         // Current directory was specified.
         if (pathParts.Length == 0)
