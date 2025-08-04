@@ -31,7 +31,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
         }
 
         if (!Directory.Exists(path))
-            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
+            throw new FileNotFoundException($"Directory not found at path '{path}'.");
 
         // For consistency, always remove the trailing directory separator.
         Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
@@ -44,7 +44,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     public SystemFolder(DirectoryInfo info)
     {
         if (!info.Exists)
-            throw new FileNotFoundException($"Directory not found at path '{Path}'.");
+            throw new FileNotFoundException($"Directory not found at path '{info.FullName}'.");
 
         _info = info;
 
