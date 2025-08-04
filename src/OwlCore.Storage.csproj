@@ -26,6 +26,11 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.13.0 ---
+[New]
+Added new ICreateRenamedCopy and IMoveRenamedFrom extension method overloads and corresponding extension method interfaces for ICreateCopy and IMoveFrom.
+Implemented ICreateRenamedCopy and IMoveRenamedFrom in SystemFolder.
+
 --- 0.12.3 ---
 [Fixes]
 Fixed an issue with GetItemByRelativePathAsync not recognizing Windows-style path separators when running on WASM on Windows.
