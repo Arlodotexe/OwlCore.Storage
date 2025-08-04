@@ -7,11 +7,14 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 
+    <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
 
-    <!-- Include symbol files (*.pdb) in the built .nupkg -->
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <!-- Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!-- Recommended: Embed symbols containing Source Link in the main file (exe/dll) -->
+    <DebugType>embedded</DebugType>
 
     <Author>Arlo Godfrey</Author>
     <Version>0.12.3</Version>
@@ -271,8 +274,7 @@ Added all missing interfaces and extension methods from proposal.
 --- 0.0.0 ---
 [New]
 Initial release of OwlCore.Storage.
-		</PackageReleaseNotes>
-    <DebugType>embedded</DebugType>
+    </PackageReleaseNotes>
     <NeutralLanguage>en</NeutralLanguage>
     <Authors>Arlo Godfrey</Authors>
   </PropertyGroup>
