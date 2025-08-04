@@ -14,6 +14,13 @@ public static class FileReadExtensions
     /// Opens the file for reading and reads the content into a byte array.
     /// </summary>
     /// <param name="file">The file to read.</param>
+    /// <returns>A Task containing a byte array of the file contents.</returns>
+    public static Task<byte[]> ReadBytesAsync(this IFile file) => file.ReadBytesAsync(default);
+
+    /// <summary>
+    /// Opens the file for reading and reads the content into a byte array.
+    /// </summary>
+    /// <param name="file">The file to read.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A Task containing a byte array of the file contents.</returns>
     public static Task<byte[]> ReadBytesAsync(this IFile file, CancellationToken cancellationToken = default) => file.ReadBytesAsync(bufferSize: 81920, cancellationToken);
@@ -37,14 +44,28 @@ public static class FileReadExtensions
     /// Opens the file for reading and reads the content into a byte array.
     /// </summary>
     /// <param name="file">The file to read from.</param>
-    /// <param name="encoding">The encoding to use for reading text from the file.</param>
+    /// <returns>A Task containing a byte array of the file contents.</returns>
+    public static Task<string> ReadTextAsync(this IFile file) => file.ReadTextAsync(default);
+
+    /// <summary>
+    /// Opens the file for reading and reads the content into a byte array.
+    /// </summary>
+    /// <param name="file">The file to read from.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
+    /// <returns>A Task containing a byte array of the file contents.</returns>
+    public static Task<string> ReadTextAsync(this IFile file, CancellationToken cancellationToken = default) => file.ReadTextAsync(Encoding.UTF8, cancellationToken);
+
+    /// <summary>
+    /// Opens the file for reading and reads the content into a byte array.
+    /// </summary>
+    /// <param name="file">The file to read from.</param>
     /// <param name="bufferSize">The size, in bytes, of the buffer. This value must be greater than zero. The default size is 81920.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A Task containing a byte array of the file contents.</returns>
-    public static async Task<string> ReadTextAsync(this IFile file, Encoding encoding, int bufferSize = 81920, CancellationToken cancellationToken = default)
+    public static async Task<string> ReadTextAsync(this IFile file, int bufferSize = 81920, CancellationToken cancellationToken = default)
     {
         var bytes = await file.ReadBytesAsync(bufferSize, cancellationToken);
-        return encoding.GetString(bytes);
+        return Encoding.UTF8.GetString(bytes);
     }
 
     /// <summary>
@@ -60,7 +81,13 @@ public static class FileReadExtensions
     /// Opens the file for reading and reads the content into a byte array.
     /// </summary>
     /// <param name="file">The file to read from.</param>
+    /// <param name="encoding">The encoding to use for reading text from the file.</param>
+    /// <param name="bufferSize">The size, in bytes, of the buffer. This value must be greater than zero. The default size is 81920.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A Task containing a byte array of the file contents.</returns>
-    public static Task<string> ReadTextAsync(this IFile file, CancellationToken cancellationToken = default) => file.ReadTextAsync(Encoding.UTF8, cancellationToken);
+    public static async Task<string> ReadTextAsync(this IFile file, Encoding encoding, int bufferSize = 81920, CancellationToken cancellationToken = default)
+    {
+        var bytes = await file.ReadBytesAsync(bufferSize, cancellationToken);
+        return encoding.GetString(bytes);
+    }
 }
