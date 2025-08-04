@@ -32,8 +32,11 @@ Added new ICreateRenamedCopy and IMoveRenamedFrom extension method overloads and
 Implemented ICreateRenamedCopy and IMoveRenamedFrom in SystemFolder.
 
 [Improvements]
-Fix FileNotFoundException messages to use correct path variable.
-Fixes to source link including default recommended settings and enabling ContinuousIntegrationBuild in CI for deterministic paths. 
+Fixed FileNotFoundException messages to use correct path variable.
+
+[Fixes]
+Fixes made to source link including default recommended settings and enabling ContinuousIntegrationBuild in CI for deterministic paths.
+Fixed ambiguous overloads in FileReadExtensions.ReadTextAsync and FileReadExtensions.ReadBytesAsync.
 
 --- 0.12.3 ---
 [Fixes]
