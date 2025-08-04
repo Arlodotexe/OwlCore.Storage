@@ -11,7 +11,9 @@ public class HttpFileTests : CommonIFileTests
     // Required for base class to perform common tests.
     public override Task<IFile> CreateFileAsync()
     {
-        var file = new HttpFile(new Uri("https://example.com/"));
+        // example.com was previously used here
+        // but was changed due to slow retrieval times.
+        var file = new HttpFile(new Uri("https://httpbin.org/"));
 
         return Task.FromResult<IFile>(file);
     }
