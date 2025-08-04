@@ -20,7 +20,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore -p:Configuration=Release
+      run: dotnet build --no-restore -p:Configuration=Release -p:ContinuousIntegrationBuild=true
     - name: Publish to NuGet
       run: dotnet nuget push "/home/runner/work/OwlCore.Storage/OwlCore.Storage/src/bin/Release/OwlCore.Storage.*.*.*.nupkg" --skip-duplicate --api-key ${{secrets.NUGET_KEY}} --source https://api.nuget.org/v3/index.json
       
