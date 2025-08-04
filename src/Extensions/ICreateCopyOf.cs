@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage;
 
 /// <summary>
-/// Provides a way for implementations to override behavior of the <see cref="ModifiableFolderExtensions.CreateCopyOfAsync"/> extension method.
+/// Provides a way for implementations to override behavior of the <see cref="ModifiableFolderExtensions.CreateCopyOfAsync(IModifiableFolder, IFile, bool, CancellationToken)"/> extension method.
 /// </summary>
 /// <exception cref="FileNotFoundException">The item was not found in the provided folder.</exception>
 public interface ICreateCopyOf : IModifiableFolder
@@ -26,3 +26,26 @@ public interface ICreateCopyOf : IModifiableFolder
 /// </summary>
 /// <returns></returns>
 public delegate Task<IChildFile> CreateCopyOfDelegate(IModifiableFolder destination, IFile fileToCopy, bool overwrite, CancellationToken cancellationToken);
+
+/// <summary>
+/// Provides a way for implementations to override behavior of the <see cref="ModifiableFolderExtensions.CreateCopyOfAsync(IModifiableFolder, IFile, bool, string, CancellationToken)"/> extension method.
+/// </summary>
+public interface ICreateRenamedCopyOf : ICreateCopyOf
+{
+    /// <summary>
+    /// Creates a copy of the provided file within this folder.
+    /// </summary>
+    /// <param name="fileToCopy">The file to be copied into this folder.</param>
+    /// <param name="overwrite">If there is an existing destination file, <c>true</c> will overwrite it; otherwise <c>false</c> and the existing file is opened.</param>
+    /// <param name="newName">The new name of the created file.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
+    /// <param name="fallback">The fallback to use if the provided <paramref name="fileToCopy"/> isn't supported.</param>
+    /// <returns>The newly created (or opened if existing) file.</returns>
+    Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite, string newName, CancellationToken cancellationToken, CreateRenamedCopyOfDelegate fallback);
+}
+
+/// <summary>
+/// A delegate that provides a fallback for the <see cref="IMoveFrom.MoveFromAsync"/> method.
+/// </summary>
+/// <returns></returns>
+public delegate Task<IChildFile> CreateRenamedCopyOfDelegate(IModifiableFolder destination, IFile fileToCopy, bool overwrite, string newName, CancellationToken cancellationToken);
