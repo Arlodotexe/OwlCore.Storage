@@ -13,7 +13,7 @@ namespace OwlCore.Storage.System.IO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMoveFrom, IGetItem, IGetItemRecursive, IGetFirstByName, IGetRoot
+public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyOf, IMoveRenamedFrom, IGetItem, IGetItemRecursive, IGetFirstByName, IGetRoot
 {
     private string? _name;
     private DirectoryInfo? _info;
@@ -237,19 +237,29 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public virtual async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite, CancellationToken cancellationToken, CreateCopyOfDelegate fallback)
+    public virtual Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite, CancellationToken cancellationToken, CreateCopyOfDelegate fallback)
+    {
+        // For code deduplication in this implementation,
+        // route to the overload with rename support
+        // while using the given non-rename overload as fallback.
+        // This also discards the filled newName param in the fallback, which is originally passed into the newName param in the following method call:
+        return CreateCopyOfAsync(fileToCopy, overwrite, newName: fileToCopy.Name, cancellationToken, (modifiableFolder, file, overwrite, _, cancellationToken) => fallback(modifiableFolder, file, overwrite, cancellationToken));
+    }
+
+    /// <inheritdoc />
+    public virtual async Task<IChildFile> CreateCopyOfAsync(IFile fileToCopy, bool overwrite, string newName, CancellationToken cancellationToken, CreateRenamedCopyOfDelegate fallback)
     {
         // Check if the file is a SystemFile. If not, use the fallback.
         if (fileToCopy is not SystemFile systemFile)
-            return await fallback(this, fileToCopy, overwrite, cancellationToken);
+            return await fallback(this, fileToCopy, overwrite, newName, cancellationToken);
 
         // Handle using System.IO
-        var newPath = global::System.IO.Path.Combine(Path, systemFile.Name);
+        var newPath = global::System.IO.Path.Combine(Path, newName);
 
         if (File.Exists(newPath))
         {
             if (!overwrite)
-                throw new FileAlreadyExistsException(fileToCopy.Name);
+                throw new FileAlreadyExistsException(newName);
 
             File.Delete(newPath);
         }
@@ -264,14 +274,24 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateCopyOf, IMov
     }
 
     /// <inheritdoc />
-    public virtual async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken, MoveFromDelegate fallback)
+    public virtual Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken, MoveFromDelegate fallback)
+    {
+        // For code deduplication in this implementation,
+        // route to the overload with rename support
+        // while using the given non-rename overload as fallback.
+        // This also discards the filled newName param in the fallback, which is originally passed into the newName param in the following method call:
+        return MoveFromAsync(fileToMove, source, overwrite, newName: fileToMove.Name, cancellationToken, (modifiableFolder, file, source, overwrite, _, cancellationToken) => fallback(modifiableFolder, file, source, overwrite, cancellationToken));
+    }
+
+    /// <inheritdoc />
+    public virtual async Task<IChildFile> MoveFromAsync(IChildFile fileToMove, IModifiableFolder source, bool overwrite, string newName, CancellationToken cancellationToken, MoveRenamedFromDelegate fallback)
     {
         // Check if the file is a SystemFile. If not, use the fallback.
         if (fileToMove is not SystemFile systemFile)
-            return await fallback(this, fileToMove, source, overwrite, cancellationToken);
+            return await fallback(this, fileToMove, source, overwrite, newName, cancellationToken);
 
         // Handle using System.IO
-        var newPath = global::System.IO.Path.Combine(Path, systemFile.Name);
+        var newPath = global::System.IO.Path.Combine(Path, newName);
         if (File.Exists(newPath) && !overwrite)
             return new SystemFile(newPath, noValidation: true);
 
