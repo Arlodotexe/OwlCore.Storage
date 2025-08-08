@@ -75,7 +75,7 @@ public static partial class ModifiableFolderExtensions
             return await fastPath.MoveFromAsync(fileToMove, source, overwrite, newName, cancellationToken, fallback: MoveFromFallbackAsync);
 
         // Manual move. Slower, but covers all scenarios.
-        return await MoveFromFallbackAsync(destinationFolder, fileToMove, source, overwrite, cancellationToken);
+        return await MoveFromFallbackAsync(destinationFolder, fileToMove, source, overwrite, newName, cancellationToken);
     }
 
     private static async Task<IChildFile> MoveFromFallbackAsync(IModifiableFolder destinationFolder, IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken = default)
