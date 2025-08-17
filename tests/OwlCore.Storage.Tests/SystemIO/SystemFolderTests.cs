@@ -8,9 +8,10 @@ public class SystemFolderTests : CommonIModifiableFolderTests
 {
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
-        var directoryInfo = Directory.CreateDirectory(Path.GetTempPath());
+    var tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+    var directoryInfo = Directory.CreateDirectory(tempFolder);
 
-        return Task.FromResult<IModifiableFolder>(new SystemFolder(directoryInfo.FullName));
+    return Task.FromResult<IModifiableFolder>(new SystemFolder(directoryInfo.FullName));
     }
 
     public override Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
@@ -38,15 +39,17 @@ public class SystemFolderTests : CommonIModifiableFolderTests
     // TODO: Move these to CommonTests.
 
     [TestMethod]
+    [Timeout(2000)]
     public async Task FolderWatcherOnFileCreate()
     {
         var folder = await CreateModifiableFolderAsync();
 
         await using var watcher = await folder.GetFolderWatcherAsync();
-        var collectionChangedTaskCompletionSource = new TaskCompletionSource();
-        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.SetResult();
-        
-        await folder.CreateFileAsync(GetHashCode().ToString(), overwrite: true);
+        var collectionChangedTaskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.TrySetResult();
+
+        var fileName = $"{Guid.NewGuid():N}.tmp";
+        await folder.CreateFileAsync(fileName, overwrite: true);
         
         await collectionChangedTaskCompletionSource.Task;
     }
@@ -58,23 +61,25 @@ public class SystemFolderTests : CommonIModifiableFolderTests
         var folder = await CreateModifiableFolderAsync();
 
         await using var watcher = await folder.GetFolderWatcherAsync();
-        var collectionChangedTaskCompletionSource = new TaskCompletionSource();
-        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.SetResult();
+        var collectionChangedTaskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.TrySetResult();
 
-        await folder.CreateFolderAsync(GetHashCode().ToString(), overwrite: true);
+        var folderName = Guid.NewGuid().ToString("N");
+        await folder.CreateFolderAsync(folderName, overwrite: true);
         
         await collectionChangedTaskCompletionSource.Task;
     }
 
     [TestMethod]
+    [Timeout(2000)]
     public async Task FolderWatcherOnDelete()
     {
         var folder = await CreateModifiableFolderWithItems(1, 0);
         var existingItem = await folder.GetItemsAsync(StorableType.File).FirstAsync();
 
         await using var watcher = await folder.GetFolderWatcherAsync();
-        var collectionChangedTaskCompletionSource = new TaskCompletionSource();
-        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.SetResult();
+        var collectionChangedTaskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.TrySetResult();
 
         await folder.DeleteAsync(existingItem);
         
