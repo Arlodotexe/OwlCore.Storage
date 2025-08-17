@@ -85,4 +85,23 @@ public static partial class ModifiableFolderExtensions
 
         return newFile;
     }
+
+    /// <summary>
+    /// Copies the contents of the source file to the destination file.
+    /// </summary>
+    /// <param name="sourceFile">The source file to copy from.</param>
+    /// <param name="destinationFile">The destination file to copy to.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
+    /// <returns>A task that represents the asynchronous copy operation.</returns>
+    public static async Task CopyToAsync(this IFile sourceFile, IFile destinationFile, CancellationToken cancellationToken = default)
+    {
+        using var sourceStream = await sourceFile.OpenStreamAsync(FileAccess.Read, cancellationToken);
+        using var destinationStream = await destinationFile.OpenStreamAsync(FileAccess.Write, cancellationToken);
+
+#if NETSTANDARD
+        await sourceStream.CopyToAsync(destinationStream);
+#elif NET5_OR_GREATER
+        await sourceStream.CopyToAsync(destinationStream, cancellationToken);
+#endif
+    }
 }
