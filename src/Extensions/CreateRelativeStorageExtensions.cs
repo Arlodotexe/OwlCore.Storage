@@ -14,6 +14,23 @@ namespace OwlCore.Storage;
 public static class CreateRelativeStorageExtensions
 {
     /// <summary>
+    /// Determines whether the last segment of the provided path parts likely represents a file name.
+    /// A trailing slash disables file-tail detection. Uses simple heuristics: contains a '.' and does not end with '.'.
+    /// </summary>
+    /// <param name="parts">The path segments split by '/'.</param>
+    /// <param name="hasTrailingSlash">Whether the original path ended with a slash.</param>
+    /// <returns>True if the last segment looks like a file; otherwise false.</returns>
+    private static bool LooksLikeFileTail(string[] parts, bool hasTrailingSlash)
+    {
+        if (hasTrailingSlash || parts == null || parts.Length == 0)
+            return false;
+
+        // Use APIs available on all target frameworks to avoid further #if blocks.
+        var last = parts[parts.Length - 1];
+        return last.Contains(".") && !last.EndsWith(".");
+    }
+
+    /// <summary>
     /// Creates an item by traversing a relative path from the provided <see cref="IStorable"/>.
     /// Explicitly specify whether the target is a file or a folder.
     /// Supports "." (current) and ".." (parent) segments. Starting from a child is supported via its parent.
@@ -354,11 +371,7 @@ public static class CreateRelativeStorageExtensions
         else
         {
             // Folder target: ignore file-like tail and yield each folder
-#if NETSTANDARD2_0
-            var lastLooksFile = !hasTrailingSlash && parts.Length > 0 && parts[parts.Length - 1].Contains('.') && !parts[parts.Length - 1].EndsWith(".");
-#else
-            var lastLooksFile = !hasTrailingSlash && parts.Length > 0 && parts[^1].Contains('.') && !parts[^1].EndsWith('.');
-#endif
+            var lastLooksFile = LooksLikeFileTail(parts, hasTrailingSlash);
             var effectiveLength = lastLooksFile ? Math.Max(0, parts.Length - 1) : parts.Length;
 
             var any = false;
