@@ -42,22 +42,26 @@ namespace OwlCore.Storage.Tests
         }
 
         [TestMethod]
-        public void ShouldDispose_Constructor_SetsCorrectValue()
+        public void ShouldDispose_Property_CanBeSetAndGet()
         {
             // Arrange
             var memoryStream = new MemoryStream();
+            var streamFile = new StreamFile(memoryStream);
 
-            // Act
-            var streamFileTrue = new StreamFile(memoryStream, true);
-            var streamFileFalse = new StreamFile(memoryStream, false);
+            // Act & Assert - Default value should be false
+            Assert.IsFalse(streamFile.ShouldDispose);
 
-            // Assert
-            Assert.IsTrue(streamFileTrue.ShouldDispose);
-            Assert.IsFalse(streamFileFalse.ShouldDispose);
+            // Act & Assert - Should be able to set to true
+            streamFile.ShouldDispose = true;
+            Assert.IsTrue(streamFile.ShouldDispose);
+
+            // Act & Assert - Should be able to set to false
+            streamFile.ShouldDispose = false;
+            Assert.IsFalse(streamFile.ShouldDispose);
         }
 
         [TestMethod]
-        public void ShouldDispose_ConstructorWithIdAndName_SetsCorrectValue()
+        public void ShouldDispose_ConstructorWithIdAndName_SetsDefaultValue()
         {
             // Arrange
             var memoryStream = new MemoryStream();
@@ -65,12 +69,14 @@ namespace OwlCore.Storage.Tests
             var name = "test-name";
 
             // Act
-            var streamFileTrue = new StreamFile(memoryStream, id, name, true);
-            var streamFileFalse = new StreamFile(memoryStream, id, name, false);
+            var streamFile = new StreamFile(memoryStream, id, name);
 
-            // Assert
-            Assert.IsTrue(streamFileTrue.ShouldDispose);
-            Assert.IsFalse(streamFileFalse.ShouldDispose);
+            // Assert - Should default to false
+            Assert.IsFalse(streamFile.ShouldDispose);
+
+            // Test setting the property
+            streamFile.ShouldDispose = true;
+            Assert.IsTrue(streamFile.ShouldDispose);
         }
 
         [TestMethod]
@@ -78,7 +84,8 @@ namespace OwlCore.Storage.Tests
         {
             // Arrange
             var memoryStream = new MemoryStream();
-            var streamFile = new StreamFile(memoryStream, true);
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = true;
 
             // Act
             var resultStream = await streamFile.OpenStreamAsync();
@@ -92,7 +99,8 @@ namespace OwlCore.Storage.Tests
         {
             // Arrange
             var memoryStream = new MemoryStream();
-            var streamFile = new StreamFile(memoryStream, false);
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = false;
 
             // Act
             var resultStream = await streamFile.OpenStreamAsync();
@@ -107,7 +115,8 @@ namespace OwlCore.Storage.Tests
         {
             // Arrange
             var memoryStream = new MemoryStream();
-            var streamFile = new StreamFile(memoryStream, true);
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = true;
 
             // Act
             var resultStream = await streamFile.OpenStreamAsync();
@@ -123,7 +132,8 @@ namespace OwlCore.Storage.Tests
             // Arrange
             var data = new byte[] { 1, 2, 3, 4, 5 };
             var memoryStream = new MemoryStream(data);
-            var streamFile = new StreamFile(memoryStream, false);
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = false;
 
             // Act
             var resultStream = await streamFile.OpenStreamAsync();
@@ -139,7 +149,8 @@ namespace OwlCore.Storage.Tests
         {
             // Arrange
             var memoryStream = new MemoryStream();
-            var streamFile = new StreamFile(memoryStream, true);
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = true;
 
             // Act
             var stream1 = await streamFile.OpenStreamAsync();
@@ -155,7 +166,8 @@ namespace OwlCore.Storage.Tests
         {
             // Arrange
             var memoryStream = new MemoryStream();
-            var streamFile = new StreamFile(memoryStream, false);
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = false;
 
             // Act
             var stream1 = await streamFile.OpenStreamAsync();

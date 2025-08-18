@@ -96,7 +96,7 @@ public static partial class StorableExtensions
         var normalized = (relativePath ?? string.Empty).Replace('\\', '/');
         // Split path into parts (use API available on target framework)
 #if NETSTANDARD2_0
-    var parts = normalized.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
+        var parts = normalized.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 #else
         var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
 #endif

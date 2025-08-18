@@ -13,5 +13,5 @@ public interface IStorableChild : IStorable
     /// </summary>
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>The containing parent folder, if any.</returns>
-    Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default); 
+    Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default);
 }

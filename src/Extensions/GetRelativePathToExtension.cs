@@ -21,7 +21,7 @@ public static partial class FolderExtensions
         {
             to.Name,
         };
-        
+
         cancellationToken.ThrowIfCancellationRequested();
         await RecursiveAddParentToPathAsync(to);
 

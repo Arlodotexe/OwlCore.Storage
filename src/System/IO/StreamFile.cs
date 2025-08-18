@@ -17,29 +17,20 @@ public class StreamFile : IFile
     public Stream Stream { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the underlying stream should be disposed when the returned stream from <see cref="OpenStreamAsync"/> is disposed.
+    /// Gets or sets a value indicating whether the underlying stream should be disposed when the returned stream from <see cref="OpenStreamAsync"/> is disposed.
     /// When true, the underlying stream is returned directly. When false, the stream is wrapped in a non-disposable wrapper.
     /// </summary>
-    public bool ShouldDispose { get; }
+    public bool ShouldDispose { get; set; }
 
     /// <summary>
     /// Creates a new instance of <see cref="StreamFile"/>.
     /// </summary>
     /// <param name="stream">An existing stream which is provided as the file contents.</param>
     public StreamFile(Stream stream)
-        : this(stream, $"{stream.GetHashCode()}", $"{stream.GetHashCode()}", false)
+        : this(stream, $"{stream.GetHashCode()}", $"{stream.GetHashCode()}")
     {
     }
 
-    /// <summary>
-    /// Creates a new instance of <see cref="StreamFile"/>.
-    /// </summary>
-    /// <param name="stream">An existing stream which is provided as the file contents.</param>
-    /// <param name="shouldDispose">When true, the underlying stream will be disposed when the returned stream from <see cref="OpenStreamAsync"/> is disposed. When false, the stream is wrapped in a non-disposable wrapper.</param>
-    public StreamFile(Stream stream, bool shouldDispose)
-        : this(stream, $"{stream.GetHashCode()}", $"{stream.GetHashCode()}", shouldDispose)
-    {
-    }
 
     /// <summary>
     /// Creates a new instance of <see cref="StreamFile"/>.
@@ -48,24 +39,14 @@ public class StreamFile : IFile
     /// <param name="id">A unique and consistent identifier for this file or folder.</param>
     /// <param name="name">The name of the file or folder, with the extension (if any).</param>
     public StreamFile(Stream stream, string id, string name)
-        : this(stream, id, name, false)
-    {
-    }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="StreamFile"/>.
-    /// </summary>
-    /// <param name="stream">An existing stream which is provided as the file contents.</param>
-    /// <param name="id">A unique and consistent identifier for this file or folder.</param>
-    /// <param name="name">The name of the file or folder, with the extension (if any).</param>
-    /// <param name="shouldDispose">When true, the underlying stream will be disposed when the returned stream from <see cref="OpenStreamAsync"/> is disposed. When false, the stream is wrapped in a non-disposable wrapper.</param>
-    public StreamFile(Stream stream, string id, string name, bool shouldDispose)
     {
         Stream = stream;
         Id = id;
         Name = name;
-        ShouldDispose = shouldDispose;
+        ShouldDispose = false; // Default to false for backward compatibility
     }
+
+
 
     /// <inheritdoc />
     public string Id { get; }

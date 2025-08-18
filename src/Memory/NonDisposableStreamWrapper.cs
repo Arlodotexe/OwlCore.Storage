@@ -19,12 +19,12 @@ internal sealed class NonDisposableStreamWrapper : Stream
     {
         _stream = stream;
     }
-    
+
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
     }
-    
+
     /// <inheritdoc />
     public override void Flush() => _stream.Flush();
 
@@ -50,16 +50,16 @@ internal sealed class NonDisposableStreamWrapper : Stream
 
     /// <inheritdoc />
     public override bool CanRead => _stream.CanRead;
-    
+
     /// <inheritdoc />
     public override bool CanSeek => _stream.CanSeek;
-    
+
     /// <inheritdoc />
     public override bool CanWrite => _stream.CanWrite;
-    
+
     /// <inheritdoc />
     public override long Length => _stream.Length;
-    
+
     /// <inheritdoc />
     public override long Position
     {

@@ -14,7 +14,7 @@ public class TruncatedStream(Stream Stream, long MaxLength) : Stream, IAsyncDisp
 {
     // For non-seekable streams, we track how many bytes have been consumed to enforce the window.
     private long _consumed;
-    
+
     // For seekable streams, capture the starting offset to define the truncation window.
     private readonly long _startOffset = Stream.CanSeek ? Stream.Position : 0;
 

@@ -22,5 +22,5 @@ public interface IStorable
     /// <summary>
     /// Gets the name of the item, with the extension (if any).
     /// </summary>
-    string Name { get; } 
+    string Name { get; }
 }
