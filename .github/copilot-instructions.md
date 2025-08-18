@@ -29,16 +29,6 @@ The most flexible file system abstraction for .NET, built in partnership with th
 
 - **ALWAYS run build and tests after making changes** to ensure functionality works correctly
 - **ALWAYS run `dotnet format`** before committing changes or the CI (.github/workflows/build.yml) will fail due to formatting issues
-- **Manual validation scenarios**: After making changes, test file operations by creating small test programs using:
-  - `new SystemFile("somefile.txt")` for local file system operations
-  - `new MemoryFile(stream)` for in-memory file operations 
-  - Basic operations like `OpenStreamAsync()`, `GetItemsAsync()`, `CreateFileAsync()`
-- **Example validation test**: Create a console app that tests basic functionality:
-  ```csharp
-  var memoryFile = new MemoryFile("test", "test.txt", new MemoryStream());
-  await memoryFile.WriteTextAsync("Hello World");
-  var content = await memoryFile.ReadTextAsync(); // Should read back "Hello World"
-  ```
 
 ## Project Architecture
 
