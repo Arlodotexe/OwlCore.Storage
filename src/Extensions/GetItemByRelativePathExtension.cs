@@ -39,7 +39,7 @@ public static partial class StorableExtensions
 
         // Traverse only one level at a time
         // But recursively, until the target has been reached.
-        var pathParts = relativePath.Split([..inputPathSepChars.Distinct()]).Where(x => !string.IsNullOrWhiteSpace(x) && x != ".").ToArray();
+        var pathParts = relativePath.Split([.. inputPathSepChars.Distinct()]).Where(x => !string.IsNullOrWhiteSpace(x) && x != ".").ToArray();
 
         // Current directory was specified.
         if (pathParts.Length == 0)
@@ -94,11 +94,11 @@ public static partial class StorableExtensions
 
         var current = from;
         var normalized = (relativePath ?? string.Empty).Replace('\\', '/');
-    // Split path into parts (use API available on target framework)
+        // Split path into parts (use API available on target framework)
 #if NETSTANDARD2_0
     var parts = normalized.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 #else
-    var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
 #endif
 
         foreach (var raw in parts)
