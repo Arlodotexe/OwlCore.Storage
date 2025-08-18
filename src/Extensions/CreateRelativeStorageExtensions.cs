@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage;
 
 /// <summary>
-/// Extension methods for storage operations in the MCP server.
+/// Extension methods for creating and traversing storage items by relative path.
 /// </summary>
 public static class CreateRelativeStorageExtensions
 {
