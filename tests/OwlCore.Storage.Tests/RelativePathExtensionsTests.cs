@@ -232,10 +232,12 @@ public class RelativePathExtensionsTests
             yielded.Add(item);
         }
 
-        Assert.AreEqual(2, yielded.Count);
-        Assert.AreEqual("b", yielded[0].Name);  // Final parent after ../../: /b/
-        Assert.AreEqual("c", yielded[1].Name);  // Target file: /b/c
+        Assert.AreEqual(3, yielded.Count);
+        Assert.AreEqual("a", yielded[0].Name);  // First parent: /b/a/
+        Assert.AreEqual("b", yielded[1].Name);  // Second parent: /b/
+        Assert.AreEqual("c", yielded[2].Name);  // Target file: /b/c
         Assert.IsInstanceOfType(yielded[0], typeof(IFolder));
-        Assert.IsInstanceOfType(yielded[1], typeof(IFile));
+        Assert.IsInstanceOfType(yielded[1], typeof(IFolder));
+        Assert.IsInstanceOfType(yielded[2], typeof(IFile));
     }
 }
