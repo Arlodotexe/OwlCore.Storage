@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,7 +39,7 @@ public static partial class StorableExtensions
 
         // Traverse only one level at a time
         // But recursively, until the target has been reached.
-        var pathParts = relativePath.Split([..inputPathSepChars.Distinct()]).Where(x => !string.IsNullOrWhiteSpace(x) && x != ".").ToArray();
+        var pathParts = relativePath.Split([.. inputPathSepChars.Distinct()]).Where(x => !string.IsNullOrWhiteSpace(x) && x != ".").ToArray();
 
         // Current directory was specified.
         if (pathParts.Length == 0)
@@ -75,5 +77,59 @@ public static partial class StorableExtensions
             throw new FileNotFoundException($"An item named '{nextPathPart}' was requested from the folder named '{from.Name}', but '{nextPathPart}' wasn't found in the folder.");
 
         return await GetItemByRelativePathAsync(item, string.Join(ourPathSeparator, pathParts.Skip(1)));
+    }
+
+    /// <summary>
+    /// Navigates a relative path from a starting storable without creating any items, yielding each visited node in order.
+    /// Supports '.' (no-op) and '..' (navigate to parent). Throws if a segment cannot be resolved.
+    /// </summary>
+    /// <param name="from">The starting item for traversal.</param>
+    /// <param name="relativePath">The relative path to navigate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An async sequence of visited storables (parents or children), in traversal order, excluding the starting item.</returns>
+    public static async IAsyncEnumerable<IStorable> GetItemsAlongRelativePathAsync(this IStorable from, string relativePath, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        if (from is not IFolder && from is not IStorableChild)
+            throw new ArgumentException($"The starting item '{from.Name}' must be a folder or a child with a parent.", nameof(from));
+
+        var current = from;
+        var normalized = (relativePath ?? string.Empty).Replace('\\', '/');
+        // Split path into parts (use API available on target framework)
+#if NETSTANDARD2_0
+    var parts = normalized.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
+#else
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+#endif
+
+        foreach (var raw in parts)
+        {
+            var segment = raw.Trim();
+            if (segment.Length == 0 || segment == ".")
+                continue;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (segment == "..")
+            {
+                if (current is not IStorableChild child)
+                    throw new ArgumentException($"A parent folder was requested, but '{current.Name}' is not the child of a directory.", nameof(relativePath));
+
+                var parent = await child.GetParentAsync(cancellationToken)
+                             ?? throw new ArgumentOutOfRangeException(nameof(relativePath), "A parent folder was requested, but the storable item did not return a parent.");
+
+                current = parent;
+                yield return parent;
+                continue;
+            }
+
+            if (current is not IFolder folder)
+                throw new ArgumentException($"The item '{current.Name}' is not a folder and cannot contain '{segment}'.");
+
+            var next = await folder.GetFirstByNameAsync(segment)
+                       ?? throw new FileNotFoundException($"A named item was specified in a folder, but the item wasn't found: '{segment}'", segment);
+
+            current = next;
+            yield return next;
+        }
     }
 }
