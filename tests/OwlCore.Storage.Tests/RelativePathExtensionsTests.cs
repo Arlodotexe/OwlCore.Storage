@@ -23,6 +23,9 @@ public class RelativePathExtensionsTests
         var bb = (MemoryFolder)await b.CreateFolderAsync("b");
         var bc = (MemoryFile)await b.CreateFileAsync("c");
 
+        // Add missing items for complete test coverage
+        var abc = (MemoryFile)await ab.CreateFileAsync("c");
+
         var aaa = (MemoryFolder)await aa.CreateFolderAsync("a");
         var aab = (MemoryFolder)await aa.CreateFolderAsync("b");
         var aac = (MemoryFile)await aa.CreateFileAsync("c");
@@ -216,8 +219,8 @@ public class RelativePathExtensionsTests
         }
 
         Assert.AreEqual(2, yielded.Count);
-        Assert.AreEqual("a", yielded[0].Name);
-        Assert.AreEqual("c", yielded[1].Name);
+        Assert.AreEqual("a", yielded[0].Name);  // The parent /a/
+        Assert.AreEqual("c", yielded[1].Name);  // The target file /a/c
         Assert.IsInstanceOfType(yielded[0], typeof(IFolder));
         Assert.IsInstanceOfType(yielded[1], typeof(IFile));
 
@@ -230,8 +233,8 @@ public class RelativePathExtensionsTests
         }
 
         Assert.AreEqual(2, yielded.Count);
-        Assert.AreEqual("b", yielded[0].Name);
-        Assert.AreEqual("c", yielded[1].Name);
+        Assert.AreEqual("b", yielded[0].Name);  // Final parent after ../../: /b/
+        Assert.AreEqual("c", yielded[1].Name);  // Target file: /b/c
         Assert.IsInstanceOfType(yielded[0], typeof(IFolder));
         Assert.IsInstanceOfType(yielded[1], typeof(IFile));
     }
