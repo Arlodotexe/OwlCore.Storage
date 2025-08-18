@@ -16,7 +16,7 @@ public static partial class FileExtensions
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A task containing the requested stream.</returns>
     public static Task<Stream> OpenReadAsync(this IFile file, CancellationToken cancellationToken = default) => file.OpenStreamAsync(FileAccess.Read, cancellationToken);
-    
+
     /// <summary>
     /// Opens the file for writing.
     /// </summary>
@@ -24,7 +24,7 @@ public static partial class FileExtensions
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A task containing the requested stream.</returns>
     public static Task<Stream> OpenWriteAsync(this IFile file, CancellationToken cancellationToken = default) => file.OpenStreamAsync(FileAccess.Write, cancellationToken);
-    
+
     /// <summary>
     /// Opens the file for reading and writing.
     /// </summary>

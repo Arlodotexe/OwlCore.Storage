@@ -11,7 +11,7 @@ namespace OwlCore.Storage.Tests
         {
             var randomData = GenerateRandomData(256_000);
             using var tempStr = new MemoryStream(randomData);
-            
+
             var memoryStream = new MemoryStream();
             await tempStr.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
@@ -26,6 +26,157 @@ namespace OwlCore.Storage.Tests
 
                 return b;
             }
+        }
+
+        [TestMethod]
+        public void ShouldDispose_DefaultValue_IsFalse()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+
+            // Act
+            var streamFile = new StreamFile(memoryStream);
+
+            // Assert
+            Assert.IsFalse(streamFile.ShouldDispose);
+        }
+
+        [TestMethod]
+        public void ShouldDispose_Property_CanBeSetAndGet()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            var streamFile = new StreamFile(memoryStream);
+
+            // Act & Assert - Default value should be false
+            Assert.IsFalse(streamFile.ShouldDispose);
+
+            // Act & Assert - Should be able to set to true
+            streamFile.ShouldDispose = true;
+            Assert.IsTrue(streamFile.ShouldDispose);
+
+            // Act & Assert - Should be able to set to false
+            streamFile.ShouldDispose = false;
+            Assert.IsFalse(streamFile.ShouldDispose);
+        }
+
+        [TestMethod]
+        public void ShouldDispose_ConstructorWithIdAndName_SetsDefaultValue()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            var id = "test-id";
+            var name = "test-name";
+
+            // Act
+            var streamFile = new StreamFile(memoryStream, id, name);
+
+            // Assert - Should default to false
+            Assert.IsFalse(streamFile.ShouldDispose);
+
+            // Test setting the property
+            streamFile.ShouldDispose = true;
+            Assert.IsTrue(streamFile.ShouldDispose);
+        }
+
+        [TestMethod]
+        public async Task OpenStreamAsync_ShouldDisposeTrue_ReturnsUnderlyingStream()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = true;
+
+            // Act
+            var resultStream = await streamFile.OpenStreamAsync();
+
+            // Assert
+            Assert.AreSame(memoryStream, resultStream);
+        }
+
+        [TestMethod]
+        public async Task OpenStreamAsync_ShouldDisposeFalse_ReturnsWrappedStream()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = false;
+
+            // Act
+            var resultStream = await streamFile.OpenStreamAsync();
+
+            // Assert
+            Assert.AreNotSame(memoryStream, resultStream);
+            Assert.AreEqual(typeof(OwlCore.Storage.Memory.NonDisposableStreamWrapper), resultStream.GetType());
+        }
+
+        [TestMethod]
+        public async Task OpenStreamAsync_ShouldDisposeTrue_DisposingReturnedStreamDisposesUnderlying()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = true;
+
+            // Act
+            var resultStream = await streamFile.OpenStreamAsync();
+            resultStream.Dispose();
+
+            // Assert
+            Assert.ThrowsException<ObjectDisposedException>(() => memoryStream.ReadByte());
+        }
+
+        [TestMethod]
+        public async Task OpenStreamAsync_ShouldDisposeFalse_DisposingReturnedStreamDoesNotDisposeUnderlying()
+        {
+            // Arrange
+            var data = new byte[] { 1, 2, 3, 4, 5 };
+            var memoryStream = new MemoryStream(data);
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = false;
+
+            // Act
+            var resultStream = await streamFile.OpenStreamAsync();
+            resultStream.Dispose();
+
+            // Assert - underlying stream should still be usable
+            memoryStream.Position = 0;
+            Assert.AreEqual(1, memoryStream.ReadByte());
+        }
+
+        [TestMethod]
+        public async Task OpenStreamAsync_ShouldDisposeTrue_MultipleOpensReturnSameStream()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = true;
+
+            // Act
+            var stream1 = await streamFile.OpenStreamAsync();
+            var stream2 = await streamFile.OpenStreamAsync();
+
+            // Assert
+            Assert.AreSame(stream1, stream2);
+            Assert.AreSame(memoryStream, stream1);
+        }
+
+        [TestMethod]
+        public async Task OpenStreamAsync_ShouldDisposeFalse_MultipleOpensReturnDifferentWrappers()
+        {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            var streamFile = new StreamFile(memoryStream);
+            streamFile.ShouldDispose = false;
+
+            // Act
+            var stream1 = await streamFile.OpenStreamAsync();
+            var stream2 = await streamFile.OpenStreamAsync();
+
+            // Assert
+            Assert.AreNotSame(stream1, stream2);
+            Assert.AreEqual(typeof(OwlCore.Storage.Memory.NonDisposableStreamWrapper), stream1.GetType());
+            Assert.AreEqual(typeof(OwlCore.Storage.Memory.NonDisposableStreamWrapper), stream2.GetType());
         }
     }
 }

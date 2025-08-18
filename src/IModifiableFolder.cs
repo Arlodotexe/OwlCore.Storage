@@ -7,7 +7,7 @@ namespace OwlCore.Storage;
 /// <summary>
 /// Represents a folder that can be modified.
 /// </summary>
-public interface IModifiableFolder : IMutableFolder 
+public interface IModifiableFolder : IMutableFolder
 {
     /// <summary>
     /// Deletes the provided storable item from this folder.
@@ -26,7 +26,7 @@ public interface IModifiableFolder : IMutableFolder
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>The newly created (or opened if existing) folder.</returns>
     Task<IChildFolder> CreateFolderAsync(string name, bool overwrite = default, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Creates a new file with the desired name inside this folder.
     /// </summary>

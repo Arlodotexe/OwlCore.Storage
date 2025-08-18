@@ -178,7 +178,7 @@ public class RelativePathExtensionsTests
                 .ToArray();
 
         var yielded = new List<IStorable>();
-    await foreach (var item in _rootFolder.GetItemsAlongRelativePathAsync(relativePath ?? string.Empty))
+        await foreach (var item in _rootFolder.GetItemsAlongRelativePathAsync(relativePath ?? string.Empty))
         {
             yielded.Add(item);
         }

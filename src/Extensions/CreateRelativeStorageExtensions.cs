@@ -240,7 +240,7 @@ public static class CreateRelativeStorageExtensions
 
         throw new InvalidOperationException("Resolved item is not a file.");
     }
-    
+
     /// <summary>
     /// Traverses/creates folders along a relative path and yields each folder in order as it is visited/created.
     /// Supports "." and ".." segments. If the last segment looks like a file (no trailing slash and contains '.'),

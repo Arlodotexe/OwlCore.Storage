@@ -7,7 +7,7 @@ using OwlCore.Storage.Memory;
 namespace OwlCore.Storage.System.IO;
 
 /// <summary>
-/// A file implementation which holds a reference to the provided <see cref="Stream"/> and returns it in a non-disposable wrapper for <see cref="OpenStreamAsync"/>.
+/// A file implementation which holds a reference to the provided <see cref="Stream"/> and returns it either wrapped in a non-disposable wrapper or directly, based on the <see cref="ShouldDispose"/> property.
 /// </summary>
 public class StreamFile : IFile
 {
@@ -17,6 +17,12 @@ public class StreamFile : IFile
     public Stream Stream { get; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the underlying stream should be disposed when the returned stream from <see cref="OpenStreamAsync"/> is disposed.
+    /// When true, the underlying stream is returned directly. When false, the stream is wrapped in a non-disposable wrapper.
+    /// </summary>
+    public bool ShouldDispose { get; set; }
+
+    /// <summary>
     /// Creates a new instance of <see cref="StreamFile"/>.
     /// </summary>
     /// <param name="stream">An existing stream which is provided as the file contents.</param>
@@ -24,6 +30,7 @@ public class StreamFile : IFile
         : this(stream, $"{stream.GetHashCode()}", $"{stream.GetHashCode()}")
     {
     }
+
 
     /// <summary>
     /// Creates a new instance of <see cref="StreamFile"/>.
@@ -36,7 +43,10 @@ public class StreamFile : IFile
         Stream = stream;
         Id = id;
         Name = name;
+        ShouldDispose = false; // Default to false for backward compatibility
     }
+
+
 
     /// <inheritdoc />
     public string Id { get; }
@@ -51,6 +61,9 @@ public class StreamFile : IFile
 
         if (accessMode == 0)
             throw new ArgumentOutOfRangeException(nameof(accessMode), $"{nameof(FileAccess)}.{accessMode} is not valid here.");
+
+        if (ShouldDispose)
+            return Task.FromResult(Stream);
 
         return Task.FromResult<Stream>(new NonDisposableStreamWrapper(Stream));
     }

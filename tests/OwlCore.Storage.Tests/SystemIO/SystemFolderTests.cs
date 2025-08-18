@@ -8,10 +8,10 @@ public class SystemFolderTests : CommonIModifiableFolderTests
 {
     public override Task<IModifiableFolder> CreateModifiableFolderAsync()
     {
-    var tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-    var directoryInfo = Directory.CreateDirectory(tempFolder);
+        var tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        var directoryInfo = Directory.CreateDirectory(tempFolder);
 
-    return Task.FromResult<IModifiableFolder>(new SystemFolder(directoryInfo.FullName));
+        return Task.FromResult<IModifiableFolder>(new SystemFolder(directoryInfo.FullName));
     }
 
     public override Task<IModifiableFolder> CreateModifiableFolderWithItems(int fileCount, int folderCount)
@@ -50,7 +50,7 @@ public class SystemFolderTests : CommonIModifiableFolderTests
 
         var fileName = $"{Guid.NewGuid():N}.tmp";
         await folder.CreateFileAsync(fileName, overwrite: true);
-        
+
         await collectionChangedTaskCompletionSource.Task;
     }
 
@@ -66,7 +66,7 @@ public class SystemFolderTests : CommonIModifiableFolderTests
 
         var folderName = Guid.NewGuid().ToString("N");
         await folder.CreateFolderAsync(folderName, overwrite: true);
-        
+
         await collectionChangedTaskCompletionSource.Task;
     }
 
@@ -82,7 +82,7 @@ public class SystemFolderTests : CommonIModifiableFolderTests
         watcher.CollectionChanged += (sender, args) => collectionChangedTaskCompletionSource.TrySetResult();
 
         await folder.DeleteAsync(existingItem);
-        
+
         await collectionChangedTaskCompletionSource.Task;
     }
 }
