@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OwlCore.Storage;
 
-namespace OwlCore.Console.Storage;
+namespace OwlCore.Storage;
 
 /// <summary>
 /// An <see cref="IChildFile"/> wrapper that gives a custom parent to any <see cref="IFile"/>.

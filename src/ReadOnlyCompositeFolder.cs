@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OwlCore.Storage;
 
-namespace OwlCore.Console.Storage;
+namespace OwlCore.Storage;
 
 /// <summary>
 /// Enables building a folder from an arbitrary list of files.

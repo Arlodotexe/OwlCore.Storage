@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using OwlCore.Console.Storage;
+using OwlCore.Storage;
 
 namespace OwlCore.Storage;
 
