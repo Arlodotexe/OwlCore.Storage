@@ -31,7 +31,7 @@ public static class CreateRelativeStorageExtensions
     /// - <see cref="StorableType.File"/>: The last segment is treated as the file name. A trailing '/' is not allowed.
     ///   All preceding segments are created (or reused) as folders. Returns the created file (via the file-specific wrapper) or the item as <see cref="IStorable"/>.
     /// - <see cref="StorableType.Folder"/>: All segments are treated as folders with no heuristics; a file-like last segment (e.g., "name.ext") will be created as a folder.
-    ///   If you want file-tail ignoring semantics while yielding intermediate items, use <see cref="M:OwlCore.Storage.CreateRelativeStorageExtensions.CreateAlongRelativePathAsync(OwlCore.Storage.IFolder,System.String,OwlCore.Storage.StorableType,System.Boolean,System.Threading.CancellationToken)"/> with <see cref="StorableType.Folder"/>.
+    ///   If you want file-tail ignoring semantics while yielding intermediate items, use <see cref="CreateAlongRelativePathAsync(IFolder, string, StorableType, bool, CancellationToken)"/> with <see cref="StorableType.Folder"/>.
     /// </remarks>
     // Core implementation (non-extension) used by public overloads.
     private static async Task<IStorable> CreateByRelativePathCoreAsync(IStorable from, string relativePath, StorableType targetType, bool overwrite, CancellationToken cancellationToken)
