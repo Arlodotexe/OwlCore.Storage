@@ -16,6 +16,9 @@
 # Mono auto generated files
 mono_crash.*
 
+# Temporary install scripts
+dotnet-install.sh
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

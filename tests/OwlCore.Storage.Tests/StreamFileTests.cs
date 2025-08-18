@@ -11,7 +11,7 @@ namespace OwlCore.Storage.Tests
         {
             var randomData = GenerateRandomData(256_000);
             using var tempStr = new MemoryStream(randomData);
-            
+
             var memoryStream = new MemoryStream();
             await tempStr.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
