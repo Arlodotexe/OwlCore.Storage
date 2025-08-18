@@ -12,7 +12,11 @@ namespace OwlCore.Storage;
 /// <param name="MaxLength">The maximum length for this stream</param>
 public class TruncatedStream(Stream Stream, long MaxLength) : Stream, IAsyncDisposable
 {
-    private long _position;
+    // For non-seekable streams, we track how many bytes have been consumed to enforce the window.
+    private long _consumed;
+    
+    // For seekable streams, capture the starting offset to define the truncation window.
+    private readonly long _startOffset = Stream.CanSeek ? Stream.Position : 0;
 
     /// <summary>
     /// The max length to read from the underlying <see cref="Stream"/>.
@@ -34,10 +38,43 @@ public class TruncatedStream(Stream Stream, long MaxLength) : Stream, IAsyncDisp
     public override bool CanWrite => false;
 
     /// <inheritdoc/>
-    public override long Length => Math.Min(Stream.Length, MaxLength);
+    public override long Length
+    {
+        get
+        {
+            if (Stream.CanSeek)
+            {
+                var available = Math.Max(0, Stream.Length - _startOffset);
+                return Math.Min(available, MaxLength);
+            }
+
+            // For non-seekable, report the maximum window; actual reads will stop at EOF earlier if needed.
+            return MaxLength;
+        }
+    }
 
     /// <inheritdoc/>
-    public override long Position { get => Stream.Position; set => Stream.Position = value; }
+    public override long Position
+    {
+        get
+        {
+            if (Stream.CanSeek)
+                return Math.Max(0, Stream.Position - _startOffset);
+
+            // Delegate to underlying stream; may throw if not supported
+            return Stream.Position;
+        }
+        set
+        {
+            if (!Stream.CanSeek)
+                throw new NotSupportedException("Stream does not support seeking.");
+
+            if (value < 0 || value > MaxLength)
+                throw new ArgumentOutOfRangeException(nameof(value), $"Position must be within [0, {MaxLength}].");
+
+            Stream.Position = _startOffset + value;
+        }
+    }
 
     /// <inheritdoc/>
     public override void Flush() => Stream.Flush();
@@ -45,30 +82,70 @@ public class TruncatedStream(Stream Stream, long MaxLength) : Stream, IAsyncDisp
     /// <inheritdoc/>
     public override int Read(byte[] buffer, int offset, int count)
     {
-        if (_position + count > MaxLength)
-            count = (int)(MaxLength - _position);
+        if (count <= 0)
+            return 0;
 
-        var bytesRead = Stream.Read(buffer, offset, count);
-        _position += bytesRead;
+        long consumed;
+        if (Stream.CanSeek)
+        {
+            consumed = Math.Max(0, Stream.Position - _startOffset);
+        }
+        else
+        {
+            consumed = _consumed;
+        }
+
+        if (consumed >= MaxLength)
+            return 0;
+
+        var remaining = MaxLength - consumed;
+        if (remaining <= 0)
+            return 0;
+
+        var allowed = (int)Math.Min(count, remaining);
+        var bytesRead = Stream.Read(buffer, offset, allowed);
+
+        if (!Stream.CanSeek)
+            _consumed += bytesRead;
+
         return bytesRead;
     }
 
     /// <inheritdoc/>
     public override long Seek(long offset, SeekOrigin origin)
     {
-        if (offset > MaxLength && origin == SeekOrigin.Begin)
-            throw new ArgumentOutOfRangeException($"Given length value exceeds {nameof(MaxLength)} {MaxLength}");
+        if (!Stream.CanSeek)
+            throw new NotSupportedException("Stream does not support seeking.");
 
-        return Stream.Seek(offset, origin);
+        long targetLocal = origin switch
+        {
+            SeekOrigin.Begin => offset,
+            SeekOrigin.Current => Position + offset,
+            SeekOrigin.End => MaxLength + offset,
+            _ => throw new ArgumentOutOfRangeException(nameof(origin))
+        };
+
+        if (targetLocal < 0 || targetLocal > MaxLength)
+            throw new ArgumentOutOfRangeException(nameof(offset), $"Seek target must be within [0, {MaxLength}].");
+
+        var underlyingPos = _startOffset + targetLocal;
+        var result = Stream.Seek(underlyingPos, SeekOrigin.Begin);
+
+        // Return the local position
+        return result - _startOffset;
     }
 
     /// <inheritdoc/>
     public override void SetLength(long value)
     {
+        if (!Stream.CanSeek)
+            throw new NotSupportedException("Stream does not support seeking.");
+
         if (value > MaxLength)
             throw new ArgumentOutOfRangeException($"Given length value exceeds {nameof(MaxLength)} {MaxLength}");
 
-        Stream.SetLength(value);
+        // Adjust underlying length relative to the window start
+        Stream.SetLength(_startOffset + value);
     }
 
     /// <inheritdoc/>
