@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,9 +55,9 @@ public static class FileWriteExtensions
     /// <param name="lineRange">The line range (inclusive) from the content to write.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A Task representing the asynchronous write operation.</returns>
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
     public static async Task WriteTextAsync(this IFile file, string content, (int Start, int End) lineRange, CancellationToken cancellationToken = default)
-#elif NET7_OR_GREATER
+#else
     public static async Task WriteTextAsync(this IFile file, string content, Range lineRange, CancellationToken cancellationToken = default)
 #endif
     {
@@ -65,10 +66,10 @@ public static class FileWriteExtensions
 
         int startLine;
         int endLineInclusive;
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
         startLine = lineRange.Start;
         endLineInclusive = lineRange.End;
-#elif NET7_OR_GREATER
+#else
         startLine = lineRange.Start.Value;
         endLineInclusive = lineRange.End.Value;
 #endif
@@ -77,12 +78,26 @@ public static class FileWriteExtensions
         {
             await writer.WriteLineAsync(line);
         }
-#if NET7_OR_GREATER
-        await writer.FlushAsync(cancellationToken);
-#else
+#if NETSTANDARD || NETSTANDARD2_0
         await writer.FlushAsync();
+#else
+    await writer.FlushAsync(cancellationToken);
 #endif
     }
+
+#if !(NETSTANDARD || NETSTANDARD2_0)
+    /// <summary>
+    /// Tuple-based shim for TFMs that support <see cref="Range"/>. Forwards to the <see cref="Range"/> overload.
+    /// </summary>
+    public static Task WriteTextAsync(this IFile file, string content, (int Start, int End) lineRange, CancellationToken cancellationToken = default)
+        => WriteTextAsync(file, content, new Range(lineRange.Start, lineRange.End), cancellationToken);
+
+    /// <summary>
+    /// Tuple-based shim for TFMs that support <see cref="Range"/>. Forwards to the <see cref="Range"/> overload.
+    /// </summary>
+    public static Task WriteTextAsync(this IFile file, string content, (int Start, int End) lineRange, (int Start, int End) columnRange, CancellationToken cancellationToken = default)
+        => WriteTextAsync(file, content, new Range(lineRange.Start, lineRange.End), new Range(columnRange.Start, columnRange.End), cancellationToken);
+#endif
 
     /// <summary>
     /// Writes only the specified column range from each line within a line range from the provided <paramref name="content"/> into <paramref name="file"/> as UTF-8 text.
@@ -93,9 +108,9 @@ public static class FileWriteExtensions
     /// <param name="columnRange">The character range within each line to write (end exclusive).</param>
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A Task representing the asynchronous write operation.</returns>
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
     public static async Task WriteTextAsync(this IFile file, string content, (int Start, int End) lineRange, (int Start, int End) columnRange, CancellationToken cancellationToken = default)
-#elif NET7_OR_GREATER
+#else
     public static async Task WriteTextAsync(this IFile file, string content, Range lineRange, Range columnRange, CancellationToken cancellationToken = default)
 #endif
     {
@@ -106,12 +121,12 @@ public static class FileWriteExtensions
         int endLineInclusive;
         int startCol;
         int endColExclusive;
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
         startLine = lineRange.Start;
         endLineInclusive = lineRange.End;
         startCol = columnRange.Start;
         endColExclusive = columnRange.End;
-#elif NET7_OR_GREATER
+#else
         startLine = lineRange.Start.Value;
         endLineInclusive = lineRange.End.Value;
         startCol = columnRange.Start.Value;
@@ -122,10 +137,10 @@ public static class FileWriteExtensions
         {
             await writer.WriteLineAsync(line);
         }
-#if NET7_OR_GREATER
-        await writer.FlushAsync(cancellationToken);
-#else
+#if NETSTANDARD || NETSTANDARD2_0
         await writer.FlushAsync();
+#else
+    await writer.FlushAsync(cancellationToken);
 #endif
     }
 

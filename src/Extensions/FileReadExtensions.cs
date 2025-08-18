@@ -100,16 +100,16 @@ public static class FileReadExtensions
     /// - <c>End</c> is exclusive; the sequence yields lines in [<c>Start</c>, <c>End</c>).
     /// - If EOF is reached before <c>Start</c> or during enumeration, the sequence ends early without error.
     /// </remarks>
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
     public static async IAsyncEnumerable<string> ReadTextAsync(this IFile sourceFile, (int Start, int End) lineRange, [EnumeratorCancellation] CancellationToken cancellationToken)
-#elif NET7_OR_GREATER
+#else
     public static async IAsyncEnumerable<string> ReadTextAsync(this IFile sourceFile, Range lineRange, [EnumeratorCancellation] CancellationToken cancellationToken)
 #endif
     {
         using var fileStream = await sourceFile.OpenReadAsync(cancellationToken);
         using var streamReader = new StreamReader(fileStream);
 
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
         var start = lineRange.Start;
         var end = lineRange.End;
 
@@ -117,7 +117,7 @@ public static class FileReadExtensions
             throw new ArgumentOutOfRangeException(nameof(lineRange), "Start and End must be non-negative.");
         if (end < start)
             throw new ArgumentException("End must be greater than or equal to Start.", nameof(lineRange));
-#elif NET7_OR_GREATER
+#else
         if (lineRange.Start.IsFromEnd || lineRange.End.IsFromEnd)
             throw new ArgumentException("From-end indices (^) are not supported.", nameof(lineRange));
 
@@ -132,11 +132,11 @@ public static class FileReadExtensions
 
         for (var i = 0; i < start; i++)
         {
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
             cancellationToken.ThrowIfCancellationRequested();
             if (await streamReader.ReadLineAsync() is null)
                 yield break;
-#elif NET7_OR_GREATER
+#else
             if (await streamReader.ReadLineAsync(cancellationToken) is null)
                 yield break;
 #endif
@@ -144,10 +144,10 @@ public static class FileReadExtensions
 
         for (var i = start; i < end; i++)
         {
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
             cancellationToken.ThrowIfCancellationRequested();
             var line = await streamReader.ReadLineAsync();
-#elif NET7_OR_GREATER
+#else
             var line = await streamReader.ReadLineAsync(cancellationToken);
 #endif
             if (line is null)
@@ -156,6 +156,14 @@ public static class FileReadExtensions
             yield return line;
         }
     }
+
+#if !(NETSTANDARD || NETSTANDARD2_0)
+    /// <summary>
+    /// Tuple-based shim for TFMs that support <see cref="Range"/>. Forwards to the <see cref="Range"/> overload.
+    /// </summary>
+    public static IAsyncEnumerable<string> ReadTextAsync(this IFile sourceFile, (int Start, int End) lineRange, CancellationToken cancellationToken)
+        => ReadTextAsync(sourceFile, new Range(lineRange.Start, lineRange.End), cancellationToken);
+#endif
 
     /// <summary>
     /// Reads a specific column range from each line within a line range in the text file.
@@ -174,16 +182,16 @@ public static class FileReadExtensions
     /// - If EOF is reached before <c>lineRange.Start</c> or during enumeration, the sequence ends early without error.
     /// - If <c>columnRange.Start</c> is beyond the end of a line, an empty string is yielded for that line.
     /// </remarks>
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
     public static async IAsyncEnumerable<string> ReadTextAsync(this IFile sourceFile, (int Start, int End) lineRange, (int Start, int End) columnRange, [EnumeratorCancellation] CancellationToken cancellationToken)
-#elif NET7_OR_GREATER
+#else
     public static async IAsyncEnumerable<string> ReadTextAsync(this IFile sourceFile, Range lineRange, Range columnRange, [EnumeratorCancellation] CancellationToken cancellationToken)
 #endif
     {
         using var fileStream = await sourceFile.OpenReadAsync(cancellationToken);
         using var streamReader = new StreamReader(fileStream);
 
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
         var start = lineRange.Start;
         var end = lineRange.End;
         var colStart = columnRange.Start;
@@ -198,7 +206,7 @@ public static class FileReadExtensions
             throw new ArgumentOutOfRangeException(nameof(columnRange), "Start and End must be non-negative.");
         if (colEnd < colStart)
             throw new ArgumentException("End must be greater than or equal to Start.", nameof(columnRange));
-#elif NET7_OR_GREATER
+#else
         if (lineRange.Start.IsFromEnd || lineRange.End.IsFromEnd)
             throw new ArgumentException("From-end indices (^) are not supported.", nameof(lineRange));
         if (columnRange.Start.IsFromEnd || columnRange.End.IsFromEnd)
@@ -222,11 +230,11 @@ public static class FileReadExtensions
 
         for (var i = 0; i < start; i++)
         {
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
             cancellationToken.ThrowIfCancellationRequested();
             if (await streamReader.ReadLineAsync() is null)
                 yield break;
-#elif NET7_OR_GREATER
+#else
             if (await streamReader.ReadLineAsync(cancellationToken) is null)
                 yield break;
 #endif
@@ -234,10 +242,10 @@ public static class FileReadExtensions
 
         for (var i = start; i < end; i++)
         {
-#if NETSTANDARD
+#if NETSTANDARD || NETSTANDARD2_0
             cancellationToken.ThrowIfCancellationRequested();
             var line = await streamReader.ReadLineAsync();
-#elif NET7_OR_GREATER
+#else
             var line = await streamReader.ReadLineAsync(cancellationToken);
 #endif
             if (line is null)
@@ -255,4 +263,12 @@ public static class FileReadExtensions
             }
         }
     }
+
+#if !(NETSTANDARD || NETSTANDARD2_0)
+    /// <summary>
+    /// Tuple-based shim for TFMs that support <see cref="Range"/>. Forwards to the <see cref="Range"/> overload.
+    /// </summary>
+    public static IAsyncEnumerable<string> ReadTextAsync(this IFile sourceFile, (int Start, int End) lineRange, (int Start, int End) columnRange, CancellationToken cancellationToken)
+        => ReadTextAsync(sourceFile, new Range(lineRange.Start, lineRange.End), new Range(columnRange.Start, columnRange.End), cancellationToken);
+#endif
 }

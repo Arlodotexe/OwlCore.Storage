@@ -17,7 +17,7 @@
     <DebugType>embedded</DebugType>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.13.1</Version>
+    <Version>0.14.0</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the Windows App Community.
 		
@@ -26,6 +26,34 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.14.0 ---
+[New]
+Added DepthFirstRecursiveFolder: depth-first async traversal wrapper over any IFolder with optional MaxDepth.
+Added BreadthFirstRecursiveFolder: breadth-first async traversal wrapper over any IFolder with optional MaxDepth.
+Added ItemsOverrideFolder: override a folder's GetItemsAsync by projecting its async enumerable.
+Added ReadOnlyCompositeFolder: present a read-only folder view materialized from a set of files.
+Added ParentOverrideChildFile: wrap any IFile with a custom parent, exposing it as IChildFile.
+Added TruncatedFile: wrap a file and cap the readable length of its underlying stream.
+Added TruncatedFilesFolder: wrap a folder so each file is exposed with a maximum byte length.
+Added TruncatedStream: stream wrapper enforcing a maximum readable length.
+Added FileReadExtensions.ReadTextAsync (line + column range): iterate a specific line range and slice per-line columns.
+Added FileWriteExtensions.WriteTextAsync (line range; line + column range): write sliced text content into a file (line end inclusive, column end exclusive).
+Added CopyExtensions.CopyToAsync: async file-to-file copy extension over IFile.
+
+Added CreateByRelativePathAsync (start from folder or child file): create a file or folder at a relative path (supports "." and ".."; explicit target type).
+Added CreateFolderByRelativePathAsync (start from folder or child file): convenience wrapper for creating folders by relative path.
+Added CreateFileByRelativePathAsync (start from folder or child file): convenience wrapper for creating files by relative path.
+Added CreateFoldersAlongRelativePathAsync (start from folder or child file): async sequence yielding each folder visited/created along a relative path.
+Added CreateAlongRelativePathAsync (start from folder or child file): async sequence yielding parents, then the file when targeting a file; folders only when targeting a folder.
+
+[Improvements]
+Added StorableExtensions.GetItemsAlongRelativePathAsync: navigates a relative path from any IStorable, yielding each visited node in order (supports '.', '..', and normalizes path separators).
+Added FolderExtensions.GetItemsAlongRelativePathToAsync: yields items along the path from a source IFolder to a descendant IStorableChild in traversal order.
+
+[Tests]
+Added traversal tests for DepthFirstRecursiveFolder and BreadthFirstRecursiveFolder covering BFS/DFS order, type filtering, and MaxDepth semantics.
+Added range read/write tests for IFile covering line range and line + column range.
+
 --- 0.13.1 ---
 [Fixes]
 Fixed the MoveFromAsync rename-capable extension not calling the proper rename-capable fallback overload.
