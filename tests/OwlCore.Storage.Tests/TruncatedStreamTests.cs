@@ -57,4 +57,47 @@ public class TruncatedStreamTests
 
         CollectionAssert.AreEqual(data.Take(50).ToArray(), buffer.Take(50).ToArray());
     }
+
+    [TestMethod]
+    public void Seek_Current_Beyond_Max_Throws()
+    {
+        var data = Enumerable.Range(0, 100).Select(i => (byte)i).ToArray();
+        using var ms = new MemoryStream(data);
+        using var ts = new TruncatedStream(ms, MaxLength: 50);
+
+        // Move to local position 10
+        ts.Position = 10;
+
+        // Seeking by +40 lands exactly at 50, which should be allowed
+        var posAtMax = ts.Seek(40, SeekOrigin.Current);
+        Assert.AreEqual(50, posAtMax);
+
+        // Seeking any further should throw
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ts.Seek(1, SeekOrigin.Current));
+    }
+
+    [TestMethod]
+    public void Seek_End_Bounds_And_Reads_Remaining()
+    {
+        var data = Enumerable.Range(0, 100).Select(i => (byte)i).ToArray();
+        using var ms = new MemoryStream(data);
+        using var ts = new TruncatedStream(ms, MaxLength: 50);
+
+        // End is MaxLength; seeking beyond should throw
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ts.Seek(1, SeekOrigin.End));
+
+        // Seek to end exactly; reads should return 0
+        var atEnd = ts.Seek(0, SeekOrigin.End);
+        Assert.AreEqual(50, atEnd);
+        var buf = new byte[10];
+        var readAtEnd = ts.Read(buf, 0, buf.Length);
+        Assert.AreEqual(0, readAtEnd);
+
+        // Seek to 10 bytes before end and validate remaining
+        var beforeEnd = ts.Seek(-10, SeekOrigin.End);
+        Assert.AreEqual(40, beforeEnd);
+        var read10 = ts.Read(buf, 0, buf.Length);
+        Assert.AreEqual(10, read10);
+        CollectionAssert.AreEqual(data.Skip(40).Take(10).ToArray(), buf);
+    }
 }
