@@ -112,9 +112,22 @@ public static class FileReadExtensions
 #if NETSTANDARD
         var start = lineRange.Start;
         var end = lineRange.End;
+
+        if (start < 0 || end < 0)
+            throw new ArgumentOutOfRangeException(nameof(lineRange), "Start and End must be non-negative.");
+        if (end < start)
+            throw new ArgumentException("End must be greater than or equal to Start.", nameof(lineRange));
 #elif NET7_OR_GREATER
+        if (lineRange.Start.IsFromEnd || lineRange.End.IsFromEnd)
+            throw new ArgumentException("From-end indices (^) are not supported.", nameof(lineRange));
+
         var start = lineRange.Start.Value;
         var end = lineRange.End.Value;
+
+        if (start < 0 || end < 0)
+            throw new ArgumentOutOfRangeException(nameof(lineRange), "Start and End must be non-negative.");
+        if (end < start)
+            throw new ArgumentException("End must be greater than or equal to Start.", nameof(lineRange));
 #endif
 
         for (var i = 0; i < start; i++)
@@ -175,11 +188,36 @@ public static class FileReadExtensions
         var end = lineRange.End;
         var colStart = columnRange.Start;
         var colEnd = columnRange.End;
+
+        if (start < 0 || end < 0)
+            throw new ArgumentOutOfRangeException(nameof(lineRange), "Start and End must be non-negative.");
+        if (end < start)
+            throw new ArgumentException("End must be greater than or equal to Start.", nameof(lineRange));
+
+        if (colStart < 0 || colEnd < 0)
+            throw new ArgumentOutOfRangeException(nameof(columnRange), "Start and End must be non-negative.");
+        if (colEnd < colStart)
+            throw new ArgumentException("End must be greater than or equal to Start.", nameof(columnRange));
 #elif NET7_OR_GREATER
+        if (lineRange.Start.IsFromEnd || lineRange.End.IsFromEnd)
+            throw new ArgumentException("From-end indices (^) are not supported.", nameof(lineRange));
+        if (columnRange.Start.IsFromEnd || columnRange.End.IsFromEnd)
+            throw new ArgumentException("From-end indices (^) are not supported.", nameof(columnRange));
+
         var start = lineRange.Start.Value;
         var end = lineRange.End.Value;
         var colStart = columnRange.Start.Value;
         var colEnd = columnRange.End.Value;
+
+        if (start < 0 || end < 0)
+            throw new ArgumentOutOfRangeException(nameof(lineRange), "Start and End must be non-negative.");
+        if (end < start)
+            throw new ArgumentException("End must be greater than or equal to Start.", nameof(lineRange));
+
+        if (colStart < 0 || colEnd < 0)
+            throw new ArgumentOutOfRangeException(nameof(columnRange), "Start and End must be non-negative.");
+        if (colEnd < colStart)
+            throw new ArgumentException("End must be greater than or equal to Start.", nameof(columnRange));
 #endif
 
         for (var i = 0; i < start; i++)
