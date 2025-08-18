@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net9.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>12.0</LangVersion>
     <WarningsAsErrors>nullable</WarningsAsErrors>
@@ -330,7 +330,7 @@ Initial release of OwlCore.Storage.
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="logo.png">
+    <None Include="logo.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
