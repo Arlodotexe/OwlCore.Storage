@@ -1,6 +1,6 @@
 # OwlCore.Storage
 
-The most flexible file system abstraction, ever. Built in partnership with the UWP Community.
+The most flexible file system abstraction, ever. Built in partnership with the Windows App Community.
 
 [![Version](https://img.shields.io/nuget/v/OwlCore.Storage.svg)](https://www.nuget.org/packages/OwlCore.Storage)
 
