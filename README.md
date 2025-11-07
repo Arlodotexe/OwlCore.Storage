@@ -21,7 +21,7 @@ Or using [dotnet](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet)
 ## Updating to version 0.10.0
 If you're updating to 0.10.0 from a previous version, please see the [release notes](https://github.com/Arlodotexe/OwlCore.Storage/blob/fdee4fe7c4509679c6e6e6a96137d069376c96d9/src/OwlCore.Storage.csproj#L26-L37) for breaking changes.
 
-No high-impact breaking changes have been released since 0.10.0.
+No high-impact breaking changes have been released since 0.10.0. See the [latest release notes](https://github.com/Arlodotexe/OwlCore.Storage/blob/main/src/OwlCore.Storage.csproj) for more.
 
 ## Available implementations
 ### Provided inbox
