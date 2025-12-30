@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage.System.IO;
 
 /// <summary>
-/// An <see cref="IFolder"/> implementation that uses System.IO.
+/// An <see cref="IFile"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFile : IChildFile, IGetRoot
+public class SystemFile : IChildFile, IGetRoot, IModifiableCreatedAtOffset, IModifiableLastAccessedAt, IModifiableLastModifiedAt
 {
     private string? _name;
     private FileInfo? _info;
@@ -134,5 +134,49 @@ public class SystemFile : IChildFile, IGetRoot
     {
         DirectoryInfo root = _info?.Directory != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
         return Task.FromResult<IFolder?>(new SystemFolder(root, noValidation: true));
+    }
+
+    /// <inheritdoc />
+    public Task<IStorageProperty<DateTime?>> GetCreatedAtAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IStorageProperty<DateTime?>>(new SimpleStorageProperty<DateTime?>(Info.CreationTime));
+
+    /// <inheritdoc />
+    public Task UpdateCreatedAtAsync(DateTime createdDateTime, CancellationToken cancellationToken)
+    {
+        Info.CreationTime = createdDateTime;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task<IStorageProperty<DateTimeOffset?>> GetCreatedAtOffsetAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IStorageProperty<DateTimeOffset?>>(new SimpleStorageProperty<DateTimeOffset?>(new DateTimeOffset(Info.CreationTimeUtc, TimeSpan.Zero)));
+
+    /// <inheritdoc />
+    public Task UpdateCreatedAtOffsetAsync(DateTimeOffset createdDateTime, CancellationToken cancellationToken)
+    {
+        Info.CreationTimeUtc = createdDateTime.UtcDateTime;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task<IStorageProperty<DateTime?>> GetLastAccessedAtAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IStorageProperty<DateTime?>>(new SimpleStorageProperty<DateTime?>(Info.LastAccessTime));
+
+    /// <inheritdoc />
+    public Task UpdateLastAccessedAtAsync(DateTime lastAccessedDateTime, CancellationToken cancellationToken)
+    {
+        Info.LastAccessTime = lastAccessedDateTime;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task<IStorageProperty<DateTime?>> GetLastModifiedAtAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IStorageProperty<DateTime?>>(new SimpleStorageProperty<DateTime?>(Info.LastWriteTime));
+
+    /// <inheritdoc />
+    public Task UpdateLastModifiedAtAsync(DateTime lastModifiedDateTime, CancellationToken cancellationToken)
+    {
+        Info.LastWriteTime = lastModifiedDateTime;
+        return Task.CompletedTask;
     }
 }
