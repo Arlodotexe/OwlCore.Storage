@@ -1,32 +1,33 @@
-﻿using System;
-using OwlCore.Storage;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace OwlCore.Storage;
 
 /// <summary>
-/// A property that was retrieved asynchronously. The <see cref="Value"/> can be a primitive or an object containing multiple values.
+/// Represents a storage property that can be identified and whose value can be retrieved asynchronously.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The recommended pattern for properties is to create an async method that returns <c>IStorageProperty{SomePropertyType}</c>, 
-/// put that method on an interface, and use the interface to indicate optional support for this property value.
+/// Storage properties extend <see cref="IStorable"/> and follow a similar lifecycle pattern to files:
+/// identify → open/read → (optionally watch/write) → dispose. The property object itself is a storable
+/// with its own <see cref="IStorable.Id"/> and <see cref="IStorable.Name"/>.
 /// </para>
 /// <para>
-/// For modifiability, implement a parallel <c>IModifiable*</c> interface with an <c>Update*Async</c> method.
-/// Get and notify are bundled into the "get" method (with notify behind an optional interface), 
-/// while get/set are kept as parallel methods on separate interfaces.
+/// The recommended pattern is to expose a property getter (e.g., <c>ICreatedAtProperty CreatedAt { get; }</c>)
+/// on an interface implemented by the storage item, then call <see cref="GetValueAsync"/> on the returned property object.
 /// </para>
 /// <para>
-/// Property lifecycle is tied to the storage container (file or folder), not to the property itself.
-/// Disposal responsibility belongs to the construction site—either delegate lifecycle to the consumer-constructed container,
-/// or have the consumer check <see cref="IDisposable"/> on each leaf object returned by the disposable root instance.
+/// For mutability (change notifications), use <see cref="IMutableStorageProperty{T}"/>.
+/// For modifiability (updating values), use <see cref="IModifiableStorageProperty{T}"/>.
 /// </para>
 /// </remarks>
-/// <typeparam name="T">The type used to store information about properties.</typeparam>
-public interface IStorageProperty<T>
+/// <typeparam name="T">The type of the property value.</typeparam>
+public interface IStorageProperty<T> : IStorable
 {
     /// <summary>
-    /// Gets the current property value.
+    /// Asynchronously retrieves the current property value.
     /// </summary>
-    T Value { get; }
+    /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
+    /// <returns>A task containing the current property value.</returns>
+    Task<T> GetValueAsync(CancellationToken cancellationToken);
 }

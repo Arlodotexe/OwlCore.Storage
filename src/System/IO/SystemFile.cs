@@ -9,10 +9,16 @@ namespace OwlCore.Storage.System.IO;
 /// <summary>
 /// An <see cref="IFile"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFile : IChildFile, IGetRoot, IModifiableCreatedAtOffset, IModifiableLastAccessedAt, IModifiableLastModifiedAt
+public class SystemFile : IChildFile, IGetRoot, ICreatedAtOffset, ILastAccessedAtOffset, ILastModifiedAtOffset
 {
     private string? _name;
     private FileInfo? _info;
+    private SystemIOCreatedAtProperty? _createdAt;
+    private SystemIOCreatedAtOffsetProperty? _createdAtOffset;
+    private SystemIOLastAccessedAtProperty? _lastAccessedAt;
+    private SystemIOLastAccessedAtOffsetProperty? _lastAccessedAtOffset;
+    private SystemIOLastModifiedAtProperty? _lastModifiedAt;
+    private SystemIOLastModifiedAtOffsetProperty? _lastModifiedAtOffset;
 
     /// <summary>
     /// Creates a new instance of <see cref="SystemFile"/>.
@@ -114,6 +120,24 @@ public class SystemFile : IChildFile, IGetRoot, IModifiableCreatedAtOffset, IMod
     public FileInfo Info => _info ??= new(Path);
 
     /// <inheritdoc />
+    public ICreatedAtProperty CreatedAt => _createdAt ??= new SystemIOCreatedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= new SystemIOCreatedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtProperty LastAccessedAt => _lastAccessedAt ??= new SystemIOLastAccessedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtOffsetProperty LastAccessedAtOffset => _lastAccessedAtOffset ??= new SystemIOLastAccessedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtProperty LastModifiedAt => _lastModifiedAt ??= new SystemIOLastModifiedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtOffsetProperty LastModifiedAtOffset => _lastModifiedAtOffset ??= new SystemIOLastModifiedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
     public virtual Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
         var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
@@ -134,73 +158,5 @@ public class SystemFile : IChildFile, IGetRoot, IModifiableCreatedAtOffset, IMod
     {
         DirectoryInfo root = _info?.Directory != null ? _info.Directory.Root : new DirectoryInfo(Path).Root;
         return Task.FromResult<IFolder?>(new SystemFolder(root, noValidation: true));
-    }
-
-    /// <inheritdoc />
-    public Task<IStorageProperty<DateTime?>> GetCreatedAtAsync(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return Task.FromResult<IStorageProperty<DateTime?>>(new SimpleStorageProperty<DateTime?>(Info.CreationTime));
-    }
-
-    /// <inheritdoc />
-    public Task UpdateCreatedAtAsync(DateTime createdDateTime, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        Info.CreationTime = createdDateTime;
-        return Task.CompletedTask;
-    }
-
-    /// <inheritdoc />
-    public Task<IStorageProperty<DateTimeOffset?>> GetCreatedAtOffsetAsync(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return Task.FromResult<IStorageProperty<DateTimeOffset?>>(new SimpleStorageProperty<DateTimeOffset?>(new DateTimeOffset(Info.CreationTimeUtc, TimeSpan.Zero)));
-    }
-
-    /// <inheritdoc />
-    public Task UpdateCreatedAtOffsetAsync(DateTimeOffset createdDateTime, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        Info.CreationTimeUtc = createdDateTime.UtcDateTime;
-        return Task.CompletedTask;
-    }
-
-    /// <inheritdoc />
-    public Task<IStorageProperty<DateTime?>> GetLastAccessedAtAsync(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return Task.FromResult<IStorageProperty<DateTime?>>(new SimpleStorageProperty<DateTime?>(Info.LastAccessTime));
-    }
-
-    /// <inheritdoc />
-    public Task UpdateLastAccessedAtAsync(DateTime lastAccessedDateTime, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        Info.LastAccessTime = lastAccessedDateTime;
-        return Task.CompletedTask;
-    }
-
-    /// <inheritdoc />
-    public Task<IStorageProperty<DateTime?>> GetLastModifiedAtAsync(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return Task.FromResult<IStorageProperty<DateTime?>>(new SimpleStorageProperty<DateTime?>(Info.LastWriteTime));
-    }
-
-    /// <inheritdoc />
-    public Task UpdateLastModifiedAtAsync(DateTime lastModifiedDateTime, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        Info.LastWriteTime = lastModifiedDateTime;
-        return Task.CompletedTask;
     }
 }
