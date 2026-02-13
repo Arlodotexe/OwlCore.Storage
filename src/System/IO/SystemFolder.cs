@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +14,16 @@ namespace OwlCore.Storage.System.IO;
 /// <summary>
 /// An <see cref="IFolder"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyOf, IMoveRenamedFrom, IGetItem, IGetItemRecursive, IGetFirstByName, IGetRoot
+public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyOf, IMoveRenamedFrom, IGetItem, IGetItemRecursive, IGetFirstByName, IGetRoot, ICreatedAtOffset, ILastAccessedAtOffset, ILastModifiedAtOffset
 {
     private string? _name;
     private DirectoryInfo? _info;
+    private SystemIOCreatedAtProperty? _createdAt;
+    private SystemIOCreatedAtOffsetProperty? _createdAtOffset;
+    private SystemIOLastAccessedAtProperty? _lastAccessedAt;
+    private SystemIOLastAccessedAtOffsetProperty? _lastAccessedAtOffset;
+    private SystemIOLastModifiedAtProperty? _lastModifiedAt;
+    private SystemIOLastModifiedAtOffsetProperty? _lastModifiedAtOffset;
 
     /// <summary>
     /// Creates a new instance of <see cref="SystemFolder"/>.
@@ -108,6 +115,24 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     /// Gets the path of the folder on disk.
     /// </summary>
     public string Path { get; }
+
+    /// <inheritdoc />
+    public ICreatedAtProperty CreatedAt => _createdAt ??= new SystemIOCreatedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= new SystemIOCreatedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtProperty LastAccessedAt => _lastAccessedAt ??= new SystemIOLastAccessedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtOffsetProperty LastAccessedAtOffset => _lastAccessedAtOffset ??= new SystemIOLastAccessedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtProperty LastModifiedAt => _lastModifiedAt ??= new SystemIOLastModifiedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtOffsetProperty LastModifiedAtOffset => _lastModifiedAtOffset ??= new SystemIOLastModifiedAtOffsetProperty(this, Info);
 
     /// <inheritdoc />
     public virtual async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -270,6 +295,21 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 
         File.Copy(systemFile.Path, newPath, overwrite);
 
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // NTFS copy semantics (canonical):
+            // - LastModifiedAt: preserved from source
+            // - CreatedAt: new file gets current time
+            // - LastAccessedAt: new file gets current time
+            // On Linux, File.Copy may behave differently. Normalize to match NTFS.
+            var sourceLastModified = File.GetLastWriteTimeUtc(systemFile.Path);
+            File.SetLastWriteTimeUtc(newPath, sourceLastModified);
+            // Note: File.SetCreationTimeUtc on Linux may clobber other timestamps,
+            // so we set LastWriteTime last to ensure it sticks.
+            File.SetCreationTimeUtc(newPath, DateTime.UtcNow);
+            File.SetLastWriteTimeUtc(newPath, sourceLastModified);
+        }
+
         return new SystemFile(newPath, noValidation: true);
     }
 
@@ -298,7 +338,29 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
         if (overwrite)
             File.Delete(newPath);
 
+        // Capture all timestamps before move — on non-Windows, File.Move may not preserve them.
+        DateTime? originalCreatedAt = null;
+        DateTime? originalLastModified = null;
+        DateTime? originalLastAccessed = null;
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            originalCreatedAt = File.GetCreationTimeUtc(systemFile.Path);
+            originalLastModified = File.GetLastWriteTimeUtc(systemFile.Path);
+            originalLastAccessed = File.GetLastAccessTimeUtc(systemFile.Path);
+        }
+
         File.Move(systemFile.Path, newPath);
+
+        // Restore all timestamps on non-Windows to match NTFS move semantics (all timestamps preserved).
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            if (originalCreatedAt.HasValue)
+                File.SetCreationTimeUtc(newPath, originalCreatedAt.Value);
+            if (originalLastModified.HasValue)
+                File.SetLastWriteTimeUtc(newPath, originalLastModified.Value);
+            if (originalLastAccessed.HasValue)
+                File.SetLastAccessTimeUtc(newPath, originalLastAccessed.Value);
+        }
 
         return new SystemFile(newPath, noValidation: true);
     }

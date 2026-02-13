@@ -7,12 +7,18 @@ using System.Threading.Tasks;
 namespace OwlCore.Storage.System.IO;
 
 /// <summary>
-/// An <see cref="IFolder"/> implementation that uses System.IO.
+/// An <see cref="IFile"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFile : IChildFile, IGetRoot
+public class SystemFile : IChildFile, IGetRoot, ICreatedAtOffset, ILastAccessedAtOffset, ILastModifiedAtOffset
 {
     private string? _name;
     private FileInfo? _info;
+    private SystemIOCreatedAtProperty? _createdAt;
+    private SystemIOCreatedAtOffsetProperty? _createdAtOffset;
+    private SystemIOLastAccessedAtProperty? _lastAccessedAt;
+    private SystemIOLastAccessedAtOffsetProperty? _lastAccessedAtOffset;
+    private SystemIOLastModifiedAtProperty? _lastModifiedAt;
+    private SystemIOLastModifiedAtOffsetProperty? _lastModifiedAtOffset;
 
     /// <summary>
     /// Creates a new instance of <see cref="SystemFile"/>.
@@ -114,10 +120,33 @@ public class SystemFile : IChildFile, IGetRoot
     public FileInfo Info => _info ??= new(Path);
 
     /// <inheritdoc />
+    public ICreatedAtProperty CreatedAt => _createdAt ??= new SystemIOCreatedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= new SystemIOCreatedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtProperty LastAccessedAt => _lastAccessedAt ??= new SystemIOLastAccessedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtOffsetProperty LastAccessedAtOffset => _lastAccessedAtOffset ??= new SystemIOLastAccessedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtProperty LastModifiedAt => _lastModifiedAt ??= new SystemIOLastModifiedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtOffsetProperty LastModifiedAtOffset => _lastModifiedAtOffset ??= new SystemIOLastModifiedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
     public virtual Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
         var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // FileOptions.Asynchronous uses FILE_FLAG_OVERLAPPED which doesn't update LastAccessTime on NTFS.
+        // Manually update to ensure consistent behavior across platforms.
+        // Any file open (read or write) is considered an access.
+        Info.LastAccessTime = DateTime.Now;
 
         return Task.FromResult<Stream>(stream);
     }
