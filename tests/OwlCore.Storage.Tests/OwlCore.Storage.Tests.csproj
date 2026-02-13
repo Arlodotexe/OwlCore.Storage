@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ocstoragecommontests\src\OwlCore.Storage.CommonTests.csproj" />
+    <PackageReference Include="OwlCore.Storage.CommonTests" Version="0.6.0" />
     <ProjectReference Include="..\..\src\OwlCore.Storage.csproj" />
   </ItemGroup>
 
