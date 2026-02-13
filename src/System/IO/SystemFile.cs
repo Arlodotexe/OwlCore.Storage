@@ -143,6 +143,11 @@ public class SystemFile : IChildFile, IGetRoot, ICreatedAtOffset, ILastAccessedA
         var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // FileOptions.Asynchronous uses FILE_FLAG_OVERLAPPED which doesn't update LastAccessTime on NTFS.
+        // Manually update to ensure consistent behavior across platforms.
+        // Any file open (read or write) is considered an access.
+        Info.LastAccessTime = DateTime.Now;
+
         return Task.FromResult<Stream>(stream);
     }
 

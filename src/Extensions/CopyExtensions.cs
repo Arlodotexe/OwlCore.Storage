@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -52,10 +53,10 @@ public static partial class ModifiableFolderExtensions
         return await CreateCopyOfFallbackAsync(destinationFolder, fileToCopy, overwrite, newName, cancellationToken);
     }
 
-    private static Task<IChildFile> CreateCopyOfFallbackAsync(IModifiableFolder destinationFolder, IFile fileToCopy, bool overwrite, CancellationToken cancellationToken = default)
+    internal static Task<IChildFile> CreateCopyOfFallbackAsync(IModifiableFolder destinationFolder, IFile fileToCopy, bool overwrite, CancellationToken cancellationToken = default)
         => CreateCopyOfFallbackAsync(destinationFolder, fileToCopy, overwrite, fileToCopy.Name, cancellationToken);
 
-    private static async Task<IChildFile> CreateCopyOfFallbackAsync(IModifiableFolder destinationFolder, IFile fileToCopy, bool overwrite, string newName, CancellationToken cancellationToken = default)
+    internal static async Task<IChildFile> CreateCopyOfFallbackAsync(IModifiableFolder destinationFolder, IFile fileToCopy, bool overwrite, string newName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -71,17 +72,47 @@ public static partial class ModifiableFolderExtensions
             catch (FileNotFoundException) { }
         }
 
+        // Capture LastModifiedAt BEFORE opening streams
+        // Copy semantics: only LastModifiedAt is preserved (CreatedAt and LastAccessedAt get current time)
+        DateTime? sourceLastModifiedAt = null;
+        DateTimeOffset? sourceLastModifiedAtOffset = null;
+
+        if (fileToCopy is ILastModifiedAt srcLastModifiedAt)
+        {
+            try { sourceLastModifiedAt = await srcLastModifiedAt.LastModifiedAt.GetValueAsync(cancellationToken); }
+            catch { /* Ignore */ }
+        }
+
+        if (fileToCopy is ILastModifiedAtOffset srcLastModifiedAtOffset)
+        {
+            try { sourceLastModifiedAtOffset = await srcLastModifiedAtOffset.LastModifiedAtOffset.GetValueAsync(cancellationToken); }
+            catch { /* Ignore */ }
+        }
+
         // Create the destination file.
         // 'overwrite: false' would have thrown above if the file exists, so either overwrite is already true or the file doesn't exist yet.
-        // Always overwrite here so the file is empty. 
+        // Always overwrite here so the file is empty.
         var newFile = await destinationFolder.CreateFileAsync(newName, overwrite: true, cancellationToken);
-        using var destinationStream = await newFile.OpenStreamAsync(FileAccess.Write, cancellationToken: cancellationToken);
 
-        // Open the source file
-        using var sourceStream = await fileToCopy.OpenStreamAsync(FileAccess.Read, cancellationToken: cancellationToken);
+        // Copy file content
+        using (var destinationStream = await newFile.OpenStreamAsync(FileAccess.Write, cancellationToken: cancellationToken))
+        using (var sourceStream = await fileToCopy.OpenStreamAsync(FileAccess.Read, cancellationToken: cancellationToken))
+        {
+            await sourceStream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
+        }
 
-        // Copy the src into the dest file
-        await sourceStream.CopyToAsync(destinationStream, bufferSize: 81920, cancellationToken);
+        // Apply only LastModifiedAt to destination (matches native copy behavior)
+        if (sourceLastModifiedAt.HasValue && newFile is ILastModifiedAt { LastModifiedAt: IModifiableStorageProperty<DateTime?> destLastModifiedAt })
+        {
+            try { await destLastModifiedAt.UpdateValueAsync(sourceLastModifiedAt.Value, cancellationToken); }
+            catch { /* Silently continue - timestamp preservation is best-effort */ }
+        }
+
+        if (sourceLastModifiedAtOffset.HasValue && newFile is ILastModifiedAtOffset { LastModifiedAtOffset: IModifiableStorageProperty<DateTimeOffset?> destLastModifiedAtOffset })
+        {
+            try { await destLastModifiedAtOffset.UpdateValueAsync(sourceLastModifiedAtOffset.Value, cancellationToken); }
+            catch { /* Silently continue - timestamp preservation is best-effort */ }
+        }
 
         return newFile;
     }

@@ -29,7 +29,7 @@ public class SimpleMutableStorageProperty<T> : SimpleStorageProperty<T>, IMutabl
         : base(id, name, asyncGetter) { }
 
     /// <inheritdoc/>
-    public Task<IStoragePropertyWatcher<T>> GetWatcherAsync(CancellationToken cancellationToken)
+    public virtual Task<IStoragePropertyWatcher<T>> GetWatcherAsync(CancellationToken cancellationToken)
     {
         return Task.FromResult<IStoragePropertyWatcher<T>>(new SimpleStoragePropertyWatcher<T>(this));
     }

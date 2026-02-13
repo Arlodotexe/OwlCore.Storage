@@ -29,5 +29,5 @@ public interface IStorageProperty<T> : IStorable
     /// </summary>
     /// <param name="cancellationToken">A token that can be used to cancel the ongoing operation.</param>
     /// <returns>A task containing the current property value.</returns>
-    Task<T> GetValueAsync(CancellationToken cancellationToken);
+    Task<T> GetValueAsync(CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,4 @@
-﻿using OwlCore.Storage.CommonTests;
+using OwlCore.Storage.CommonTests;
 using OwlCore.Storage.System.IO;
 using OwlCore.Storage.System.IO.Compression;
 using System.IO.Compression;
@@ -31,6 +31,13 @@ public class ZipArchiveFolder_FileOnDisk_Tests : CommonIModifiableFolderTests
 
         return folder;
     }
+
+    // ZipArchiveFolder doesn't support setting timestamps at creation
+    public override Task<IFolder?> CreateFolderWithCreatedAtAsync(DateTime createdAt) => Task.FromResult<IFolder?>(null);
+    public override Task<IFolder?> CreateFolderWithLastModifiedAtAsync(DateTime lastModifiedAt) => Task.FromResult<IFolder?>(null);
+    public override Task<IFolder?> CreateFolderWithLastAccessedAtAsync(DateTime lastAccessedAt) => Task.FromResult<IFolder?>(null);
+    public override Task<IFile?> CreateFileInFolderWithLastModifiedAtAsync(IModifiableFolder folder, DateTime lastModifiedAt) => Task.FromResult<IFile?>(null);
+    public override Task<IFile?> CreateFileInFolderWithTimestampsAsync(IModifiableFolder folder, DateTime? createdAt, DateTime? lastModifiedAt, DateTime? lastAccessedAt) => Task.FromResult<IFile?>(null);
 
     private static string CreateEmptyArchiveOnDisk()
     {

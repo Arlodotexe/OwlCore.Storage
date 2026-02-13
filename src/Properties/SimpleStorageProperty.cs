@@ -26,11 +26,7 @@ public class SimpleStorageProperty<T> : IStorageProperty<T>
     {
         Id = id;
         Name = name;
-        _asyncGetter = ct =>
-        {
-            ct.ThrowIfCancellationRequested();
-            return Task.FromResult(getter());
-        };
+        _asyncGetter = ct => Task.FromResult(getter());
     }
 
     /// <summary>
@@ -53,5 +49,9 @@ public class SimpleStorageProperty<T> : IStorageProperty<T>
     public string Name { get; }
 
     /// <inheritdoc/>
-    public Task<T> GetValueAsync(CancellationToken cancellationToken) => _asyncGetter(cancellationToken);
+    public Task<T> GetValueAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return _asyncGetter(cancellationToken);
+    }
 }
