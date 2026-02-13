@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -294,6 +295,11 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 
         File.Copy(systemFile.Path, newPath, overwrite);
 
+        // On non-Windows platforms, File.Copy may preserve CreationTime.
+        // NTFS behavior (canonical): copy creates a new file, so CreatedAt should be current time.
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            File.SetCreationTimeUtc(newPath, DateTime.UtcNow);
+
         return new SystemFile(newPath, noValidation: true);
     }
 
@@ -322,7 +328,16 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
         if (overwrite)
             File.Delete(newPath);
 
+        // Capture CreatedAt before move — on non-Windows, File.Move may not preserve it.
+        DateTime? originalCreatedAt = null;
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            originalCreatedAt = File.GetCreationTimeUtc(systemFile.Path);
+
         File.Move(systemFile.Path, newPath);
+
+        // Restore CreatedAt on non-Windows to match NTFS move semantics (all timestamps preserved).
+        if (originalCreatedAt.HasValue)
+            File.SetCreationTimeUtc(newPath, originalCreatedAt.Value);
 
         return new SystemFile(newPath, noValidation: true);
     }
