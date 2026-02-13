@@ -295,10 +295,20 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 
         File.Copy(systemFile.Path, newPath, overwrite);
 
-        // On non-Windows platforms, File.Copy may preserve CreationTime.
-        // NTFS behavior (canonical): copy creates a new file, so CreatedAt should be current time.
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // NTFS copy semantics (canonical):
+            // - LastModifiedAt: preserved from source
+            // - CreatedAt: new file gets current time
+            // - LastAccessedAt: new file gets current time
+            // On Linux, File.Copy may behave differently. Normalize to match NTFS.
+            var sourceLastModified = File.GetLastWriteTimeUtc(systemFile.Path);
+            File.SetLastWriteTimeUtc(newPath, sourceLastModified);
+            // Note: File.SetCreationTimeUtc on Linux may clobber other timestamps,
+            // so we set LastWriteTime last to ensure it sticks.
             File.SetCreationTimeUtc(newPath, DateTime.UtcNow);
+            File.SetLastWriteTimeUtc(newPath, sourceLastModified);
+        }
 
         return new SystemFile(newPath, noValidation: true);
     }
@@ -328,16 +338,29 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
         if (overwrite)
             File.Delete(newPath);
 
-        // Capture CreatedAt before move — on non-Windows, File.Move may not preserve it.
+        // Capture all timestamps before move — on non-Windows, File.Move may not preserve them.
         DateTime? originalCreatedAt = null;
+        DateTime? originalLastModified = null;
+        DateTime? originalLastAccessed = null;
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
             originalCreatedAt = File.GetCreationTimeUtc(systemFile.Path);
+            originalLastModified = File.GetLastWriteTimeUtc(systemFile.Path);
+            originalLastAccessed = File.GetLastAccessTimeUtc(systemFile.Path);
+        }
 
         File.Move(systemFile.Path, newPath);
 
-        // Restore CreatedAt on non-Windows to match NTFS move semantics (all timestamps preserved).
-        if (originalCreatedAt.HasValue)
-            File.SetCreationTimeUtc(newPath, originalCreatedAt.Value);
+        // Restore all timestamps on non-Windows to match NTFS move semantics (all timestamps preserved).
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            if (originalCreatedAt.HasValue)
+                File.SetCreationTimeUtc(newPath, originalCreatedAt.Value);
+            if (originalLastModified.HasValue)
+                File.SetLastWriteTimeUtc(newPath, originalLastModified.Value);
+            if (originalLastAccessed.HasValue)
+                File.SetLastAccessTimeUtc(newPath, originalLastAccessed.Value);
+        }
 
         return new SystemFile(newPath, noValidation: true);
     }
