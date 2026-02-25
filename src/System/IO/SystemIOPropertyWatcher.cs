@@ -57,6 +57,9 @@ public class SystemIOPropertyWatcher<T> : IStoragePropertyWatcher<T>
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
+        if (((WatcherChangeTypes)e.ChangeType) != global::System.IO.WatcherChangeTypes.Changed)
+            return;
+
         // Don't block the event handler
         Task.Run(async () =>
         {

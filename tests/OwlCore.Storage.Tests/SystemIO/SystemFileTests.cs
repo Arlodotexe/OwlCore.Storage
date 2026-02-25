@@ -1,5 +1,6 @@
 using OwlCore.Storage.CommonTests;
 using OwlCore.Storage.System.IO;
+using System.Runtime.InteropServices;
 
 namespace OwlCore.Storage.Tests.SystemIO;
 
@@ -15,6 +16,9 @@ public class SystemFileTests : CommonIFileTests
 
     public override async Task<IFile?> CreateFileWithCreatedAtAsync(DateTime createdAt)
     {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return null;
+
         var filePath = await GenerateRandomFile(256_000);
         File.SetCreationTimeUtc(filePath, createdAt);
         return new SystemFile(filePath);

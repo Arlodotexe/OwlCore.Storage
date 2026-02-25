@@ -17,6 +17,6 @@ public sealed class SystemIOLastModifiedAtProperty(IStorable owner, FileSystemIn
     /// <inheritdoc/>
     public override Task<IStoragePropertyWatcher<DateTime?>> GetWatcherAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult<IStoragePropertyWatcher<DateTime?>>(new SystemIOPropertyWatcher<DateTime?>(this, info.FullName, NotifyFilters.LastWrite));
+        return Task.FromResult<IStoragePropertyWatcher<DateTime?>>(new SystemIOPropertyWatcher<DateTime?>(this, info.FullName, NotifyFilters.LastWrite | NotifyFilters.Attributes));
     }
 }

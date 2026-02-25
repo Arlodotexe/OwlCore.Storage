@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,8 +18,8 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 {
     private string? _name;
     private DirectoryInfo? _info;
-    private SystemIOCreatedAtProperty? _createdAt;
-    private SystemIOCreatedAtOffsetProperty? _createdAtOffset;
+    private ICreatedAtProperty? _createdAt;
+    private ICreatedAtOffsetProperty? _createdAtOffset;
     private SystemIOLastAccessedAtProperty? _lastAccessedAt;
     private SystemIOLastAccessedAtOffsetProperty? _lastAccessedAtOffset;
     private SystemIOLastModifiedAtProperty? _lastModifiedAt;
@@ -116,10 +117,14 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     public string Path { get; }
 
     /// <inheritdoc />
-    public ICreatedAtProperty CreatedAt => _createdAt ??= new SystemIOCreatedAtProperty(this, Info);
+    public ICreatedAtProperty CreatedAt => _createdAt ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        ? new SystemIOLinuxBirthTimeProperty(this, Info.FullName)
+        : new SystemIOCreatedAtProperty(this, Info);
 
     /// <inheritdoc />
-    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= new SystemIOCreatedAtOffsetProperty(this, Info);
+    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        ? new SystemIOLinuxBirthTimeOffsetProperty(this, Info.FullName)
+        : new SystemIOCreatedAtOffsetProperty(this, Info);
 
     /// <inheritdoc />
     public ILastAccessedAtProperty LastAccessedAt => _lastAccessedAt ??= new SystemIOLastAccessedAtProperty(this, Info);

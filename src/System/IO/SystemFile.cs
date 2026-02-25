@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,8 +14,8 @@ public class SystemFile : IChildFile, IGetRoot, ICreatedAtOffset, ILastAccessedA
 {
     private string? _name;
     private FileInfo? _info;
-    private SystemIOCreatedAtProperty? _createdAt;
-    private SystemIOCreatedAtOffsetProperty? _createdAtOffset;
+    private ICreatedAtProperty? _createdAt;
+    private ICreatedAtOffsetProperty? _createdAtOffset;
     private SystemIOLastAccessedAtProperty? _lastAccessedAt;
     private SystemIOLastAccessedAtOffsetProperty? _lastAccessedAtOffset;
     private SystemIOLastModifiedAtProperty? _lastModifiedAt;
@@ -120,10 +121,14 @@ public class SystemFile : IChildFile, IGetRoot, ICreatedAtOffset, ILastAccessedA
     public FileInfo Info => _info ??= new(Path);
 
     /// <inheritdoc />
-    public ICreatedAtProperty CreatedAt => _createdAt ??= new SystemIOCreatedAtProperty(this, Info);
+    public ICreatedAtProperty CreatedAt => _createdAt ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        ? new SystemIOLinuxBirthTimeProperty(this, Info.FullName)
+        : new SystemIOCreatedAtProperty(this, Info);
 
     /// <inheritdoc />
-    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= new SystemIOCreatedAtOffsetProperty(this, Info);
+    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        ? new SystemIOLinuxBirthTimeOffsetProperty(this, Info.FullName)
+        : new SystemIOCreatedAtOffsetProperty(this, Info);
 
     /// <inheritdoc />
     public ILastAccessedAtProperty LastAccessedAt => _lastAccessedAt ??= new SystemIOLastAccessedAtProperty(this, Info);
@@ -140,13 +145,17 @@ public class SystemFile : IChildFile, IGetRoot, ICreatedAtOffset, ILastAccessedA
     /// <inheritdoc />
     public virtual Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
-        var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
+        var stream = new FileStream(Info.FullName, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
+
         cancellationToken.ThrowIfCancellationRequested();
 
         // FileOptions.Asynchronous uses FILE_FLAG_OVERLAPPED which doesn't update LastAccessTime on NTFS.
         // Manually update to ensure consistent behavior across platforms.
         // Any file open (read or write) is considered an access.
-        Info.LastAccessTime = DateTime.Now;
+        // On Linux, .NET's FileInfo.LastAccessTime setter calls utimensat(2) with both atime and mtime,
+        // which raises a spurious inotify IN_ATTRIB/IN_MODIFY event before the write occurs.
+        // UtimensatInterop.SetAccessTimeOnly uses UTIME_OMIT for mtime to avoid touching it.
+        UtimensatInterop.SetAccessTimeOnly(Info.FullName);
 
         return Task.FromResult<Stream>(stream);
     }
