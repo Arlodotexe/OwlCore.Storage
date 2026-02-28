@@ -124,7 +124,11 @@ public static class CreateRelativeStorageExtensions
         }
         else
         {
-            for (int i = 0; i < parts.Length; i++)
+            // Ignore file-like tail when creating folder path
+            var lastLooksFile = LooksLikeFileTail(parts, hasTrailingSlash);
+            var effectiveLength = lastLooksFile ? Math.Max(0, parts.Length - 1) : parts.Length;
+            
+            for (int i = 0; i < effectiveLength; i++)
             {
                 var segment = parts[i].Trim();
                 if (segment.Length == 0 || segment == ".")
