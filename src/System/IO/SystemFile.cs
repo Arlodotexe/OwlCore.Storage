@@ -1,18 +1,25 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace OwlCore.Storage.System.IO;
 
 /// <summary>
-/// An <see cref="IFolder"/> implementation that uses System.IO.
+/// An <see cref="IFile"/> implementation that uses System.IO.
 /// </summary>
-public class SystemFile : IChildFile, IGetRoot
+public class SystemFile : IChildFile, IGetRoot, ICreatedAtOffset, ILastAccessedAtOffset, ILastModifiedAtOffset
 {
     private string? _name;
     private FileInfo? _info;
+    private ICreatedAtProperty? _createdAt;
+    private ICreatedAtOffsetProperty? _createdAtOffset;
+    private SystemIOLastAccessedAtProperty? _lastAccessedAt;
+    private SystemIOLastAccessedAtOffsetProperty? _lastAccessedAtOffset;
+    private SystemIOLastModifiedAtProperty? _lastModifiedAt;
+    private SystemIOLastModifiedAtOffsetProperty? _lastModifiedAtOffset;
 
     /// <summary>
     /// Creates a new instance of <see cref="SystemFile"/>.
@@ -114,10 +121,41 @@ public class SystemFile : IChildFile, IGetRoot
     public FileInfo Info => _info ??= new(Path);
 
     /// <inheritdoc />
+    public ICreatedAtProperty CreatedAt => _createdAt ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        ? new SystemIOLinuxBirthTimeProperty(this, Info.FullName)
+        : new SystemIOCreatedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ICreatedAtOffsetProperty CreatedAtOffset => _createdAtOffset ??= RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+        ? new SystemIOLinuxBirthTimeOffsetProperty(this, Info.FullName)
+        : new SystemIOCreatedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtProperty LastAccessedAt => _lastAccessedAt ??= new SystemIOLastAccessedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastAccessedAtOffsetProperty LastAccessedAtOffset => _lastAccessedAtOffset ??= new SystemIOLastAccessedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtProperty LastModifiedAt => _lastModifiedAt ??= new SystemIOLastModifiedAtProperty(this, Info);
+
+    /// <inheritdoc />
+    public ILastModifiedAtOffsetProperty LastModifiedAtOffset => _lastModifiedAtOffset ??= new SystemIOLastModifiedAtOffsetProperty(this, Info);
+
+    /// <inheritdoc />
     public virtual Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)
     {
-        var stream = new FileStream(Path, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
+        var stream = new FileStream(Info.FullName, FileMode.Open, accessMode, FileShare, BufferSize, FileOptions.Asynchronous);
+
         cancellationToken.ThrowIfCancellationRequested();
+
+        // FileOptions.Asynchronous uses FILE_FLAG_OVERLAPPED which doesn't update LastAccessTime on NTFS.
+        // Manually update to ensure consistent behavior across platforms.
+        // Any file open (read or write) is considered an access.
+        // On Linux, .NET's FileInfo.LastAccessTime setter calls utimensat(2) with both atime and mtime,
+        // which raises a spurious inotify IN_ATTRIB/IN_MODIFY event before the write occurs.
+        // UtimensatInterop.SetAccessTimeOnly uses UTIME_OMIT for mtime to avoid touching it.
+        UtimensatInterop.SetAccessTimeOnly(Info.FullName);
 
         return Task.FromResult<Stream>(stream);
     }

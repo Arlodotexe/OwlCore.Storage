@@ -1,4 +1,4 @@
-﻿using OwlCore.Storage.CommonTests;
+using OwlCore.Storage.CommonTests;
 using OwlCore.Storage.System.IO;
 using OwlCore.Storage.System.IO.Compression;
 using System.IO.Compression;
@@ -49,4 +49,9 @@ public class ZipArchiveEntryFile_FileOnDisk_Tests : CommonIFileTests
             return b;
         }
     }
+
+    // ZipArchiveEntryFile doesn't support setting timestamps at creation
+    public override Task<IFile?> CreateFileWithCreatedAtAsync(DateTime createdAt) => Task.FromResult<IFile?>(null);
+    public override Task<IFile?> CreateFileWithLastModifiedAtAsync(DateTime lastModifiedAt) => Task.FromResult<IFile?>(null);
+    public override Task<IFile?> CreateFileWithLastAccessedAtAsync(DateTime lastAccessedAt) => Task.FromResult<IFile?>(null);
 }

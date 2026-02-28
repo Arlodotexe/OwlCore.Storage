@@ -28,6 +28,11 @@ namespace OwlCore.Storage.Tests
             }
         }
 
+        // StreamFile doesn't support setting timestamps
+        public override Task<IFile?> CreateFileWithCreatedAtAsync(DateTime createdAt) => Task.FromResult<IFile?>(null);
+        public override Task<IFile?> CreateFileWithLastModifiedAtAsync(DateTime lastModifiedAt) => Task.FromResult<IFile?>(null);
+        public override Task<IFile?> CreateFileWithLastAccessedAtAsync(DateTime lastAccessedAt) => Task.FromResult<IFile?>(null);
+
         [TestMethod]
         public void ShouldDispose_DefaultValue_IsFalse()
         {

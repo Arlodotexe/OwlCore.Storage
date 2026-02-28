@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -78,17 +78,22 @@ public static partial class ModifiableFolderExtensions
         return await MoveFromFallbackAsync(destinationFolder, fileToMove, source, overwrite, newName, cancellationToken);
     }
 
-    private static async Task<IChildFile> MoveFromFallbackAsync(IModifiableFolder destinationFolder, IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken = default)
-    {
-        var file = await destinationFolder.CreateCopyOfAsync(fileToMove, overwrite, cancellationToken);
-        await source.DeleteAsync(fileToMove, cancellationToken);
-
-        return file;
-    }
+    private static Task<IChildFile> MoveFromFallbackAsync(IModifiableFolder destinationFolder, IChildFile fileToMove, IModifiableFolder source, bool overwrite, CancellationToken cancellationToken = default)
+        => MoveFromFallbackAsync(destinationFolder, fileToMove, source, overwrite, fileToMove.Name, cancellationToken);
 
     private static async Task<IChildFile> MoveFromFallbackAsync(IModifiableFolder destinationFolder, IChildFile fileToMove, IModifiableFolder source, bool overwrite, string newName, CancellationToken cancellationToken = default)
     {
-        var file = await destinationFolder.CreateCopyOfAsync(fileToMove, overwrite, newName, cancellationToken);
+        // Move semantics: ALL timestamps should be preserved
+        // Capture all timestamps BEFORE any operations that might change them
+        var timestamps = await fileToMove.CaptureAllTimestampsAsync(cancellationToken);
+
+        // Use the copy fallback directly (which only preserves LastModifiedAt)
+        var file = await CreateCopyOfFallbackAsync(destinationFolder, fileToMove, overwrite, newName, cancellationToken);
+
+        // Apply ALL timestamps to match move semantics (CreatedAt, LastAccessedAt were not preserved by copy)
+        await file.ApplyAllTimestampsAsync(timestamps, cancellationToken);
+
+        // Delete the source file
         await source.DeleteAsync(fileToMove, cancellationToken);
 
         return file;
