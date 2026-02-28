@@ -9,37 +9,37 @@ namespace OwlCore.Storage;
 /// </summary>
 public static class FilePropertyExtensions
 {
-    extension(IStorable storable)
+    extension(IFile file)
     {
         /// <summary>
         /// Gets the <see cref="ICreatedAtProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ICreatedAtProperty? CreatedAt => (storable as ICreatedAt)?.CreatedAt;
+        public ICreatedAtProperty? CreatedAt => (file as ICreatedAt)?.CreatedAt;
 
         /// <summary>
         /// Gets the <see cref="ICreatedAtOffsetProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ICreatedAtOffsetProperty? CreatedAtOffset => (storable as ICreatedAtOffset)?.CreatedAtOffset;
+        public ICreatedAtOffsetProperty? CreatedAtOffset => (file as ICreatedAtOffset)?.CreatedAtOffset;
 
         /// <summary>
         /// Gets the <see cref="ILastModifiedAtProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastModifiedAtProperty? LastModifiedAt => (storable as ILastModifiedAt)?.LastModifiedAt;
+        public ILastModifiedAtProperty? LastModifiedAt => (file as ILastModifiedAt)?.LastModifiedAt;
 
         /// <summary>
         /// Gets the <see cref="ILastModifiedAtOffsetProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastModifiedAtOffsetProperty? LastModifiedAtOffset => (storable as ILastModifiedAtOffset)?.LastModifiedAtOffset;
+        public ILastModifiedAtOffsetProperty? LastModifiedAtOffset => (file as ILastModifiedAtOffset)?.LastModifiedAtOffset;
 
         /// <summary>
         /// Gets the <see cref="ILastAccessedAtProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastAccessedAtProperty? LastAccessedAt => (storable as ILastAccessedAt)?.LastAccessedAt;
+        public ILastAccessedAtProperty? LastAccessedAt => (file as ILastAccessedAt)?.LastAccessedAt;
 
         /// <summary>
         /// Gets the <see cref="ILastAccessedAtOffsetProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastAccessedAtOffsetProperty? LastAccessedAtOffset => (storable as ILastAccessedAtOffset)?.LastAccessedAtOffset;
+        public ILastAccessedAtOffsetProperty? LastAccessedAtOffset => (file as ILastAccessedAtOffset)?.LastAccessedAtOffset;
     }
 
     /// <summary>

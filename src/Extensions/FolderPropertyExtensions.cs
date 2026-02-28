@@ -5,36 +5,36 @@ namespace OwlCore.Storage;
 /// </summary>
 public static class FolderPropertyExtensions
 {
-    extension(IFolder storable)
+    extension(IFolder folder)
     {
         /// <summary>
         /// Gets the <see cref="ICreatedAtProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ICreatedAtProperty? CreatedAt => (storable as ICreatedAt)?.CreatedAt;
+        public ICreatedAtProperty? CreatedAt => (folder as ICreatedAt)?.CreatedAt;
 
         /// <summary>
         /// Gets the <see cref="ICreatedAtOffsetProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ICreatedAtOffsetProperty? CreatedAtOffset => (storable as ICreatedAtOffset)?.CreatedAtOffset;
+        public ICreatedAtOffsetProperty? CreatedAtOffset => (folder as ICreatedAtOffset)?.CreatedAtOffset;
 
         /// <summary>
         /// Gets the <see cref="ILastModifiedAtProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastModifiedAtProperty? LastModifiedAt => (storable as ILastModifiedAt)?.LastModifiedAt;
+        public ILastModifiedAtProperty? LastModifiedAt => (folder as ILastModifiedAt)?.LastModifiedAt;
 
         /// <summary>
         /// Gets the <see cref="ILastModifiedAtOffsetProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastModifiedAtOffsetProperty? LastModifiedAtOffset => (storable as ILastModifiedAtOffset)?.LastModifiedAtOffset;
+        public ILastModifiedAtOffsetProperty? LastModifiedAtOffset => (folder as ILastModifiedAtOffset)?.LastModifiedAtOffset;
 
         /// <summary>
         /// Gets the <see cref="ILastAccessedAtProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastAccessedAtProperty? LastAccessedAt => (storable as ILastAccessedAt)?.LastAccessedAt;
+        public ILastAccessedAtProperty? LastAccessedAt => (folder as ILastAccessedAt)?.LastAccessedAt;
 
         /// <summary>
         /// Gets the <see cref="ILastAccessedAtOffsetProperty"/> from the item, or null if not supported.
         /// </summary>
-        public ILastAccessedAtOffsetProperty? LastAccessedAtOffset => (storable as ILastAccessedAtOffset)?.LastAccessedAtOffset;
+        public ILastAccessedAtOffsetProperty? LastAccessedAtOffset => (folder as ILastAccessedAtOffset)?.LastAccessedAtOffset;
     }
 }
