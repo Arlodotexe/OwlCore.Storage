@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OwlCore.Storage.CommonTests" Version="0.6.2" />
+    <PackageReference Include="OwlCore.Storage.CommonTests" Version="0.6.1" />
     <ProjectReference Include="..\..\src\OwlCore.Storage.csproj" />
   </ItemGroup>
 

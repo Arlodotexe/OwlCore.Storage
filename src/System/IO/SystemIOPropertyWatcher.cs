@@ -49,10 +49,8 @@ public class SystemIOPropertyWatcher<T> : IStoragePropertyWatcher<T>
         {
             _watcher = new FileSystemWatcher(directory, fileName);
         }
-
-        // On Linux, inotify may not fire Changed for all NotifyFilters combinations reliably.
-        // Include LastWrite, Size, and LastAccess for maximum cross-platform reliability.
-        _watcher.NotifyFilter = filters | NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.LastAccess;
+        
+        _watcher.NotifyFilter = filters;
         _watcher.Changed += OnChanged;
         _watcher.EnableRaisingEvents = true;
     }
