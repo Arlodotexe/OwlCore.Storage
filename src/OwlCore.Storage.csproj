@@ -17,7 +17,7 @@
     <DebugType>embedded</DebugType>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.14.0</Version>
+    <Version>0.15.0</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the Windows App Community.
 		
@@ -26,6 +26,75 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.15.0 ---
+[Breaking]
+IStorageProperty{T}: Moved from root to Properties/ folder (namespace unchanged). No longer extends IDisposable. Synchronous `T Value { get; }` replaced by `Task{T} GetValueAsync(CancellationToken)`.
+
+[New]
+IStoragePropertyWatcher{T}: New interface extending IDisposable and IAsyncDisposable. Holds `IStorageProperty{T} Property` and raises `event EventHandler{T}? ValueUpdated`. Parallels IFolderWatcher.
+IMutableStorageProperty{T}: New interface extending IStorageProperty{T}. Exposes `Task{IStoragePropertyWatcher{T}} GetWatcherAsync(CancellationToken)` to obtain a disposable watcher for change notifications.
+IModifiableStorageProperty{T}: New interface extending IMutableStorageProperty{T}. Adds `Task UpdateValueAsync(T, CancellationToken)`. Completes the IStorageProperty → IMutableStorageProperty → IModifiableStorageProperty hierarchy, paralleling IFolder → IMutableFolder → IModifiableFolder.
+
+SimpleStorageProperty{T}: New concrete implementation of IStorageProperty{T} backed by a delegate. Implements IStorable. Constructed with `(string id, string name, Func{T} getter)` or async variant.
+SimpleMutableStorageProperty{T}: New concrete implementation of IMutableStorageProperty{T} extending SimpleStorageProperty{T}. GetWatcherAsync returns a SimpleStoragePropertyWatcher{T}.
+SimpleModifiableStorageProperty{T}: New concrete implementation of IModifiableStorageProperty{T} extending SimpleMutableStorageProperty{T}. Constructed with id, name, getter, and setter delegates.
+SimpleStoragePropertyWatcher{T}: New concrete implementation of IStoragePropertyWatcher{T}. Constructed with an IStorageProperty{T}; exposes ValueUpdated event and IDisposable/IAsyncDisposable.
+
+ICreatedAt: New storage-item interface. Exposes `ICreatedAtProperty CreatedAt { get; }`.
+ICreatedAtOffset: New storage-item interface extending ICreatedAt. Exposes `ICreatedAtOffsetProperty CreatedAtOffset { get; }`.
+ICreatedAtProperty: New property interface extending IStorageProperty{DateTime?}. Represents creation timestamp as DateTime?; null if unavailable.
+ICreatedAtOffsetProperty: New property interface extending IStorageProperty{DateTimeOffset?}. Represents creation timestamp as DateTimeOffset?.
+
+IMutableCreatedAtProperty: New property interface extending ICreatedAtProperty and IMutableStorageProperty{DateTime?}.
+IMutableCreatedAtOffsetProperty: New property interface extending ICreatedAtOffsetProperty and IMutableStorageProperty{DateTimeOffset?}.
+IModifiableCreatedAtProperty: New property interface extending IMutableCreatedAtProperty and IModifiableStorageProperty{DateTime?}.
+IModifiableCreatedAtOffsetProperty: New property interface extending IMutableCreatedAtOffsetProperty and IModifiableStorageProperty{DateTimeOffset?}.
+
+ILastAccessedAt: New storage-item interface. Exposes `ILastAccessedAtProperty LastAccessedAt { get; }`.
+ILastAccessedAtOffset: New storage-item interface extending ILastAccessedAt. Exposes `ILastAccessedAtOffsetProperty LastAccessedAtOffset { get; }`.
+ILastAccessedAtProperty: New property interface extending IStorageProperty{DateTime?}.
+ILastAccessedAtOffsetProperty: New property interface extending IStorageProperty{DateTimeOffset?}.
+
+IMutableLastAccessedAtProperty: New property interface extending ILastAccessedAtProperty and IMutableStorageProperty{DateTime?}.
+IMutableLastAccessedAtOffsetProperty: New property interface extending ILastAccessedAtOffsetProperty and IMutableStorageProperty{DateTimeOffset?}.
+IModifiableLastAccessedAtProperty: New property interface extending IMutableLastAccessedAtProperty and IModifiableStorageProperty{DateTime?}.
+IModifiableLastAccessedAtOffsetProperty: New property interface extending IMutableLastAccessedAtOffsetProperty and IModifiableStorageProperty{DateTimeOffset?}.
+
+ILastModifiedAt: New storage-item interface. Exposes `ILastModifiedAtProperty LastModifiedAt { get; }`.
+ILastModifiedAtOffset: New storage-item interface extending ILastModifiedAt. Exposes `ILastModifiedAtOffsetProperty LastModifiedAtOffset { get; }`.
+ILastModifiedAtProperty: New property interface extending IStorageProperty{DateTime?}.
+ILastModifiedAtOffsetProperty: New property interface extending IStorageProperty{DateTimeOffset?}.
+
+IMutableLastModifiedAtProperty: New property interface extending ILastModifiedAtProperty and IMutableStorageProperty{DateTime?}.
+IMutableLastModifiedAtOffsetProperty: New property interface extending ILastModifiedAtOffsetProperty and IMutableStorageProperty{DateTimeOffset?}.
+IModifiableLastModifiedAtProperty: New property interface extending IMutableLastModifiedAtProperty and IModifiableStorageProperty{DateTime?}.
+IModifiableLastModifiedAtOffsetProperty: New property interface extending IMutableLastModifiedAtOffsetProperty and IModifiableStorageProperty{DateTimeOffset?}.
+
+SystemIOPropertyWatcher{T}: New concrete class implementing IStoragePropertyWatcher{T}, backed by FileSystemWatcher. Constructed with `(IStorageProperty{T} property, string path, NotifyFilters filters)`; always OR's in NotifyFilters.Size, NotifyFilters.LastWrite, and NotifyFilters.LastAccess for cross-platform inotify reliability on Linux. OnChanged is filtered to WatcherChangeTypes.Changed only, suppressing spurious Created/Deleted/Renamed FSW events from triggering ValueUpdated.
+
+SystemFile: Now implements ICreatedAtOffset, ILastAccessedAtOffset, ILastModifiedAtOffset. Exposes six lazy-initialized property objects (CreatedAt, CreatedAtOffset, LastAccessedAt, LastAccessedAtOffset, LastModifiedAt, LastModifiedAtOffset).
+For SystemFile on Linux, CreatedAt and CreatedAtOffset use statx(2) for real birth time (returns null on kernels { 4.11 or unsupported filesystems); on other platforms they use FileSystemInfo.CreationTime.
+For SystemFile, OpenStreamAsync updates access time. On Linux, it updates atime via utimensat(2) with UTIME_OMIT for mtime, preventing spurious inotify IN_ATTRIB/IN_MODIFY events.
+
+SystemFolder: Now implements ICreatedAtOffset, ILastAccessedAtOffset, ILastModifiedAtOffset. Exposes six lazy-initialized property objects (same as SystemFile).
+For SystemFolder on Linux, CreatedAt and CreatedAtOffset use statx(2) for real birth time (returns null on kernels { 4.11 or unsupported filesystems); on other platforms they use FileSystemInfo.CreationTime.
+For SystemFolder on non-Windows, copy preserves LastModifiedAt from source (CreatedAt = now, LastAccessedAt = now); move captures and restores all six timestamp values.
+
+SystemIOCreatedAtProperty: New sealed class implementing IModifiableCreatedAtProperty, backed by FileSystemInfo.CreationTime. GetWatcherAsync returns SystemIOPropertyWatcher{DateTime?} with NotifyFilters.CreationTime.
+SystemIOCreatedAtOffsetProperty: New sealed class implementing IModifiableCreatedAtOffsetProperty, backed by FileSystemInfo creation time as offset.
+SystemIOLastAccessedAtProperty: New sealed class implementing IModifiableLastAccessedAtProperty, backed by FileSystemInfo.LastAccessTime. GetWatcherAsync returns SystemIOPropertyWatcher{DateTime?} with NotifyFilters.LastAccess.
+SystemIOLastAccessedAtOffsetProperty: New sealed class implementing IModifiableLastAccessedAtOffsetProperty, backed by FileSystemInfo last access as offset.
+SystemIOLastModifiedAtProperty: New sealed class implementing IModifiableLastModifiedAtProperty, backed by FileSystemInfo.LastWriteTime. GetWatcherAsync returns SystemIOPropertyWatcher{DateTime?} with NotifyFilters.LastWrite | NotifyFilters.Attributes so that Linux IN_ATTRIB events are observed alongside IN_MODIFY.
+SystemIOLastModifiedAtOffsetProperty: New sealed class implementing IModifiableLastModifiedAtOffsetProperty, backed by FileSystemInfo last write as offset.
+
+FilePropertyExtensions: New static class using C# extension member syntax. Adds null-safe extension properties on IFile: `CreatedAt`, `CreatedAtOffset`, `LastModifiedAt`, `LastModifiedAtOffset`, `LastAccessedAt`, `LastAccessedAtOffset`. Returns null if the item does not implement the interface.
+FolderPropertyExtensions: New static class using C# extension member syntax. Adds the same six null-safe timestamp extension properties as FilePropertyExtensions, scoped to IFolder.
+
+CopyExtensions: Fallback copy now preserves LastModifiedAt/LastModifiedAtOffset from the source onto the destination; CreatedAt and LastAccessedAt are not carried over. These are NTFS-derived copy semantics standardized for all implementations of the storage interfaces.
+MoveExtensions: Fallback move now captures all six timestamp values from the source before the operation and restores them on the destination. These are NTFS-derived move semantics standardized for all implementations of the storage interfaces.
+
+StreamFile: Added ShouldDispose property (bool, default false). When true, OpenStreamAsync returns the underlying stream directly; when false (default), returns a NonDisposableStreamWrapper.
+
 --- 0.14.0 ---
 [New]
 Added DepthFirstRecursiveFolder: depth-first async traversal wrapper over any IFolder with optional MaxDepth.
