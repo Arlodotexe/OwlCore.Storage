@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OwlCore.Storage.CommonTests" Version="0.6.0" />
+    <PackageReference Include="OwlCore.Storage.CommonTests" Version="0.6.1" />
     <ProjectReference Include="..\..\src\OwlCore.Storage.csproj" />
   </ItemGroup>
 
