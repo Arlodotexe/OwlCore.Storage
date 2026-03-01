@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OwlCore.Storage.CommonTests" Version="0.6.0" />
+    <PackageReference Include="OwlCore.Storage.CommonTests" Version="0.6.2" />
     <ProjectReference Include="..\..\src\OwlCore.Storage.csproj" />
   </ItemGroup>
 
