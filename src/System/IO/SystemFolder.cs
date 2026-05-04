@@ -148,17 +148,17 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 
         if (type.HasFlag(StorableType.All))
         {
-            foreach (var item in Info.EnumerateFileSystemInfos())
+            foreach (var item in Directory.EnumerateFileSystemEntries(Path))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (item is null)
                     continue;
 
-                if (item.Attributes.HasFlag(FileAttributes.Directory))
-                    yield return new SystemFolder((DirectoryInfo)item, noValidation: true);
+                if (File.GetAttributes(item).HasFlag(FileAttributes.Directory))
+                    yield return new SystemFolder(item, noValidation: true);
                 else
-                    yield return new SystemFile((FileInfo)item, noValidation: true);
+                    yield return new SystemFile(item, noValidation: true);
             }
 
             yield break;
