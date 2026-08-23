@@ -23,9 +23,9 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem, ICreatedA
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="MemoryFile"/> with the given <param name="nameId"/> as both Name and Id.
+    /// Creates a new instance of <see cref="MemoryFile"/> with the given <param name="name"/> as both Name and its hash code as Id.
     /// </summary>
-    public MemoryFolder(string nameId) : this($"{nameId.GetHashCode()}", nameId)
+    public MemoryFolder(string name) : this($"{name.GetHashCode()}", name)
     {
     }
 

@@ -16,16 +16,16 @@ namespace OwlCore.Storage.Memory
         /// Creates a new instance of <see cref="MemoryFile"/> with same new GUID as ID and Name.
         /// </summary>
         /// <param name="memoryStream">An existing stream which is provided as the file contents.</param>
-        public MemoryFile(MemoryStream memoryStream) : this(memoryStream, $"{memoryStream.GetHashCode()}")
+        public MemoryFile(MemoryStream memoryStream) : this(memoryStream, Guid.NewGuid().ToString())
         {
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="MemoryFile"/> with the given <paramref name="nameId"/> as both Name and Id.
+        /// Creates a new instance of <see cref="MemoryFile"/> with the given <paramref name="name"/> as both Name and its hash code as Id.
         /// </summary>
         /// <param name="memoryStream">An existing stream which is provided as the file contents.</param>
-        /// <param name="nameId">Used to assign both Name and Id.</param>
-        public MemoryFile(MemoryStream memoryStream, string nameId) : this(nameId, nameId, memoryStream)
+        /// <param name="name">Used to assign both Name and its hash code as Id.</param>
+        public MemoryFile(MemoryStream memoryStream, string name) : this($"{name.GetHashCode()}", name, memoryStream)
         {
         }
 
