@@ -39,7 +39,7 @@ public class HttpFileTests : CommonIFileTests
 
         Assert.AreNotEqual(file.Name, file.Uri.OriginalString);
         Assert.IsTrue(file.Uri.OriginalString.Contains(file.Name));
-        Assert.AreEqual(file.Name, "test.zip");
+        Assert.AreEqual("test.zip", file.Name);
     }
 
     [TestMethod]
@@ -49,6 +49,6 @@ public class HttpFileTests : CommonIFileTests
 
         Assert.AreNotEqual(file.Name, file.Uri.OriginalString);
         Assert.IsTrue(file.Uri.OriginalString.Contains(file.Name));
-        Assert.AreEqual(file.Name, "test.zip");
+        Assert.AreEqual("test.zip", file.Name);
     }
 }

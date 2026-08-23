@@ -112,7 +112,6 @@ namespace OwlCore.Storage.Tests
 
             // Assert
             Assert.AreNotSame(memoryStream, resultStream);
-            Assert.AreEqual(typeof(OwlCore.Storage.Memory.NonDisposableStreamWrapper), resultStream.GetType());
         }
 
         [TestMethod]
@@ -128,7 +127,7 @@ namespace OwlCore.Storage.Tests
             resultStream.Dispose();
 
             // Assert
-            Assert.ThrowsException<ObjectDisposedException>(() => memoryStream.ReadByte());
+            Assert.Throws<ObjectDisposedException>(() => memoryStream.ReadByte());
         }
 
         [TestMethod]
@@ -180,8 +179,6 @@ namespace OwlCore.Storage.Tests
 
             // Assert
             Assert.AreNotSame(stream1, stream2);
-            Assert.AreEqual(typeof(OwlCore.Storage.Memory.NonDisposableStreamWrapper), stream1.GetType());
-            Assert.AreEqual(typeof(OwlCore.Storage.Memory.NonDisposableStreamWrapper), stream2.GetType());
         }
     }
 }

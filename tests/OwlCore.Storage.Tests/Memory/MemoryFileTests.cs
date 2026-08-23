@@ -6,6 +6,10 @@ namespace OwlCore.Storage.Tests.Memory
     [TestClass]
     public class MemoryFileTests : CommonIFileTests
     {
+        public override PropertyValueAvailability CreatedAtAvailability => PropertyValueAvailability.Always;
+        public override PropertyValueAvailability LastAccessedAtAvailability => PropertyValueAvailability.Maybe;
+        public override PropertyValueAvailability LastModifiedAtAvailability => PropertyValueAvailability.Maybe;
+
         // Required for base class to perform common tests.
         public override async Task<IFile> CreateFileAsync()
         {
@@ -29,8 +33,43 @@ namespace OwlCore.Storage.Tests.Memory
         }
 
         // MemoryFile doesn't support setting timestamps
-        public override Task<IFile?> CreateFileWithCreatedAtAsync(DateTime createdAt) => Task.FromResult<IFile?>(null);
-        public override Task<IFile?> CreateFileWithLastModifiedAtAsync(DateTime lastModifiedAt) => Task.FromResult<IFile?>(null);
-        public override Task<IFile?> CreateFileWithLastAccessedAtAsync(DateTime lastAccessedAt) => Task.FromResult<IFile?>(null);
+        public override async Task<IFile?> CreateFileWithCreatedAtAsync(DateTime createdAt)
+        {
+            var file = new MemoryFile(new());
+
+            var created = (MemoryCreatedAtProperty)file.CreatedAt;
+            created.DateTimeValue.Value = createdAt;
+
+            var createdOffset = (MemoryCreatedAtOffsetProperty)file.CreatedAtOffset;
+            createdOffset.DateTimeOffsetValue.Value = createdAt;
+
+            return file;
+        }
+
+        public override async Task<IFile?> CreateFileWithLastModifiedAtAsync(DateTime lastModifiedAt)
+        {
+            var file = new MemoryFile(new());
+
+            var lastModified = (MemoryLastModifiedAtProperty)file.LastModifiedAt;
+            lastModified.DateTimeValue.Value = lastModifiedAt;
+
+            var lastModifiedOffset = (MemoryLastModifiedAtOffsetProperty)file.LastModifiedAtOffset;
+            lastModifiedOffset.DateTimeOffsetValue.Value = lastModifiedAt;
+
+            return file;
+        }
+
+        public override async Task<IFile?> CreateFileWithLastAccessedAtAsync(DateTime lastAccessedAt)
+        {
+            var file = new MemoryFile(new());
+
+            var lastAccessed = (MemoryLastAccessedAtProperty)file.LastAccessedAt;
+            lastAccessed.DateTimeValue.Value = lastAccessedAt;
+
+            var lastAccessedOffset = (MemoryLastAccessedAtOffsetProperty)file.LastAccessedAtOffset;
+            lastAccessedOffset.DateTimeOffsetValue.Value = lastAccessedAt;
+
+            return file;
+        }
     }
 }

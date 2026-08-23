@@ -73,7 +73,7 @@ public class TruncatedStreamTests
         Assert.AreEqual(50, posAtMax);
 
         // Seeking any further should throw
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ts.Seek(1, SeekOrigin.Current));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ts.Seek(1, SeekOrigin.Current));
     }
 
     [TestMethod]
@@ -84,7 +84,7 @@ public class TruncatedStreamTests
         using var ts = new TruncatedStream(ms, MaxLength: 50);
 
         // End is MaxLength; seeking beyond should throw
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ts.Seek(1, SeekOrigin.End));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ts.Seek(1, SeekOrigin.End));
 
         // Seek to end exactly; reads should return 0
         var atEnd = ts.Seek(0, SeekOrigin.End);

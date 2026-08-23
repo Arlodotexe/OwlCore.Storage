@@ -26,6 +26,13 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.16.0 ---
+[New]
+Added CreatedAt, LastModifiedAt and LastAccessedAt support (offset and non-offset) to MemoryFile and MemoryFolder. 
+
+[Improvement]
+Added constructors to MemoryFile and MemoryFolder to make instantiation easier in common scenarios. 
+
 --- 0.15.0 ---
 [Breaking]
 IStorageProperty{T}: Moved from root to Properties/ folder (namespace unchanged). No longer extends IDisposable. Synchronous `T Value { get; }` replaced by `Task{T} GetValueAsync(CancellationToken)`.
