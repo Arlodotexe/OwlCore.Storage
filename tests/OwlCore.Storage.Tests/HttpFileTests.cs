@@ -13,10 +13,12 @@ public class HttpFileTests : CommonIFileTests
     {
         // example.com was previously used here
         // but was changed due to slow retrieval times.
-        var file = new HttpFile(new Uri("https://httpbin.org/"));
+        var file = new HttpFile(new Uri("https://example.com/"));
 
         return Task.FromResult<IFile>(file);
     }
+
+    public override PropertyValueAvailability LastModifiedAtAvailability => PropertyValueAvailability.Always;
 
     // HttpFile doesn't support setting timestamps
     public override Task<IFile?> CreateFileWithCreatedAtAsync(DateTime createdAt) => Task.FromResult<IFile?>(null);

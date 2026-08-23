@@ -9,7 +9,7 @@ namespace OwlCore.Storage.System.Net.Http;
 /// <summary>
 /// A file implementation which calls GET on a provided HTTP URL and returns it for <see cref="OpenStreamAsync"/>.
 /// </summary>
-public class HttpFile : IFile
+public class HttpFile : IFile, ILastModifiedAtOffset
 {
     /// <summary>
     /// Creates a new instance of <see cref="HttpFile"/>.
@@ -41,6 +41,8 @@ public class HttpFile : IFile
         Id = uri.OriginalString;
 
         Client = httpClient;
+        LastModifiedAtOffset = new HttpLastModifiedAtOffsetProperty(this);
+        LastModifiedAt = new HttpLastModifiedAtProperty(this);
     }
 
     /// <summary>
@@ -68,6 +70,12 @@ public class HttpFile : IFile
 
     /// <inheritdoc />
     public string Name { get; init; }
+
+    /// <inheritdoc />
+    public ILastModifiedAtOffsetProperty LastModifiedAtOffset { get; init; }
+
+    /// <inheritdoc />
+    public ILastModifiedAtProperty LastModifiedAt { get; init; }
 
     /// <inheritdoc />
     public async Task<Stream> OpenStreamAsync(FileAccess accessMode = FileAccess.Read, CancellationToken cancellationToken = default)

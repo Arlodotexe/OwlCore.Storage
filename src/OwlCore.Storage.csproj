@@ -28,7 +28,8 @@
     <PackageReleaseNotes>
 --- 0.16.0 ---
 [New]
-Added CreatedAt, LastModifiedAt and LastAccessedAt support (offset and non-offset) to MemoryFile and MemoryFolder. 
+Added CreatedAt, LastModifiedAt and LastAccessedAt support (offset and non-offset) to MemoryFile and MemoryFolder.
+Added LastModifiedAt support to HttpFile, wires to Last-Modified http response header.
 
 [Improvement]
 Added constructors to MemoryFile and MemoryFolder to make instantiation easier in common scenarios. 
