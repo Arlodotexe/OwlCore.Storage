@@ -17,7 +17,7 @@
     <DebugType>embedded</DebugType>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.15.0</Version>
+    <Version>0.15.1</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the Windows App Community.
 		
@@ -26,6 +26,11 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
+--- 0.15.1 ---
+[Fixes]
+Fixed an issue where SystemFolder could report an empty or truncated ID for a root directory, because trailing separators were trimmed by assuming what a root looks like on a given platform (unix roots, drive roots and UNC share roots all trim differently) instead of asking the current platform what the root of the path is.
+Fixed an issue where a folder whose name ends with the path separator character (`:` on unix, `;` on Windows) had that character silently removed from its ID, because Path.PathSeparator is the list separator, not a directory separator.
+
 --- 0.15.0 ---
 [Breaking]
 IStorageProperty{T}: Moved from root to Properties/ folder (namespace unchanged). No longer extends IDisposable. Synchronous `T Value { get; }` replaced by `Task{T} GetValueAsync(CancellationToken)`.
