@@ -40,7 +40,8 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
         if (!Directory.Exists(path))
             throw new FileNotFoundException($"Directory not found at path '{path}'.");
 
-        Path = TrimTrailingDirectorySeparators(path);
+        // For consistency, always remove the trailing directory separator.
+        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
     }
 
     /// <summary>
@@ -54,7 +55,8 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 
         _info = info;
 
-        Path = TrimTrailingDirectorySeparators(info.FullName);
+        // For consistency, always remove the trailing directory separator.
+        Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
         _name = info.Name;
     }
 
@@ -72,7 +74,8 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     /// </param>
     internal SystemFolder(string path, bool noValidation)
     {
-        Path = TrimTrailingDirectorySeparators(path);
+        // For consistency, always remove the trailing directory separator.
+        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
     }
 
 
@@ -92,28 +95,10 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     {
         _info = info;
 
-        Path = TrimTrailingDirectorySeparators(info.FullName);
+        // For consistency, always remove the trailing directory separator.
+        Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
         _name = info.Name;
     }
-
-
-    static string TrimTrailingDirectorySeparators(string path)
-    {
-        // Only directory separators may be trimmed. PathSeparator (the list separator: ':' on unix-like systems, ';' on
-        // Windows) is never a trailing directory separator, so trimming it silently truncated paths whose final segment
-        // legitimately ends in one (a folder named "foo:" was reported as "foo", losing an ID character).
-        var trimmed = path.TrimEnd(global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
-
-        // Trimming must never empty the path: a root directory has nothing left once its separators are removed, and
-        // an empty path is never a valid folder path or ID. Rather than assuming what a root looks like on any given
-        // platform or path style (unix roots, drive roots, UNC share roots all trim differently), ask this platform
-        // what the root of this path is, and fall back to that verbatim whenever trimming reached into or past it.
-        var root = global::System.IO.Path.GetPathRoot(path);
-        return (!string.IsNullOrEmpty(root) && trimmed.Length < root.Length)
-            ? root
-            : trimmed;
-    }
-
 
     /// <summary>
     /// Gets the underlying <see cref="DirectoryInfo"/> for this folder.
@@ -269,7 +254,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     public virtual Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         // Ensure containing directory matches current folder.
-        if (TrimTrailingDirectorySeparators(GetParentPath(item.Id)) != Path)
+        if (GetParentPath(item.Id).TrimEnd(global::System.IO.Path.DirectorySeparatorChar) != Path)
             throw new FileNotFoundException($"The provided item does not exist in this folder.");
 
         if (IsFolder(item.Id))
