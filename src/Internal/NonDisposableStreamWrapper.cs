@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OwlCore.Storage.Memory;
+namespace OwlCore.Storage;
 
 /// <summary>
 /// A memory stream that ignores dispose calls.
