@@ -40,8 +40,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
         if (!Directory.Exists(path))
             throw new FileNotFoundException($"Directory not found at path '{path}'.");
 
-        // For consistency, always remove the trailing directory separator.
-        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+        Path = TrimTrailingDirectorySeparators(path);
     }
 
     /// <summary>
@@ -55,8 +54,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 
         _info = info;
 
-        // For consistency, always remove the trailing directory separator.
-        Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+        Path = TrimTrailingDirectorySeparators(info.FullName);
         _name = info.Name;
     }
 
@@ -74,8 +72,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     /// </param>
     internal SystemFolder(string path, bool noValidation)
     {
-        // For consistency, always remove the trailing directory separator.
-        Path = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+        Path = TrimTrailingDirectorySeparators(path);
     }
 
 
@@ -95,10 +92,21 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     {
         _info = info;
 
-        // For consistency, always remove the trailing directory separator.
-        Path = info.FullName.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+        Path = TrimTrailingDirectorySeparators(info.FullName);
         _name = info.Name;
     }
+
+
+    static string TrimTrailingDirectorySeparators(string path)
+    {
+        // For consistency, always remove the trailing directory separator.
+        // Except when the separator is the entire path: a root directory's ID is the separator itself (e.g. '/' on unix),
+        // and trimming it would leave an empty string, which is never a valid path or ID.
+        var trimmed = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+
+        return trimmed.Length == 0 ? path : trimmed;
+    }
+
 
     /// <summary>
     /// Gets the underlying <see cref="DirectoryInfo"/> for this folder.

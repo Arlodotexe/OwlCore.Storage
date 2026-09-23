@@ -17,7 +17,7 @@
     <DebugType>embedded</DebugType>
 
     <Author>Arlo Godfrey</Author>
-    <Version>0.15.0</Version>
+    <Version>0.15.1</Version>
     <Product>OwlCore</Product>
     <Description>The most flexible file system abstraction, ever. Built in partnership with the Windows App Community.
 		
@@ -26,7 +26,10 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReleaseNotes>
---- 0.16.0 ---
+--- 0.15.1 ---
+[Fixes]
+Fixed an issue where SystemFolder reported an empty ID and path for a root directory whose ID is entirely the directory separator (e.g. `/` on unix), because trimming trailing separators for consistency left nothing to identify the folder.
+
 [New]
 Added CreatedAt, LastModifiedAt and LastAccessedAt support (offset and non-offset) to MemoryFile and MemoryFolder.
 Added LastModifiedAt support to HttpFile, wires to Last-Modified http response header.
