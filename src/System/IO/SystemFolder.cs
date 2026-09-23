@@ -99,19 +99,12 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
 
     static string TrimTrailingDirectorySeparators(string path)
     {
-        // Only directory separators may be trimmed. PathSeparator (the list separator: ':' on unix-like systems, ';' on
-        // Windows) is never a trailing directory separator, so trimming it silently truncated paths whose final segment
-        // legitimately ends in one (a folder named "foo:" was reported as "foo", losing an ID character).
-        var trimmed = path.TrimEnd(global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
+        // For consistency, always remove the trailing directory separator.
+        // Except when the separator is the entire path: a root directory's ID is the separator itself (e.g. '/' on unix),
+        // and trimming it would leave an empty string, which is never a valid path or ID.
+        var trimmed = path.TrimEnd(global::System.IO.Path.PathSeparator, global::System.IO.Path.DirectorySeparatorChar, global::System.IO.Path.AltDirectorySeparatorChar);
 
-        // Trimming must never empty the path: a root directory has nothing left once its separators are removed, and
-        // an empty path is never a valid folder path or ID. Rather than assuming what a root looks like on any given
-        // platform or path style (unix roots, drive roots, UNC share roots all trim differently), ask this platform
-        // what the root of this path is, and fall back to that verbatim whenever trimming reached into or past it.
-        var root = global::System.IO.Path.GetPathRoot(path);
-        return (!string.IsNullOrEmpty(root) && trimmed.Length < root.Length)
-            ? root
-            : trimmed;
+        return trimmed.Length == 0 ? path : trimmed;
     }
 
 
@@ -269,7 +262,7 @@ public class SystemFolder : IModifiableFolder, IChildFolder, ICreateRenamedCopyO
     public virtual Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         // Ensure containing directory matches current folder.
-        if (TrimTrailingDirectorySeparators(GetParentPath(item.Id)) != Path)
+        if (GetParentPath(item.Id).TrimEnd(global::System.IO.Path.DirectorySeparatorChar) != Path)
             throw new FileNotFoundException($"The provided item does not exist in this folder.");
 
         if (IsFolder(item.Id))

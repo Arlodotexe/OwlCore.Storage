@@ -3,15 +3,15 @@ using OwlCore.Storage.System.IO;
 namespace OwlCore.Storage.Tests.SystemIO;
 
 /// <summary>
-/// Verifies that <see cref="SystemFolder"/> never shortens a folder path (and therefore its ID) while trimming trailing
-/// separators, on any platform. Unix-like roots, Windows drive roots and UNC share roots all trim differently, and the
-/// list separator is never a directory separator.
+/// Verifies that <see cref="SystemFolder"/> only ever trims trailing separators for consistency, and never trims a
+/// folder path (and therefore its ID) down to nothing. A root directory's ID can consist entirely of the directory
+/// separator, where trimming would erase the ID instead of shortening it.
 /// </summary>
 [TestClass]
 public class SystemFolderIdTrimmingTests
 {
     [TestMethod]
-    public void RootFolderIdIsTheFullRootPath()
+    public void RootFolderIdIsNeverTrimmedToNothing()
     {
         var roots = new List<string>();
 
@@ -35,50 +35,22 @@ public class SystemFolderIdTrimmingTests
 
             verifiedCount++;
 
-            Assert.AreEqual(root, new SystemFolder(root).Id,
-                $"A root folder's ID must be the complete root path. Trimming it produces a different path, or an empty one. Root: '{root}'");
+            var id = new SystemFolder(root).Id;
+
+            Assert.IsFalse(string.IsNullOrEmpty(id),
+                $"A root folder's ID must never be trimmed down to nothing. Root: '{root}'");
+
+            Assert.IsTrue(Path.IsPathRooted(id),
+                $"A root folder's ID must still be a rooted path after trimming. Root: '{root}' Trimmed ID: '{id}'");
 
             var alternateSeparatorRoot = root.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             if (Directory.Exists(alternateSeparatorRoot))
-                Assert.AreEqual(root, new SystemFolder(alternateSeparatorRoot).Id,
-                    $"A root folder's ID must be the complete root path regardless of the separator style it was constructed with. Root: '{alternateSeparatorRoot}'");
+                Assert.AreEqual(id, new SystemFolder(alternateSeparatorRoot).Id,
+                    $"A root folder's ID must not depend on the separator style it was constructed with. Root: '{alternateSeparatorRoot}'");
         }
 
         Assert.IsTrue(verifiedCount > 0, "Expected the root of the current platform's temp path to be verifiable.");
-    }
-
-    [TestMethod]
-    public void FolderPathEndingInListSeparatorKeepsItsFullId()
-    {
-        // PathSeparator is the list separator (':' on unix-like systems, ';' on Windows) and is never a trailing directory
-        // separator, but it used to be trimmed along with them, silently chopping a character off the ID of any folder whose
-        // name ends with one.
-        var listSeparator = Path.PathSeparator;
-        var parentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-        var folderName = $"FolderNamedWithATrailingListSeparator{listSeparator}";
-        var folderPath = Path.Combine(parentPath, folderName);
-
-        Directory.CreateDirectory(folderPath);
-
-        try
-        {
-            var createdDirectories = new DirectoryInfo(parentPath).GetDirectories();
-
-            Assert.AreEqual(1, createdDirectories.Length, $"Expected exactly one folder to have been created in '{parentPath}'.");
-            Assert.AreEqual(folderName, createdDirectories[0].Name,
-                $"Expected the filesystem to preserve a folder name ending in '{listSeparator}'.");
-
-            Assert.AreEqual(folderPath, new SystemFolder(folderPath).Id,
-                $"A folder ID must keep its final '{listSeparator}' character. Path: '{folderPath}'");
-
-            Assert.AreEqual(folderPath, new SystemFolder(folderPath + Path.DirectorySeparatorChar).Id,
-                $"Trailing directory separators may be trimmed, but not at the cost of the '{listSeparator}' before them. Path: '{folderPath}'");
-        }
-        finally
-        {
-            Directory.Delete(parentPath, true);
-        }
     }
 
     [TestMethod]

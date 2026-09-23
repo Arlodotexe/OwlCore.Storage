@@ -28,8 +28,7 @@
     <PackageReleaseNotes>
 --- 0.15.1 ---
 [Fixes]
-Fixed an issue where SystemFolder could report an empty or truncated ID for a root directory, because trailing separators were trimmed by assuming what a root looks like on a given platform (unix roots, drive roots and UNC share roots all trim differently) instead of asking the current platform what the root of the path is.
-Fixed an issue where a folder whose name ends with the path separator character (`:` on unix, `;` on Windows) had that character silently removed from its ID, because Path.PathSeparator is the list separator, not a directory separator.
+Fixed an issue where SystemFolder reported an empty ID and path for a root directory whose ID is entirely the directory separator (e.g. `/` on unix), because trimming trailing separators for consistency left nothing to identify the folder.
 
 --- 0.15.0 ---
 [Breaking]
