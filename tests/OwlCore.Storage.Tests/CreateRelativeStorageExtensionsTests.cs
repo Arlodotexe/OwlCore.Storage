@@ -116,7 +116,7 @@ public class CreateRelativeStorageExtensionsTests
         var start = _root;
 
         // Act/Assert
-        await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
             await start.CreateFileByRelativePathAsync("a/b/c/"));
     }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,21 +11,44 @@ namespace OwlCore.Storage.Memory;
 /// <summary>
 /// A folder implementation that resides in memory.
 /// </summary>
-public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
+public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem, ICreatedAtOffset, ILastModifiedAtOffset, ILastAccessedAtOffset
 {
     private readonly MemoryFolderWatcher _folderWatcher;
 
     /// <summary>
+    /// Creates a new instance of <see cref="MemoryFile"/> with same new GUID as ID and Name.
+    /// </summary>
+    public MemoryFolder() : this(Guid.NewGuid().ToString())
+    {
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="MemoryFile"/> with the given <param name="name"/> as both Name and its hash code as Id.
+    /// </summary>
+    public MemoryFolder(string name) : this($"{name.GetHashCode()}", name)
+    {
+    }
+
+    /// <summary>
     /// Creates a new instance of <see cref="MemoryFolder"/>.
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="name"></param>
+    /// <param name="id">The ID for this instance.</param>
+    /// <param name="name">The name for this instance.</param>
     public MemoryFolder(string id, string name)
     {
         Id = id;
         Name = name;
 
         _folderWatcher = new MemoryFolderWatcher(this);
+
+        CreatedAtOffset = new MemoryCreatedAtOffsetProperty(this, new() { Value = DateTimeOffset.Now });
+        CreatedAt = new MemoryCreatedAtProperty(this, new() { Value = DateTime.Now });
+
+        LastModifiedAt = new MemoryLastModifiedAtProperty(this, new() { Value = null });
+        LastModifiedAtOffset = new MemoryLastModifiedAtOffsetProperty(this, new() { Value = null });
+
+        LastAccessedAt = new MemoryLastAccessedAtProperty(this, new() { Value = null });
+        LastAccessedAtOffset = new MemoryLastAccessedAtOffsetProperty(this, new() { Value = null });
     }
 
     /// <inheritdoc />
@@ -44,20 +68,43 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     protected Dictionary<string, IStorableChild> FolderContents { get; } = new();
 
     /// <inheritdoc />
-    public virtual IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, CancellationToken cancellationToken = default)
+    public ICreatedAtOffsetProperty CreatedAtOffset { get; init; }
+
+    /// <inheritdoc />
+    public ICreatedAtProperty CreatedAt { get; init; }
+
+    /// <inheritdoc />
+    public ILastModifiedAtOffsetProperty LastModifiedAtOffset { get; init; }
+
+    /// <inheritdoc />
+    public ILastModifiedAtProperty LastModifiedAt { get; init; }
+
+    /// <inheritdoc />
+    public ILastAccessedAtOffsetProperty LastAccessedAtOffset { get; init; }
+
+    /// <inheritdoc />
+    public ILastAccessedAtProperty LastAccessedAt { get; init; }
+
+    /// <inheritdoc />
+    public virtual async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType type = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (type == StorableType.None)
             throw new ArgumentOutOfRangeException(nameof(type), $"{nameof(StorableType)}.{type} is not valid here.");
 
-        return FolderContents.Values.Where(x =>
+        UpdateLastAccessed();
+
+        foreach (var item in FolderContents.Values.Where(x =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             return x is IFile && type.HasFlag(StorableType.File) ||
                    x is IFolder && type.HasFlag(StorableType.Folder);
-        }).ToAsyncEnumerable();
+        }))
+        {
+            yield return item;
+        }
     }
 
     /// <inheritdoc />
@@ -68,18 +115,20 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     }
 
     /// <inheritdoc />
-    public virtual Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
+    public virtual async Task<IStorableChild> GetItemAsync(string id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!FolderContents.TryGetValue(id, out var content))
             throw new FileNotFoundException();
 
-        return Task.FromResult(content);
+        UpdateLastAccessed();
+
+        return content;
     }
 
     /// <inheritdoc />
-    public virtual Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
+    public virtual async Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -89,7 +138,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
         FolderContents.Remove(item.Id);
         _folderWatcher.NotifyItemRemoved(new SimpleStorableItem(item.Id, item.Name));
 
-        return Task.CompletedTask;
+        UpdateLastModified();
     }
 
     /// <inheritdoc />
@@ -116,6 +165,7 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
         {
             FolderContents.Add(folder.Id, folder);
             _folderWatcher.NotifyItemAdded(folder);
+            UpdateLastModified();
         }
         else
             FolderContents[folder.Id] = folder;
@@ -144,11 +194,14 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
         var file = overwrite ? emptyMemoryFolder : (existingFile ?? emptyMemoryFolder);
 
         if (!FolderContents.ContainsKey(file.Id))
+        {
             FolderContents.Add(file.Id, file);
+            _folderWatcher.NotifyItemAdded(file);
+            UpdateLastModified();
+        }
         else
             FolderContents[file.Id] = file;
 
-        _folderWatcher.NotifyItemAdded(file);
 
         return file;
     }
@@ -157,5 +210,19 @@ public class MemoryFolder : IModifiableFolder, IChildFolder, IGetItem
     public virtual Task<IFolder?> GetParentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult<IFolder?>(Parent);
+    }
+
+    private void UpdateLastAccessed()
+    {
+        var now = DateTimeOffset.Now;
+        ((MemoryLastAccessedAtProperty)LastAccessedAt).DateTimeValue.Value = now.LocalDateTime;
+        ((MemoryLastAccessedAtOffsetProperty)LastAccessedAtOffset).DateTimeOffsetValue.Value = now;
+    }
+
+    private void UpdateLastModified()
+    {
+        var now = DateTimeOffset.Now;
+        ((MemoryLastModifiedAtProperty)LastModifiedAt).DateTimeValue.Value = now.LocalDateTime;
+        ((MemoryLastModifiedAtOffsetProperty)LastModifiedAtOffset).DateTimeOffsetValue.Value = now;
     }
 }
