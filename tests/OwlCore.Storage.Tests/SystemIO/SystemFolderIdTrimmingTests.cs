@@ -25,6 +25,12 @@ public class SystemFolderIdTrimmingTests
                 roots.Add(root);
         }
 
+        // A directory separator on its own is a root folder's entire ID, not a separator to remove.
+        var separatorAsRoot = Path.DirectorySeparatorChar.ToString();
+
+        if (!roots.Contains(separatorAsRoot))
+            roots.Add(separatorAsRoot);
+
         var verifiedCount = 0;
 
         foreach (var root in roots)
@@ -40,12 +46,21 @@ public class SystemFolderIdTrimmingTests
             Assert.IsFalse(string.IsNullOrEmpty(id),
                 $"A root folder's ID must never be trimmed down to nothing. Root: '{root}'");
 
-            Assert.IsTrue(Path.IsPathRooted(id),
-                $"A root folder's ID must still be a rooted path after trimming. Root: '{root}' Trimmed ID: '{id}'");
+            // Only trailing separators may be removed, and nothing else about the ID may move. This relation holds on
+            // every platform without assuming how the current platform spells or classifies a root (drive-relative drive
+            // letters, UNC shares, or a bare separator), which is exactly what the fix deliberately left alone.
+            Assert.IsTrue(
+                root.StartsWith(id, StringComparison.Ordinal) &&
+                root.Substring(id.Length).All(c => c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar),
+                $"A folder ID must be its path with nothing but trailing separators removed. Root: '{root}' Trimmed ID: '{id}'");
 
             var alternateSeparatorRoot = root.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-            if (Directory.Exists(alternateSeparatorRoot))
+            // A root made entirely of separators keeps the spelling it was built with, because trimming it would erase the
+            // ID rather than shorten it; its alternate-separator spelling is therefore a different ID for the same folder.
+            var rootIsSeparatorsOnly = root.All(c => c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar);
+
+            if (!rootIsSeparatorsOnly && Directory.Exists(alternateSeparatorRoot))
                 Assert.AreEqual(id, new SystemFolder(alternateSeparatorRoot).Id,
                     $"A root folder's ID must not depend on the separator style it was constructed with. Root: '{alternateSeparatorRoot}'");
         }
@@ -71,3 +86,4 @@ public class SystemFolderIdTrimmingTests
         }
     }
 }
+
